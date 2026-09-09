@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { HelpCircle, Minus, Plus, Sprout } from 'lucide-react'
+import { Minus, Plus } from 'lucide-react'
 
 export function LandingFAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
