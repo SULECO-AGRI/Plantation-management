@@ -333,15 +333,17 @@ h1, h2, h3, h4, h5 {
   border-radius: 8px;
   background: var(--emerald-600);
   color: #ffffff;
+  border: 1.5px solid var(--emerald-600);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  transition: background 0.18s ease;
+  transition: all 0.2s ease;
 }
 .btn--nav:hover {
-  background: var(--emerald-700);
-  color: #ffffff;
+  background: #ffffff;
+  border-color: var(--emerald-600);
+  color: #000000;
 }
 
 .nav-mobile-toggle {
@@ -402,15 +404,17 @@ h1, h2, h3, h4, h5 {
   border-radius: 8px;
   background: var(--emerald-600);
   color: #ffffff;
+  border: 1.5px solid var(--emerald-600);
   display: flex;
   justify-content: center;
   align-items: center;
   text-decoration: none;
-  transition: background 0.18s ease;
+  transition: all 0.2s ease;
 }
 .btn--nav-mobile:hover {
-  background: var(--emerald-700);
-  color: #ffffff;
+  background: #ffffff;
+  border-color: var(--emerald-600);
+  color: #000000;
 }
 
 /* ==========================================================================
