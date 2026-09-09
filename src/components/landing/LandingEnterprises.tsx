@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, Compass, Layers, Shield, Sparkles, Sprout, Trees } from 'lucide-react'
+import { ArrowUpRight, Compass, Layers, Sprout, Trees } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function LandingEnterprises() {
@@ -32,8 +32,6 @@ export function LandingEnterprises() {
   return (
     <section id="operations" className="section section--enterprises">
       <div className="section-container">
-        <span className="section-eyebrow">Our Plantation Operations</span>
-
         <div className="enterprises-grid">
           {/* Left Column: Title + Big Image Card */}
           <div className="enterprises-left">
@@ -54,17 +52,13 @@ export function LandingEnterprises() {
             </div>
           </div>
 
-          {/* Right Column: Intro + Button + 4 Row Items */}
+          {/* Right Column: Intro + 4 Row Items */}
           <div className="enterprises-right">
             <div className="enterprises-right__header">
               <p>
                 Weddamulle Estate harmonizes century-old agronomic expertise with digital GIS spatial
                 mapping to sustainably cultivate world-class Ceylon tea commodities.
               </p>
-              <Link to="/map" className="btn btn--primary btn--sm">
-                <span>Explore Estate Map</span>
-                <Sparkles size={14} />
-              </Link>
             </div>
 
             <div className="enterprises-list">
