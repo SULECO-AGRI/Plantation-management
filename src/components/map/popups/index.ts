@@ -1,0 +1,1 @@
+export { FeatureDetailPanel } from './FeatureDetailPanel'

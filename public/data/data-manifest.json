@@ -1,0 +1,18 @@
+{
+  "estate": "Weddamulle",
+  "coordinateReferenceSystem": "WGS84 / geographic longitude-latitude",
+  "sources": [
+    { "type": "uploaded-geojson", "file": "Division.geojson", "featureCount": 5 },
+    { "type": "uploaded-geojson", "file": "Ramboda_Fields.geojson", "featureCount": 42 },
+    { "type": "uploaded-geojson", "file": "Wewandon_Fileds.geojson", "featureCount": 26 },
+    { "type": "uploaded-geojson", "file": "Lilliesland_Fields.geojson", "featureCount": 28 },
+    { "type": "uploaded-geojson", "file": "Camnethan_Fields.geojson", "featureCount": 58 },
+    { "type": "uploaded-geojson", "file": "Weddamulla_Fields.geojson", "featureCount": 64 },
+    { "type": "visigeo", "url": "https://weddemulle-estate.visigeo.com/", "tilePattern": "/rgb/{z}/{x}/{y}.png" }
+  ],
+  "notes": [
+    "No external operational platform datasets are used.",
+    "The field typo Wewandon_Fileds.geojson is preserved because it is the uploaded source filename.",
+    "UI labels may clarify units, but source attributes are not fabricated or rewritten."
+  ]
+}
