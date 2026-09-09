@@ -39,9 +39,7 @@ export function LandingFAQ() {
     <section id="faq" className="section section--faq">
       <div className="section-container section-container--narrow">
         <div className="section-header-center">
-          <span className="section-eyebrow">
-            FAQ <Sprout size={14} className="inline-icon" />
-          </span>
+
           <h2 className="section-title section-title--center">
             Frequently Asked Questions
           </h2>
@@ -49,6 +47,7 @@ export function LandingFAQ() {
 
         <div className="faq-accordion">
           {faqs.map((faq, idx) => {
+
             const isOpen = openIndex === idx
             return (
               <div
