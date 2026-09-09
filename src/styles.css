@@ -1823,10 +1823,11 @@ h1, h2, h3, h4, h5 {
   overflow-wrap: anywhere;
 }
 
-.supervisor-field {
-  color: #8a9892 !important;
-  font-style: italic;
+.supervisor-field,
+.field-placeholder {
+  color: #9ab0a6 !important;
   font-weight: 500 !important;
+  letter-spacing: 0.05em;
 }
 
 .map-source-badge {
