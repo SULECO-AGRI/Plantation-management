@@ -22,6 +22,12 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
   const isDivision = kind === 'division'
   const area = getAreaSummary(feature.properties, kind)
   const breakdown = isDivision ? getDivisionBreakdown(feature.properties) : null
+  const cleanLayerLabel = layerLabel
+    ? layerLabel
+        .replace(/\b(fields|field|divisions|division)\b/gi, '')
+        .replace(/^estate\s*$/i, '')
+        .trim()
+    : ''
 
   const entries = Object.entries(feature.properties || {}).filter(
     ([, value]) => value !== null && value !== undefined && value !== '',
@@ -36,7 +42,9 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               {isDivision ? <Layers size={11} /> : <Sprout size={11} />}
               {isDivision ? 'DIVISION' : 'FIELD'}
             </span>
-            <span className="eyebrow eyebrow--light">{layerLabel}</span>
+            {cleanLayerLabel ? (
+              <span className="eyebrow eyebrow--light">{cleanLayerLabel}</span>
+            ) : null}
           </div>
           <h2>{featureTitle(feature, kind)}</h2>
           <p>{featureSubtitle(feature, kind)}</p>
