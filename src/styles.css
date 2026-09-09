@@ -1769,27 +1769,10 @@ h1, h2, h3, h4, h5 {
   overflow-wrap: anywhere;
 }
 
-.source-note {
-  margin-top: 18px;
-  padding: 14px;
-  background: #f7faf8;
-  border: 1px solid #e2eae5;
-  border-radius: 8px;
-}
-.source-note strong { font-size: 11px; }
-.source-note p {
-  margin: 5px 0 10px;
-  color: #76857f;
-  font-size: 10px;
-  line-height: 1.6;
-}
-.source-note a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #287256;
-  font-size: 10px;
-  font-weight: 800;
+.supervisor-field {
+  color: #8a9892 !important;
+  font-style: italic;
+  font-weight: 500 !important;
 }
 
 .map-source-badge {

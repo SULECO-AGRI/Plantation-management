@@ -1,5 +1,4 @@
-import { ExternalLink, Layers, MapPinned, PieChart, Ruler, Sprout, X } from 'lucide-react'
-import { VISIGEO_ROOT } from '../../../data/layers'
+import { Layers, MapPinned, PieChart, Ruler, Sprout, User, X } from 'lucide-react'
 import {
   featureSubtitle,
   featureTitle,
@@ -114,13 +113,16 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
           </div>
         )}
 
-        {/* Full Property Attributes */}
+        {/* Details List */}
         <div className="attribute-heading">
-          <span>Dataset attributes</span>
-          <small>{entries.length} properties</small>
+          <span>Details</span>
         </div>
 
         <dl className="attribute-list">
+          <div>
+            <dt>Supervisor</dt>
+            <dd className="supervisor-field">—</dd>
+          </div>
           {entries.map(([key, value]) => (
             <div key={key}>
               <dt>{humanizePropertyKey(key)}</dt>
@@ -128,17 +130,6 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             </div>
           ))}
         </dl>
-
-        <div className="source-note">
-          <strong>Source integrity</strong>
-          <p>
-            Attributes parsed directly from the verified Weddamulle {isDivision ? 'division' : 'field'} GeoJSON dataset.
-            No properties are fabricated.
-          </p>
-          <a href={VISIGEO_ROOT} target="_blank" rel="noreferrer">
-            Open supplied VisiGeo estate source <ExternalLink size={14} />
-          </a>
-        </div>
       </div>
     </aside>
   )
