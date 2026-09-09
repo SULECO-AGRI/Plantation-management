@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowUpRight, Compass, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function LandingNav() {
@@ -26,10 +26,8 @@ export function LandingNav() {
           </div>
 
           <div className="nav-actions">
-            <Link to="/map" className="btn btn--primary btn--nav">
-              <Compass size={15} />
-              <span>Launch GIS Map</span>
-              <ArrowUpRight size={14} className="btn-arrow" />
+            <Link to="/map" className="btn btn--nav">
+              Launch GIS Map
             </Link>
 
             <button
@@ -55,10 +53,8 @@ export function LandingNav() {
             <a href="#faq" className="nav-mobile-link" onClick={closeMobileMenu}>FAQ</a>
           </div>
           <div className="nav-mobile-action">
-            <Link to="/map" className="btn btn--primary btn--nav-mobile" onClick={closeMobileMenu}>
-              <Compass size={16} />
-              <span>Launch GIS Map</span>
-              <ArrowUpRight size={15} />
+            <Link to="/map" className="btn btn--nav-mobile" onClick={closeMobileMenu}>
+              Launch GIS Map
             </Link>
           </div>
         </div>
