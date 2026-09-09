@@ -123,7 +123,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             <dt>Supervisor</dt>
             <dd className="field-placeholder">—</dd>
           </div>
-          {isDivision && (
+          {isDivision ? (
             <>
               <div>
                 <dt>Total Workers</dt>
@@ -155,6 +155,53 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               </div>
               <div>
                 <dt>Primary Cultivars</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <dt>Assigned Workers</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Female Harvesters</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Male Sundry / Field Ops</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Planting Type</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Cultivar / Clones</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Year of Planting</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Bush Density / Stand</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Pruning Cycle & Stage</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Plucking Round Cycle</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Monthly Crop Target</dt>
+                <dd className="field-placeholder">—</dd>
+              </div>
+              <div>
+                <dt>Soil Condition / pH</dt>
                 <dd className="field-placeholder">—</dd>
               </div>
             </>
