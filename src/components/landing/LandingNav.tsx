@@ -27,7 +27,7 @@ export function LandingNav() {
 
           <div className="nav-actions">
             <Link to="/map" className="btn btn--nav">
-              Launch GIS Map
+              GIS Map
             </Link>
 
             <button
