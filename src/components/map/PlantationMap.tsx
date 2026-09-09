@@ -508,8 +508,6 @@ export function PlantationMap() {
         searchHits={searchHits}
         onSelectHit={focusSearchHit}
         onResetView={resetView}
-        mode={mode}
-        onModeChange={setMode}
       />
 
       <div className="map-left-rail">

@@ -1,4 +1,4 @@
-import { Crosshair, Layers, Search, Sprout, X } from 'lucide-react'
+import { Crosshair, Search, X } from 'lucide-react'
 import type { SearchHit } from '../../types/gis'
 
 type Props = {
@@ -8,8 +8,6 @@ type Props = {
   searchHits: SearchHit[]
   onSelectHit: (hit: SearchHit) => void
   onResetView: () => void
-  mode: 'division' | 'field'
-  onModeChange: (mode: 'division' | 'field') => void
 }
 
 export function MapTopBar({
@@ -19,34 +17,9 @@ export function MapTopBar({
   searchHits,
   onSelectHit,
   onResetView,
-  mode,
-  onModeChange,
 }: Props) {
   return (
     <div className="map-topbar">
-      <div className="mode-switcher" role="radiogroup" aria-label="Inspection Mode">
-        <button
-          type="button"
-          role="radio"
-          aria-checked={mode === 'field'}
-          className={`mode-btn ${mode === 'field' ? 'mode-btn--active-field' : ''}`}
-          onClick={() => onModeChange('field')}
-          title="Inspect Individual Field Polygons"
-        >
-          <Sprout size={14} /> Field Mode
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={mode === 'division'}
-          className={`mode-btn ${mode === 'division' ? 'mode-btn--active-division' : ''}`}
-          onClick={() => onModeChange('division')}
-          title="Inspect Division Boundaries and Summary"
-        >
-          <Layers size={14} /> Division Mode
-        </button>
-      </div>
-
       <div className="map-search-wrap">
         <Search size={17} />
         <input

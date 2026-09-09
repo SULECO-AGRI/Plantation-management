@@ -1359,57 +1359,11 @@ h1, h2, h3, h4, h5 {
   left: 50%;
   transform: translateX(-50%);
   z-index: 800;
-  width: min(860px, calc(100% - 680px));
-  min-width: 480px;
+  width: min(580px, calc(100% - 680px));
+  min-width: 420px;
   display: flex;
   gap: 10px;
   align-items: center;
-}
-
-.mode-switcher {
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(202, 214, 206, 0.9);
-  box-shadow: 0 12px 34px rgba(24, 54, 42, 0.16);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  padding: 4px;
-  gap: 4px;
-  height: 46px;
-}
-
-.mode-btn {
-  height: 38px;
-  padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: #4b6257;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-.mode-btn:hover {
-  background: #eef5f1;
-  color: #162c23;
-}
-.mode-btn--active-division {
-  background: var(--gold-600) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 14px rgba(177, 140, 49, 0.35);
-}
-.mode-btn--active-field {
-  background: var(--emerald-600) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 14px rgba(31, 107, 82, 0.35);
 }
 
 .map-search-wrap {
