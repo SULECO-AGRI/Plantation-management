@@ -1,4 +1,5 @@
-import { Layers, MapPinned, PieChart, Ruler, Sprout, X } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronDown, Database, Layers, MapPinned, PieChart, Ruler, Sprout, Users, X } from 'lucide-react'
 import {
   featureSubtitle,
   featureTitle,
@@ -16,7 +17,17 @@ type Props = {
 }
 
 export function FeatureDetailPanel({ selection, onClose }: Props) {
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
+    workforce: true,
+    agronomy: true,
+    gis: true,
+  })
+
   if (!selection || !selection.feature) return null
+
+  const toggleCategory = (cat: string) => {
+    setOpenCategories((prev) => ({ ...prev, [cat]: !prev[cat] }))
+  }
 
   const { feature, kind, layerLabel, center } = selection
   const isDivision = kind === 'division'
@@ -121,106 +132,169 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
           </div>
         )}
 
-        {/* Details List */}
-        <div className="attribute-heading">
-          <span>Details</span>
-        </div>
+        {/* Categorized Dropdown Sections */}
+        <div className="panel-categories">
+          {/* 1. Workforce & Supervision Dropdown */}
+          <div className="category-dropdown">
+            <button
+              type="button"
+              className="category-dropdown__header"
+              onClick={() => toggleCategory('workforce')}
+              aria-expanded={openCategories.workforce}
+            >
+              <span>
+                <Users size={13} />
+                Workforce &amp; Supervision
+              </span>
+              <ChevronDown
+                size={15}
+                className={`category-chevron ${openCategories.workforce ? 'category-chevron--open' : ''}`}
+              />
+            </button>
 
-        <dl className="attribute-list">
-          <div>
-            <dt>Supervisor</dt>
-            <dd className="field-placeholder">—</dd>
+            {openCategories.workforce && (
+              <div className="category-dropdown__content">
+                <dl className="attribute-list">
+                  <div>
+                    <dt>Supervisor</dt>
+                    <dd className="field-placeholder">—</dd>
+                  </div>
+                  <div>
+                    <dt>{isDivision ? 'Total Workers' : 'Assigned Workers'}</dt>
+                    <dd className="field-placeholder">—</dd>
+                  </div>
+                  <div>
+                    <dt>{isDivision ? 'Female Workers' : 'Female Harvesters'}</dt>
+                    <dd className="field-placeholder">—</dd>
+                  </div>
+                  <div>
+                    <dt>{isDivision ? 'Male Workers' : 'Male Sundry / Field Ops'}</dt>
+                    <dd className="field-placeholder">—</dd>
+                  </div>
+                </dl>
+              </div>
+            )}
           </div>
-          {isDivision ? (
-            <>
-              <div>
-                <dt>Total Workers</dt>
-                <dd className="field-placeholder">—</dd>
+
+          {/* 2. Agronomy & Operations Dropdown */}
+          <div className="category-dropdown">
+            <button
+              type="button"
+              className="category-dropdown__header"
+              onClick={() => toggleCategory('agronomy')}
+              aria-expanded={openCategories.agronomy}
+            >
+              <span>
+                <Sprout size={13} />
+                Agronomy &amp; Operations
+              </span>
+              <ChevronDown
+                size={15}
+                className={`category-chevron ${openCategories.agronomy ? 'category-chevron--open' : ''}`}
+              />
+            </button>
+
+            {openCategories.agronomy && (
+              <div className="category-dropdown__content">
+                <dl className="attribute-list">
+                  {isDivision ? (
+                    <>
+                      <div>
+                        <dt>Active Fields</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Elevation Profile</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Monthly Crop Target</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Plucking Round Cycle</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Primary Cultivars</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <dt>Planting Type</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Cultivar / Clones</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Year of Planting</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Bush Density / Stand</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Pruning Cycle &amp; Stage</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Plucking Round Cycle</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Monthly Crop Target</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                      <div>
+                        <dt>Soil Condition / pH</dt>
+                        <dd className="field-placeholder">—</dd>
+                      </div>
+                    </>
+                  )}
+                </dl>
               </div>
-              <div>
-                <dt>Female Workers</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Male Workers</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Active Fields</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Elevation Profile</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Monthly Crop Target</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Plucking Round Cycle</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Primary Cultivars</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <dt>Assigned Workers</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Female Harvesters</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Male Sundry / Field Ops</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Planting Type</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Cultivar / Clones</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Year of Planting</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Bush Density / Stand</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Pruning Cycle & Stage</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Plucking Round Cycle</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Monthly Crop Target</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-              <div>
-                <dt>Soil Condition / pH</dt>
-                <dd className="field-placeholder">—</dd>
-              </div>
-            </>
-          )}
-          {entries.map(([key, value]) => (
-            <div key={key}>
-              <dt>{humanizePropertyKey(key)}</dt>
-              <dd>{formatPropertyValue(key, value)}</dd>
+            )}
+          </div>
+
+          {/* 3. GIS & Dataset Attributes Dropdown */}
+          {entries.length > 0 && (
+            <div className="category-dropdown">
+              <button
+                type="button"
+                className="category-dropdown__header"
+                onClick={() => toggleCategory('gis')}
+                aria-expanded={openCategories.gis}
+              >
+                <span>
+                  <Database size={13} />
+                  GIS &amp; Dataset Attributes
+                </span>
+                <ChevronDown
+                  size={15}
+                  className={`category-chevron ${openCategories.gis ? 'category-chevron--open' : ''}`}
+                />
+              </button>
+
+              {openCategories.gis && (
+                <div className="category-dropdown__content">
+                  <dl className="attribute-list">
+                    {entries.map(([key, value]) => (
+                      <div key={key}>
+                        <dt>{humanizePropertyKey(key)}</dt>
+                        <dd>{formatPropertyValue(key, value)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
             </div>
-          ))}
-        </dl>
+          )}
+        </div>
       </div>
     </aside>
   )
