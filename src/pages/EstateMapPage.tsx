@@ -6,8 +6,8 @@ export function EstateMapPage() {
   return (
     <main className="estate-page">
       <header className="estate-header">
-        <Link to="/" className="brand brand--dark">
-          <span>
+        <Link to="/" className="nav-brand">
+          <span className="nav-brand__text">
             <strong>Plantation Management</strong>
           </span>
         </Link>
