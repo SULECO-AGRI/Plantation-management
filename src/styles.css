@@ -1687,6 +1687,60 @@ h1, h2, h3, h4, h5 {
   font-size: 10px;
 }
 
+.workforce-section {
+  margin-bottom: 18px;
+  padding: 16px;
+  background: #f4f8f5;
+  border: 1px solid #dbe7df;
+  border-radius: 10px;
+}
+
+.workforce-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.workforce-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e1ebe4;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.workforce-card small {
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #62776e;
+}
+
+.workforce-card strong {
+  font-size: 18px;
+  font-weight: 900;
+  color: #142820;
+  line-height: 1.1;
+}
+
+.workforce-card em {
+  font-style: normal;
+  font-size: 9.5px;
+  color: #7a8e85;
+}
+
+.workforce-card--female {
+  border-left: 3.5px solid #10b981;
+}
+
+.workforce-card--male {
+  border-left: 3.5px solid #0284c7;
+}
+
 .landuse-section {
   margin-bottom: 20px;
   padding: 16px;

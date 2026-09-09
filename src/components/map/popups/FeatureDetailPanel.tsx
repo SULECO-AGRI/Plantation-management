@@ -1,4 +1,4 @@
-import { Layers, MapPinned, PieChart, Ruler, Sprout, User, X } from 'lucide-react'
+import { Layers, MapPinned, PieChart, Ruler, Sprout, Users, X } from 'lucide-react'
 import {
   featureSubtitle,
   featureTitle,
@@ -6,7 +6,9 @@ import {
   formatPropertyValue,
   getAreaSummary,
   getDivisionBreakdown,
+  getDivisionOperationalInfo,
   humanizePropertyKey,
+  numeric,
 } from '../../../utils/gisUtils'
 import type { SelectedEstateFeature } from '../../../types/gis'
 
@@ -22,6 +24,9 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
   const isDivision = kind === 'division'
   const area = getAreaSummary(feature.properties, kind)
   const breakdown = isDivision ? getDivisionBreakdown(feature.properties) : null
+  const divisionName = String(feature.properties?.Name || featureTitle(feature, kind))
+  const divisionAreaAcres = numeric(feature.properties?.Area)
+  const ops = isDivision ? getDivisionOperationalInfo(divisionName, divisionAreaAcres) : null
 
   const entries = Object.entries(feature.properties || {}).filter(
     ([, value]) => value !== null && value !== undefined && value !== '',
@@ -74,13 +79,41 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
           </article>
         </div>
 
+        {/* Division Workforce Stats */}
+        {isDivision && ops && (
+          <div className="workforce-section">
+            <div className="attribute-heading">
+              <span><Users size={13} /> Workforce Distribution</span>
+              <span className="share-pill">{ops.totalWorkers} Active Workers</span>
+            </div>
+
+            <div className="workforce-grid">
+              <div className="workforce-card workforce-card--female">
+                <div className="workforce-card__head">
+                  <small>Female (Harvesting)</small>
+                </div>
+                <strong>{ops.femaleWorkers}</strong>
+                <em>{ops.femalePct}% of division force</em>
+              </div>
+
+              <div className="workforce-card workforce-card--male">
+                <div className="workforce-card__head">
+                  <small>Male (Field Ops & Transport)</small>
+                </div>
+                <strong>{ops.maleWorkers}</strong>
+                <em>{ops.malePct}% of division force</em>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Division-specific Land Use & Estate Share Breakdown */}
         {isDivision && breakdown && (
           <div className="landuse-section">
             <div className="attribute-heading">
               <span><PieChart size={13} /> Land Use & Allocation</span>
               {breakdown.estateSharePct !== undefined && (
-                <span className="share-pill">{breakdown.estateSharePct}% of Estate</span>
+                <span className="share-pill">{formatNumber(breakdown.estateSharePct, 2)}% of Estate</span>
               )}
             </div>
 
@@ -121,8 +154,32 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
         <dl className="attribute-list">
           <div>
             <dt>Supervisor</dt>
-            <dd className="supervisor-field">—</dd>
+            <dd className="supervisor-field">&nbsp;</dd>
           </div>
+          {isDivision && ops && (
+            <>
+              <div>
+                <dt>Active Fields</dt>
+                <dd>{ops.fieldsCount} Fields</dd>
+              </div>
+              <div>
+                <dt>Elevation Range</dt>
+                <dd>{ops.elevation}</dd>
+              </div>
+              <div>
+                <dt>Monthly Crop Target</dt>
+                <dd>{ops.monthlyCropTarget}</dd>
+              </div>
+              <div>
+                <dt>Plucking Round</dt>
+                <dd>{ops.pluckingRound}</dd>
+              </div>
+              <div>
+                <dt>Primary Cultivars</dt>
+                <dd>{ops.primaryCultivar}</dd>
+              </div>
+            </>
+          )}
           {entries.map(([key, value]) => (
             <div key={key}>
               <dt>{humanizePropertyKey(key)}</dt>

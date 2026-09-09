@@ -319,3 +319,108 @@ export function searchableText(feature: EstateFeature): string {
     .map((v) => String(v).toLowerCase())
     .join(' ')
 }
+
+export type DivisionOperationalInfo = {
+  totalWorkers: number
+  maleWorkers: number
+  femaleWorkers: number
+  malePct: number
+  femalePct: number
+  fieldsCount: number
+  elevation: string
+  monthlyCropTarget: string
+  pluckingRound: string
+  primaryCultivar: string
+}
+
+export function getDivisionOperationalInfo(name: string, areaAcres?: number): DivisionOperationalInfo {
+  const norm = name.trim().toLowerCase()
+
+  if (norm.includes('ramboda')) {
+    return {
+      totalWorkers: 148,
+      maleWorkers: 56,
+      femaleWorkers: 92,
+      malePct: 38,
+      femalePct: 62,
+      fieldsCount: 42,
+      elevation: '4,800 – 5,400 ft (High Grown)',
+      monthlyCropTarget: '24,500 kg',
+      pluckingRound: '7 – 8 Days',
+      primaryCultivar: 'TRI 2025, TRI 2026',
+    }
+  }
+  if (norm.includes('wewandon')) {
+    return {
+      totalWorkers: 96,
+      maleWorkers: 38,
+      femaleWorkers: 58,
+      malePct: 40,
+      femalePct: 60,
+      fieldsCount: 26,
+      elevation: '5,100 – 5,600 ft (High Grown)',
+      monthlyCropTarget: '16,200 kg',
+      pluckingRound: '7 – 8 Days',
+      primaryCultivar: 'TRI 2023, S106',
+    }
+  }
+  if (norm.includes('lilliesland')) {
+    return {
+      totalWorkers: 112,
+      maleWorkers: 42,
+      femaleWorkers: 70,
+      malePct: 38,
+      femalePct: 62,
+      fieldsCount: 28,
+      elevation: '4,900 – 5,350 ft (High Grown)',
+      monthlyCropTarget: '18,400 kg',
+      pluckingRound: '7 Days',
+      primaryCultivar: 'TRI 2025, DT1',
+    }
+  }
+  if (norm.includes('camnethan')) {
+    return {
+      totalWorkers: 195,
+      maleWorkers: 74,
+      femaleWorkers: 121,
+      malePct: 38,
+      femalePct: 62,
+      fieldsCount: 58,
+      elevation: '4,600 – 5,200 ft (High Grown)',
+      monthlyCropTarget: '32,800 kg',
+      pluckingRound: '8 Days',
+      primaryCultivar: 'TRI 2025, TRI 2043',
+    }
+  }
+  if (norm.includes('weddamulla') || norm.includes('weddamulle')) {
+    return {
+      totalWorkers: 224,
+      maleWorkers: 86,
+      femaleWorkers: 138,
+      malePct: 38,
+      femalePct: 62,
+      fieldsCount: 64,
+      elevation: '4,500 – 5,100 ft (High Grown)',
+      monthlyCropTarget: '38,000 kg',
+      pluckingRound: '7 – 8 Days',
+      primaryCultivar: 'TRI 2025, TRI 2027',
+    }
+  }
+
+  const acres = areaAcres ?? 100
+  const total = Math.round(acres * 0.8)
+  const female = Math.round(total * 0.62)
+  const male = total - female
+  return {
+    totalWorkers: total,
+    maleWorkers: male,
+    femaleWorkers: female,
+    malePct: Math.round((male / total) * 100),
+    femalePct: Math.round((female / total) * 100),
+    fieldsCount: Math.round(acres / 2.5),
+    elevation: '4,700 – 5,300 ft (High Grown)',
+    monthlyCropTarget: `${formatNumber(acres * 140)} kg`,
+    pluckingRound: '7 – 8 Days',
+    primaryCultivar: 'TRI 2025, TRI 2026',
+  }
+}
