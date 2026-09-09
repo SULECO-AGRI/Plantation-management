@@ -55,7 +55,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     url: '/data/Division.geojson',
     color: '#e9c96f',
     fillColor: '#b18c31',
-    defaultVisible: true,
+    defaultVisible: false,
   },
   {
     key: 'rambodaFields',
@@ -65,7 +65,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     url: '/data/Ramboda_Fields.geojson',
     color: '#7dd3b0',
     fillColor: '#2b8c67',
-    defaultVisible: true,
+    defaultVisible: false,
   },
   {
     key: 'wewandonFields',
@@ -75,7 +75,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     url: '/data/Wewandon_Fileds.geojson',
     color: '#93c5fd',
     fillColor: '#3b82f6',
-    defaultVisible: true,
+    defaultVisible: false,
   },
   {
     key: 'lillieslandFields',
@@ -85,7 +85,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     url: '/data/Lilliesland_Fields.geojson',
     color: '#f9a8d4',
     fillColor: '#db2777',
-    defaultVisible: true,
+    defaultVisible: false,
   },
   {
     key: 'camnethanFields',
@@ -95,7 +95,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     url: '/data/Camnethan_Fields.geojson',
     color: '#fdba74',
     fillColor: '#ea580c',
-    defaultVisible: true,
+    defaultVisible: false,
   },
   {
     key: 'weddamullaFields',
@@ -105,7 +105,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     url: '/data/Weddamulla_Fields.geojson',
     color: '#c4b5fd',
     fillColor: '#7c3aed',
-    defaultVisible: true,
+    defaultVisible: false,
   },
 ]
 

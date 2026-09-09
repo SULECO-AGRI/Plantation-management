@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Image, Layers3, RotateCcw } from 'lucide-react'
+import { Image, Layers3, RotateCcw } from 'lucide-react'
 import { ESTATE_LAYERS } from '../../../data/layers'
 import type { LayerKey } from '../../../types/gis'
 
@@ -34,7 +34,7 @@ export function LayerController({
         </button>
       </div>
 
-      <button className="layer-row" type="button" onClick={onToggleImagery}>
+      <button className="layer-row" type="button" onClick={onToggleImagery} aria-label="Toggle VisiGeo imagery">
         <span className="layer-swatch layer-swatch--imagery"><Image size={14} /></span>
         <span className="layer-copy">
           <strong>VisiGeo imagery</strong>
@@ -42,7 +42,12 @@ export function LayerController({
             {imageryStatus === 'loading' ? 'Checking tiles' : imageryStatus === 'ready' ? 'Weddamulle source' : 'Source unavailable'}
           </small>
         </span>
-        {imageryVisible ? <Eye size={17} /> : <EyeOff size={17} />}
+        <span
+          className={`layer-toggle-switch ${imageryVisible ? 'layer-toggle-switch--active' : ''}`}
+          aria-hidden="true"
+        >
+          <span className="layer-toggle-switch__thumb" />
+        </span>
       </button>
 
       <div className="layer-divider" />
@@ -53,6 +58,7 @@ export function LayerController({
           type="button"
           key={layer.key}
           onClick={() => onToggleLayer(layer.key)}
+          aria-label={`Toggle ${layer.shortLabel}`}
         >
           <span
             className="layer-swatch"
@@ -62,7 +68,12 @@ export function LayerController({
             <strong>{layer.shortLabel}</strong>
             <small>Field polygons · clickable</small>
           </span>
-          {visibility[layer.key] ? <Eye size={17} /> : <EyeOff size={17} />}
+          <span
+            className={`layer-toggle-switch ${visibility[layer.key] ? 'layer-toggle-switch--active' : ''}`}
+            aria-hidden="true"
+          >
+            <span className="layer-toggle-switch__thumb" />
+          </span>
         </button>
       ))}
 
@@ -74,6 +85,7 @@ export function LayerController({
           type="button"
           key={layer.key}
           onClick={() => onToggleLayer(layer.key)}
+          aria-label={`Toggle ${layer.shortLabel}`}
         >
           <span
             className="layer-swatch"
@@ -83,7 +95,12 @@ export function LayerController({
             <strong>{layer.shortLabel}</strong>
             <small>{visibility[layer.key] ? 'Division boundaries · inspectable' : 'Division layer hidden'}</small>
           </span>
-          {visibility[layer.key] ? <Eye size={17} /> : <EyeOff size={17} />}
+          <span
+            className={`layer-toggle-switch ${visibility[layer.key] ? 'layer-toggle-switch--active' : ''}`}
+            aria-hidden="true"
+          >
+            <span className="layer-toggle-switch__thumb" />
+          </span>
         </button>
       ))}
     </section>
