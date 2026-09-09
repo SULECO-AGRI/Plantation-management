@@ -12,7 +12,6 @@ export function EstateMapPage() {
           </span>
         </Link>
         <div className="estate-header__right">
-          <span className="dataset-pill">Uploaded GIS · 5 divisions · 218 fields</span>
           <Link to="/" className="back-link"><ArrowLeft size={15} /> Overview</Link>
         </div>
       </header>

@@ -50,6 +50,31 @@ export function LayerController({
         </span>
       </button>
 
+      {divisionLayers.map((layer) => (
+        <button
+          className="layer-row"
+          type="button"
+          key={layer.key}
+          onClick={() => onToggleLayer(layer.key)}
+          aria-label={`Toggle ${layer.shortLabel}`}
+        >
+          <span
+            className="layer-swatch"
+            style={{ borderColor: layer.color, background: layer.fillColor }}
+          />
+          <span className="layer-copy">
+            <strong>{layer.shortLabel}</strong>
+            <small>{visibility[layer.key] ? 'Division boundaries · inspectable' : 'Division layer hidden'}</small>
+          </span>
+          <span
+            className={`layer-toggle-switch ${visibility[layer.key] ? 'layer-toggle-switch--active' : ''}`}
+            aria-hidden="true"
+          >
+            <span className="layer-toggle-switch__thumb" />
+          </span>
+        </button>
+      ))}
+
       <div className="layer-divider" />
 
       {fieldLayers.map((layer) => (
@@ -67,33 +92,6 @@ export function LayerController({
           <span className="layer-copy">
             <strong>{layer.shortLabel}</strong>
             <small>Field polygons · clickable</small>
-          </span>
-          <span
-            className={`layer-toggle-switch ${visibility[layer.key] ? 'layer-toggle-switch--active' : ''}`}
-            aria-hidden="true"
-          >
-            <span className="layer-toggle-switch__thumb" />
-          </span>
-        </button>
-      ))}
-
-      <div className="layer-divider" />
-
-      {divisionLayers.map((layer) => (
-        <button
-          className="layer-row"
-          type="button"
-          key={layer.key}
-          onClick={() => onToggleLayer(layer.key)}
-          aria-label={`Toggle ${layer.shortLabel}`}
-        >
-          <span
-            className="layer-swatch"
-            style={{ borderColor: layer.color, background: layer.fillColor }}
-          />
-          <span className="layer-copy">
-            <strong>{layer.shortLabel}</strong>
-            <small>{visibility[layer.key] ? 'Division boundaries · inspectable' : 'Division layer hidden'}</small>
           </span>
           <span
             className={`layer-toggle-switch ${visibility[layer.key] ? 'layer-toggle-switch--active' : ''}`}
