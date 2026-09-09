@@ -1,6 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
+  --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   
@@ -323,24 +324,26 @@ h1, h2, h3, h4, h5 {
 }
 
 .hero-title {
-  font-size: clamp(38px, 4.8vw, 68px);
-  font-weight: 900;
-  line-height: 1.12;
-  letter-spacing: -0.04em;
+  font-family: var(--font-display), var(--font-heading);
+  font-size: clamp(36px, 4.4vw, 60px);
+  font-weight: 750;
+  line-height: 1.18;
+  letter-spacing: -0.028em;
   color: var(--text-main);
-  max-width: 1020px;
+  max-width: 980px;
   margin-bottom: 24px;
 }
 
 .hero-highlight-word {
   position: relative;
   display: inline-block;
-  background: linear-gradient(135deg, #185e48 0%, #10b981 55%, #059669 100%);
+  font-family: var(--font-display), var(--font-heading);
+  font-weight: 800;
+  background: linear-gradient(135deg, #12553f 0%, #10b981 60%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   color: transparent;
-  font-weight: 900;
   padding: 0 4px;
 }
 

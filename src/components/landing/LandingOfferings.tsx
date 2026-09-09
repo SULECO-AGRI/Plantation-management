@@ -25,9 +25,8 @@ export function LandingOfferings() {
       <div className="section-container">
         {/* Eyebrow & Title */}
         <div className="section-header-center">
-          <span className="section-eyebrow">Why Choose Us <Sprout size={14} className="inline-icon" /></span>
           <h2 className="section-title section-title--center">
-            Comprehensive Agricultural Offerings
+            Agricultural Offerings
           </h2>
         </div>
 

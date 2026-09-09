@@ -36,16 +36,16 @@ export function LandingAbout() {
           <div className="about-header-left">
             <h2 className="section-title">
               Cultivating a Future of <br />
-              Sustainable Agriculture <Sparkles size={22} className="inline-icon" />
+              Sustainable Agriculture
             </h2>
           </div>
 
           <div className="about-header-right">
             <p>
-              Weddamulle Plantation spans five micro-climatic divisions across the mist-shrouded
+              Weddamulle Plantation spans five micro climatic divisions across the mist shrouded
               highlands of Sri Lanka. By pairing generational estate craftsmanship with high-resolution
               orthophoto GIS mapping, we ensure ecological soil conservation, optimal fertilizer regimes,
-              and sustainable high-elevation Ceylon tea production.
+              and sustainable high elevation Ceylon tea production.
             </p>
             <Link to="/map" className="link-arrow">
               <span>Explore GIS Field Analytics</span>
