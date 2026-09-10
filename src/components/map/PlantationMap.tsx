@@ -25,14 +25,17 @@ import type {
   EstateFeature,
   EstateFeatureCollection,
   EstateLayerConfig,
+  ImageryBaseLayerId,
   LayerKey,
   RasterLayerId,
   SearchHit,
   SelectedEstateFeature,
 } from '../../types/gis'
+import { BaseMapSwitcher } from './BaseMapSwitcher'
 import { LayerController } from './layers/LayerController'
 import { FeatureDetailPanel } from './popups/FeatureDetailPanel'
 import { MapTopBar } from './MapTopBar'
+import { MapDrawToolbar } from './draw/MapDrawToolbar'
 
 type LoadedVectorLayer = {
   config: EstateLayerConfig
@@ -107,7 +110,8 @@ export function PlantationMap() {
   const activeSelectedPathRef = useRef<L.Path | null>(null)
 
   // State
-  const [baseMap, setBaseMap] = useState<BaseMapId>(INITIAL_BASEMAP)
+  const [activeBaseLayer, setActiveBaseLayer] = useState<ImageryBaseLayerId>('rgb')
+  const [baseMap, setBaseMap] = useState<BaseMapId>('osm')
   const baseMapRef = useRef(baseMap)
   baseMapRef.current = baseMap
 
@@ -118,6 +122,10 @@ export function PlantationMap() {
   const [vectorVisibility, setVectorVisibility] = useState<Record<LayerKey, boolean>>(INITIAL_VECTOR_VISIBILITY)
   const vectorVisibilityRef = useRef(vectorVisibility)
   vectorVisibilityRef.current = vectorVisibility
+
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null)
+  const drawnItemsRef = useRef<L.FeatureGroup | null>(null)
+  const [drawnItemsGroup, setDrawnItemsGroup] = useState<L.FeatureGroup | null>(null)
 
   const [imageryStatus, setImageryStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [selection, setSelection] = useState<SelectedEstateFeature | null>(null)
@@ -312,6 +320,13 @@ export function PlantationMap() {
 
     map.setView([7.05894, 80.70995], 15)
     mapRef.current = map
+
+    // 0. User Drawing Feature Group
+    const drawnItems = new L.FeatureGroup()
+    map.addLayer(drawnItems)
+    drawnItemsRef.current = drawnItems
+    setDrawnItemsGroup(drawnItems)
+    setMapInstance(map)
 
     // 1. Base Map Tile Layers
     const osmOption = BASE_MAP_OPTIONS.find((o) => o.id === 'osm')!
@@ -522,6 +537,9 @@ export function PlantationMap() {
       map.off('click', handleMapClick)
       map.remove()
       mapRef.current = null
+      drawnItemsRef.current = null
+      setDrawnItemsGroup(null)
+      setMapInstance(null)
       baseMapTileLayersRef.current = {}
       visigeoGroupRef.current = null
       rasterTileLayersRef.current = {}
@@ -530,26 +548,33 @@ export function PlantationMap() {
     }
   }, [])
 
-  // Dynamic Base Map Switching
-  const handleSelectBaseMap = (nextBaseMap: BaseMapId) => {
+  // Dynamic Base Layer Selection (Bottom-Left Switcher)
+  const handleSelectBaseLayer = (nextId: ImageryBaseLayerId) => {
     const map = mapRef.current
-    if (!map || nextBaseMap === baseMap) return
+    if (!map) return
 
-    const currentLayer = baseMapTileLayersRef.current[baseMap]
-    const nextLayer = baseMapTileLayersRef.current[nextBaseMap]
+    setActiveBaseLayer(nextId)
 
-    if (currentLayer && map.hasLayer(currentLayer)) {
-      map.removeLayer(currentLayer)
+    const osmLayer = baseMapTileLayersRef.current.osm
+    const satLayer = baseMapTileLayersRef.current.googleSatellite
+    const visigeoGroup = visigeoGroupRef.current
+
+    if (nextId === 'rgb') {
+      if (satLayer && map.hasLayer(satLayer)) map.removeLayer(satLayer)
+      if (osmLayer && !map.hasLayer(osmLayer)) map.addLayer(osmLayer)
+      if (visigeoGroup && !map.hasLayer(visigeoGroup)) map.addLayer(visigeoGroup)
+      setBaseMap('osm')
+      setRasterVisibility((prev) => ({ ...prev, visigeo: true }))
+    } else if (nextId === 'googleSatellite') {
+      if (osmLayer && map.hasLayer(osmLayer)) map.removeLayer(osmLayer)
+      if (satLayer && !map.hasLayer(satLayer)) map.addLayer(satLayer)
+      if (visigeoGroup && !map.hasLayer(visigeoGroup)) map.addLayer(visigeoGroup)
+      setBaseMap('googleSatellite')
+      setRasterVisibility((prev) => ({ ...prev, visigeo: true }))
     }
-
-    if (nextLayer) {
-      map.addLayer(nextLayer)
-    }
-
-    setBaseMap(nextBaseMap)
   }
 
-  // Toggle Raster Layers
+  // Toggle Thematic Raster Analysis Layers
   const handleToggleRaster = (id: RasterLayerId) => {
     const map = mapRef.current
     if (!map) return
@@ -617,28 +642,21 @@ export function PlantationMap() {
     const map = mapRef.current
     if (!map) return
 
-    // 1. Reset Base Map
-    if (baseMap !== INITIAL_BASEMAP) {
-      handleSelectBaseMap(INITIAL_BASEMAP)
-    }
+    // 1. Reset Base Layer to RGB
+    handleSelectBaseLayer('rgb')
 
-    // 2. Reset Rasters
+    // 2. Reset Thematic Rasters (CHM, Slope, Landuse to false)
     Object.entries(INITIAL_RASTER_VISIBILITY).forEach(([rawId, defaultVal]) => {
       const id = rawId as RasterLayerId
-      if (rasterVisibility[id] !== defaultVal) {
-        if (id === 'visigeo') {
-          if (defaultVal) visigeoGroupRef.current?.addTo(map)
-          else visigeoGroupRef.current?.removeFrom(map)
-        } else {
-          const layer = rasterTileLayersRef.current[id]
-          if (defaultVal) layer?.addTo(map)
-          else layer?.removeFrom(map)
-        }
+      if (id !== 'visigeo') {
+        const layer = rasterTileLayersRef.current[id]
+        if (defaultVal) layer?.addTo(map)
+        else layer?.removeFrom(map)
       }
     })
     setRasterVisibility(INITIAL_RASTER_VISIBILITY)
 
-    // 3. Reset Vector Layers
+    // 3. Reset Vector Layers (all false)
     Object.entries(INITIAL_VECTOR_VISIBILITY).forEach(([rawKey, defaultVal]) => {
       const key = rawKey as LayerKey
       const loaded = loadedVectorLayersRef.current[key]
@@ -724,18 +742,26 @@ export function PlantationMap() {
         onResetView={resetView}
       />
 
-      <div className="map-left-rail">
+      <div className="map-top-left-rail">
         <LayerController
-          baseMap={baseMap}
-          onSelectBaseMap={handleSelectBaseMap}
           rasterVisibility={rasterVisibility}
           onToggleRaster={handleToggleRaster}
           vectorVisibility={vectorVisibility}
           onToggleVector={handleToggleVector}
-          imageryStatus={imageryStatus}
           onResetLayersToDefault={handleResetLayersToDefault}
         />
       </div>
+
+      <MapDrawToolbar
+        map={mapInstance}
+        drawnItems={drawnItemsGroup}
+        isDetailOpen={Boolean(selection)}
+      />
+
+      <BaseMapSwitcher
+        activeBaseLayer={activeBaseLayer}
+        onSelectBaseLayer={handleSelectBaseLayer}
+      />
 
       <FeatureDetailPanel selection={selection} onClose={handleCloseSelection} />
 
@@ -743,7 +769,7 @@ export function PlantationMap() {
 
       <div className="map-source-badge">
         <span>GIS</span>
-        Weddamulle Plantation · {baseMap === 'osm' ? 'OpenStreetMap' : 'Google Satellite'} · Terrain & Field Overlays
+        Weddamulle Plantation · {activeBaseLayer === 'googleSatellite' ? 'Satellite Imagery + Weddamulle Ortho' : 'Street Map + RGB Ortho'}
       </div>
     </div>
   )

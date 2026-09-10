@@ -1,6 +1,7 @@
 import type {
   BaseMapId,
   EstateLayerConfig,
+  ImageryBaseLayerId,
   LayerKey,
   RasterLayerId,
   RasterOverlayConfig,
@@ -31,6 +32,29 @@ export const BASE_MAP_OPTIONS: Array<{
       attribution: '&copy; Google / Maxar Technologies',
     },
   ]
+
+export const IMAGERY_BASE_LAYER_OPTIONS: Array<{
+  id: ImageryBaseLayerId
+  label: string
+  shortLabel: string
+  subtitle: string
+  thumbnailType: 'satellite' | 'rgb'
+}> = [
+  {
+    id: 'rgb',
+    label: 'RGB Orthomosaic',
+    shortLabel: 'RGB Ortho',
+    subtitle: 'Weddamulle + Street Map',
+    thumbnailType: 'rgb',
+  },
+  {
+    id: 'googleSatellite',
+    label: 'Satellite + Weddamulle',
+    shortLabel: 'Satellite',
+    subtitle: 'Weddamulle + Satellite',
+    thumbnailType: 'satellite',
+  },
+]
 
 /**
  * Root of the supplied Weddemulle VisiGeo site.
@@ -72,9 +96,9 @@ export const VISIGEO_IMAGERY_LAYERS = [
 export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
   {
     id: 'visigeo',
-    label: 'VisiGeo Imagery (Areas 01-04)',
-    shortLabel: 'Drone Imagery',
-    description: 'Weddamulle orthophoto mosaic (Areas 01-04)',
+    label: 'VisiGeo RGB Imagery (Areas 01-04)',
+    shortLabel: 'RGB',
+    description: 'Weddamulle orthophoto RGB mosaic (Areas 01-04)',
     urlTemplate: `${VISIGEO_ROOT}/rgb/Area%2001/{z}/{x}/{y}.png`,
     category: 'terrain',
     defaultVisible: true,
@@ -123,6 +147,10 @@ export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
     type: 'raster-tile',
   },
 ]
+
+export const ANALYSIS_RASTER_LAYERS: RasterOverlayConfig[] = TERRAIN_RASTER_LAYERS.filter(
+  (layer) => layer.id !== 'visigeo',
+)
 
 /**
  * Infrastructure & Hydrology Vector Layers

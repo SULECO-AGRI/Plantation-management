@@ -45,6 +45,7 @@ export type EstateFeatureCollection = {
 }
 
 export type BaseMapId = 'osm' | 'googleSatellite'
+export type ImageryBaseLayerId = 'rgb' | 'googleSatellite'
 
 export type RasterLayerId =
   | 'visigeo'
