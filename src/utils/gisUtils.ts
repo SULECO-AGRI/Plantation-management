@@ -74,6 +74,12 @@ export function acresToHectares(acres: number): number {
 export function featureTitle(feature: EstateFeature | null | undefined, kind: LayerKind): string {
   if (!feature || !feature.properties) return 'Unknown Feature'
   const p = feature.properties
+  if (kind === 'boundary') {
+    return 'Weddamulle Estate Boundary'
+  }
+  if (kind === 'infrastructure') {
+    return text(p.Name) || text(p.Type) || (p.OBJECTID ? `Infrastructure #${p.OBJECTID}` : 'Estate Infrastructure')
+  }
   if (kind === 'division') {
     return text(p.Name) || `Division ${text(p.ID) || text(p.OBJECTID) || ''}`.trim() || 'Division'
   }
@@ -86,6 +92,12 @@ export function featureTitle(feature: EstateFeature | null | undefined, kind: La
 export function featureSubtitle(feature: EstateFeature | null | undefined, kind: LayerKind): string {
   if (!feature || !feature.properties) return 'Estate feature'
   const p = feature.properties
+  if (kind === 'boundary') {
+    return 'Outer plantation perimeter'
+  }
+  if (kind === 'infrastructure') {
+    return text(p.Type) || 'Infrastructure asset'
+  }
   if (kind === 'field') {
     const div = text(p.Division)
     return div ? `Division ${div}` : 'Estate field'

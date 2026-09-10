@@ -1,27 +1,47 @@
-import type { EstateLayerConfig, LayerKey } from '../types/gis'
+import type {
+  BaseMapId,
+  EstateLayerConfig,
+  LayerKey,
+  RasterLayerId,
+  RasterOverlayConfig,
+} from '../types/gis'
 
 /**
- * Public OpenStreetMap base layer.
- * This stays underneath the Weddemulle VisiGeo orthophoto imagery so that
- * roads, place names, rivers and other geographic context remain visible
- * anywhere the estate imagery has no coverage.
+ * Base Map Tile Layer Providers
  */
 export const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+export const GOOGLE_SATELLITE_TILE_URL = 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+
+export const BASE_MAP_OPTIONS: Array<{
+  id: BaseMapId
+  label: string
+  subtitle: string
+  attribution: string
+}> = [
+    {
+      id: 'osm',
+      label: 'OpenStreetMap',
+      subtitle: 'Standard OSM vector/raster tiles',
+      attribution: '&copy; OpenStreetMap contributors',
+    },
+    {
+      id: 'googleSatellite',
+      label: 'Google Satellite',
+      subtitle: 'High-res satellite raster imagery',
+      attribution: '&copy; Google / Maxar Technologies',
+    },
+  ]
 
 /**
  * Root of the supplied Weddemulle VisiGeo site.
- * You can override it in a local .env file with VITE_VISIGEO_ROOT.
+ * Can be overridden via local environment variable VITE_VISIGEO_ROOT.
  */
 export const VISIGEO_ROOT =
   (import.meta.env.VITE_VISIGEO_ROOT as string | undefined)?.replace(/\/$/, '') ||
   'https://weddemulle-estate.visigeo.com'
 
 /**
- * Weddemulle VisiGeo does not expose one combined /rgb/{z}/{x}/{y}.png layer.
- * The estate orthophoto is split across four separate RGB tile sets.
- *
- * Example observed request:
- * https://weddemulle-estate.visigeo.com/rgb/Area%2001/16/47460/31479.png
+ * Weddemulle VisiGeo orthophoto is partitioned into 4 distinct quadrants/areas.
  */
 export const VISIGEO_IMAGERY_LAYERS = [
   {
@@ -46,69 +66,232 @@ export const VISIGEO_IMAGERY_LAYERS = [
   },
 ] as const
 
-export const ESTATE_LAYERS: EstateLayerConfig[] = [
+/**
+ * Terrain & Remote Sensing Layer Definitions
+ */
+export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
   {
-    key: 'divisions',
-    label: 'Estate divisions',
-    shortLabel: 'Divisions',
-    kind: 'division',
-    url: '/data/Division.geojson',
-    color: '#e9c96f',
-    fillColor: '#b18c31',
-    defaultVisible: false,
+    id: 'visigeo',
+    label: 'VisiGeo Imagery (Areas 01-04)',
+    shortLabel: 'Drone Imagery',
+    description: 'Weddamulle orthophoto mosaic (Areas 01-04)',
+    urlTemplate: `${VISIGEO_ROOT}/rgb/Area%2001/{z}/{x}/{y}.png`,
+    category: 'terrain',
+    defaultVisible: true,
+    minZoom: 13,
+    maxZoom: 22,
+    opacity: 1.0,
+    type: 'visigeo-multi',
   },
   {
-    key: 'rambodaFields',
-    label: 'Ramboda fields',
-    shortLabel: 'Ramboda',
-    kind: 'field',
-    url: '/data/Ramboda_Fields.geojson',
-    color: '#7dd3b0',
-    fillColor: '#2b8c67',
+    id: 'chm',
+    label: 'Canopy Height Model (CHM)',
+    shortLabel: 'Canopy Height',
+    description: 'LiDAR / photogrammetry tea canopy elevation',
+    urlTemplate: `${VISIGEO_ROOT}/rgb/chm/{z}/{x}/{y}.png`,
+    category: 'terrain',
     defaultVisible: false,
+    minZoom: 13,
+    maxZoom: 22,
+    opacity: 0.75,
+    type: 'raster-tile',
   },
   {
-    key: 'wewandonFields',
-    label: 'Wewandon fields',
-    shortLabel: 'Wewandon',
-    kind: 'field',
-    url: '/data/Wewandon_Fileds.geojson',
-    color: '#93c5fd',
-    fillColor: '#3b82f6',
+    id: 'slope',
+    label: 'Slope Gradient Analysis',
+    shortLabel: 'Slope',
+    description: 'Thematic slope gradient and steepness analysis',
+    urlTemplate: `${VISIGEO_ROOT}/rgb/slope2/{z}/{x}/{y}.png`,
+    category: 'terrain',
     defaultVisible: false,
+    minZoom: 13,
+    maxZoom: 22,
+    opacity: 0.7,
+    type: 'raster-tile',
   },
   {
-    key: 'lillieslandFields',
-    label: 'Lilliesland fields',
-    shortLabel: 'Lilliesland',
-    kind: 'field',
-    url: '/data/Lilliesland_Fields.geojson',
-    color: '#f9a8d4',
-    fillColor: '#db2777',
+    id: 'landuse',
+    label: 'Landuse Classification',
+    shortLabel: 'Land Use',
+    description: 'Vegetation, tea crop and ground classification',
+    urlTemplate: `${VISIGEO_ROOT}/rgb/landuse2/{z}/{x}/{y}.png`,
+    category: 'terrain',
     defaultVisible: false,
-  },
-  {
-    key: 'camnethanFields',
-    label: 'Camnethan fields',
-    shortLabel: 'Camnethan',
-    kind: 'field',
-    url: '/data/Camnethan_Fields.geojson',
-    color: '#fdba74',
-    fillColor: '#ea580c',
-    defaultVisible: false,
-  },
-  {
-    key: 'weddamullaFields',
-    label: 'Weddamulla fields',
-    shortLabel: 'Weddamulla',
-    kind: 'field',
-    url: '/data/Weddamulla_Fields.geojson',
-    color: '#c4b5fd',
-    fillColor: '#7c3aed',
-    defaultVisible: false,
+    minZoom: 13,
+    maxZoom: 22,
+    opacity: 0.75,
+    type: 'raster-tile',
   },
 ]
 
-export const INITIAL_LAYER_VISIBILITY: Record<LayerKey, boolean> = Object.fromEntries(
-  ESTATE_LAYERS.map((layer) => [layer.key, layer.defaultVisible]),
+/**
+ * Infrastructure & Hydrology Vector Layers
+ */
+export const INFRASTRUCTURE_LAYERS: EstateLayerConfig[] = [
+  {
+    key: 'boundary',
+    label: 'Estate Boundary',
+    shortLabel: 'Boundary',
+    kind: 'boundary',
+    url: '/data/boundary.geojson',
+    color: '#064e3b',
+    fillColor: '#047857',
+    fillOpacity: 0.05,
+    weight: 2.8,
+    defaultVisible: false,
+    interactive: false,
+    pane: 'boundary_lines',
+  },
+  {
+    key: 'buildings',
+    label: 'Estate Buildings',
+    shortLabel: 'Buildings',
+    kind: 'infrastructure',
+    url: '/data/Buildings.geojson',
+    color: '#334155',
+    fillColor: '#64748b',
+    fillOpacity: 0.8,
+    weight: 1.5,
+    defaultVisible: false,
+    interactive: true,
+    pane: 'buildings',
+  },
+  {
+    key: 'roads',
+    label: 'Estate Road Network',
+    shortLabel: 'Roads',
+    kind: 'infrastructure',
+    url: '/data/Roads.geojson',
+    color: '#e11d48',
+    weight: 2.2,
+    defaultVisible: false,
+    interactive: false,
+    pane: 'road_network',
+  },
+  {
+    key: 'streams',
+    label: 'Streams & Hydrology',
+    shortLabel: 'Streams',
+    kind: 'infrastructure',
+    url: '/data/Streams.geojson',
+    color: '#0284c7',
+    weight: 2.2,
+    defaultVisible: false,
+    interactive: false,
+    pane: 'hydrology_streams',
+  },
+]
+
+/**
+ * Estate & Agricultural Block Vector Layers
+ */
+export const ESTATE_LAYERS: EstateLayerConfig[] = [
+  {
+    key: 'divisions',
+    label: 'Weddamulla Divisions',
+    shortLabel: 'Divisions',
+    kind: 'division',
+    url: '/data/Division.geojson',
+    color: '#047857',
+    fillColor: '#10b981',
+    fillOpacity: 0.12,
+    weight: 2.4,
+    defaultVisible: false,
+    interactive: true,
+    pane: 'divisions',
+  },
+  {
+    key: 'weddamullaFields',
+    label: 'Weddamulla Fields',
+    shortLabel: 'Weddamulla',
+    kind: 'field',
+    url: '/data/Weddamulla_Fields.geojson',
+    color: '#f97316',
+    fillColor: '#fed7aa',
+    fillOpacity: 0.42,
+    weight: 1.6,
+    defaultVisible: false,
+    interactive: true,
+    pane: 'fields',
+  },
+  {
+    key: 'rambodaFields',
+    label: 'Ramboda Fields',
+    shortLabel: 'Ramboda',
+    kind: 'field',
+    url: '/data/Ramboda_Fields.geojson',
+    color: '#ef4444',
+    fillColor: '#fecaca',
+    fillOpacity: 0.42,
+    weight: 1.6,
+    defaultVisible: false,
+    interactive: true,
+    pane: 'fields',
+  },
+  {
+    key: 'camnethanFields',
+    label: 'Camnethan Fields',
+    shortLabel: 'Camnethan',
+    kind: 'field',
+    url: '/data/Camnethan_Fields.geojson',
+    color: '#3b82f6',
+    fillColor: '#bfdbfe',
+    fillOpacity: 0.42,
+    weight: 1.6,
+    defaultVisible: false,
+    interactive: true,
+    pane: 'fields',
+  },
+  {
+    key: 'lillieslandFields',
+    label: 'Lilliesland Fields',
+    shortLabel: 'Lilliesland',
+    kind: 'field',
+    url: '/data/Lilliesland_Fields.geojson',
+    color: '#10b981',
+    fillColor: '#a7f3d0',
+    fillOpacity: 0.42,
+    weight: 1.6,
+    defaultVisible: false,
+    interactive: true,
+    pane: 'fields',
+  },
+  {
+    key: 'wewandonFields',
+    label: 'Wewandon Fields',
+    shortLabel: 'Wewandon',
+    kind: 'field',
+    url: '/data/Wewandon_Fileds.geojson',
+    color: '#a855f7',
+    fillColor: '#e9d5ff',
+    fillOpacity: 0.42,
+    weight: 1.6,
+    defaultVisible: false,
+    interactive: true,
+    pane: 'fields',
+  },
+]
+
+export const ALL_VECTOR_LAYERS: EstateLayerConfig[] = [
+  ...INFRASTRUCTURE_LAYERS,
+  ...ESTATE_LAYERS,
+]
+
+/**
+ * Initial Default Visibility Maps
+ */
+export const INITIAL_BASEMAP: BaseMapId = 'osm'
+
+export const INITIAL_RASTER_VISIBILITY: Record<RasterLayerId, boolean> = {
+  visigeo: true,
+  chm: false,
+  slope: false,
+  landuse: false,
+}
+
+export const INITIAL_VECTOR_VISIBILITY: Record<LayerKey, boolean> = Object.fromEntries(
+  ALL_VECTOR_LAYERS.map((layer) => [layer.key, layer.defaultVisible]),
 ) as Record<LayerKey, boolean>
+
+// Legacy export for backward compatibility
+export const INITIAL_LAYER_VISIBILITY = INITIAL_VECTOR_VISIBILITY

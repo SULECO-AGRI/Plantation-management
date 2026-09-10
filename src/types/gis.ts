@@ -44,15 +44,27 @@ export type EstateFeatureCollection = {
   features: EstateFeature[]
 }
 
-export type LayerKey =
-  | 'divisions'
-  | 'rambodaFields'
-  | 'wewandonFields'
-  | 'lillieslandFields'
-  | 'camnethanFields'
-  | 'weddamullaFields'
+export type BaseMapId = 'osm' | 'googleSatellite'
 
-export type LayerKind = 'division' | 'field'
+export type RasterLayerId =
+  | 'visigeo'
+  | 'chm'
+  | 'slope'
+  | 'landuse'
+
+export type LayerKey =
+  | 'boundary'
+  | 'buildings'
+  | 'roads'
+  | 'streams'
+  | 'divisions'
+  | 'weddamullaFields'
+  | 'rambodaFields'
+  | 'camnethanFields'
+  | 'lillieslandFields'
+  | 'wewandonFields'
+
+export type LayerKind = 'division' | 'field' | 'infrastructure' | 'boundary'
 
 export type EstateLayerConfig = {
   key: LayerKey
@@ -61,8 +73,26 @@ export type EstateLayerConfig = {
   kind: LayerKind
   url: string
   color: string
-  fillColor: string
+  fillColor?: string
+  fillOpacity?: number
   defaultVisible: boolean
+  interactive?: boolean
+  weight?: number
+  pane?: string
+}
+
+export type RasterOverlayConfig = {
+  id: RasterLayerId
+  label: string
+  shortLabel: string
+  description: string
+  urlTemplate: string
+  category: 'terrain'
+  defaultVisible: boolean
+  minZoom?: number
+  maxZoom?: number
+  opacity?: number
+  type: 'visigeo-multi' | 'raster-tile'
 }
 
 export type SelectedEstateFeature = {

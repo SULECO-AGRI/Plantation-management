@@ -1,9 +1,15 @@
 import L from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  ALL_VECTOR_LAYERS,
+  BASE_MAP_OPTIONS,
   ESTATE_LAYERS,
-  INITIAL_LAYER_VISIBILITY,
+  GOOGLE_SATELLITE_TILE_URL,
+  INITIAL_BASEMAP,
+  INITIAL_RASTER_VISIBILITY,
+  INITIAL_VECTOR_VISIBILITY,
   OSM_TILE_URL,
+  TERRAIN_RASTER_LAYERS,
   VISIGEO_IMAGERY_LAYERS,
 } from '../../data/layers'
 import {
@@ -15,10 +21,12 @@ import {
   searchableText,
 } from '../../utils/gisUtils'
 import type {
+  BaseMapId,
   EstateFeature,
   EstateFeatureCollection,
   EstateLayerConfig,
   LayerKey,
+  RasterLayerId,
   SearchHit,
   SelectedEstateFeature,
 } from '../../types/gis'
@@ -26,64 +34,107 @@ import { LayerController } from './layers/LayerController'
 import { FeatureDetailPanel } from './popups/FeatureDetailPanel'
 import { MapTopBar } from './MapTopBar'
 
-type LoadedLayer = {
+type LoadedVectorLayer = {
   config: EstateLayerConfig
   data: EstateFeatureCollection
   layer: L.GeoJSON
 }
 
-function getLayerDefaultStyle(config: EstateLayerConfig, currentMode: 'division' | 'field'): L.PathOptions {
+function getVectorDefaultStyle(config: EstateLayerConfig, isDivisionActive: boolean): L.PathOptions {
+  if (config.kind === 'boundary') {
+    return {
+      color: config.color,
+      weight: config.weight ?? 2.8,
+      opacity: 0.95,
+      fillColor: config.fillColor,
+      fillOpacity: config.fillOpacity ?? 0.05,
+    }
+  }
+
+  if (config.kind === 'infrastructure') {
+    if (config.key === 'roads' || config.key === 'streams') {
+      return {
+        color: config.color,
+        weight: config.weight ?? 2.2,
+        opacity: 0.92,
+      }
+    }
+    if (config.key === 'buildings') {
+      return {
+        color: config.color,
+        weight: config.weight ?? 1.5,
+        opacity: 0.95,
+        fillColor: config.fillColor,
+        fillOpacity: config.fillOpacity ?? 0.8,
+      }
+    }
+  }
+
   if (config.kind === 'division') {
     return {
       color: config.color,
-      weight: currentMode === 'division' ? 3.0 : 1.8,
-      opacity: currentMode === 'division' ? 0.95 : 0.65,
+      weight: isDivisionActive ? 2.8 : 1.6,
+      opacity: 0.95,
       fillColor: config.fillColor,
-      fillOpacity: currentMode === 'division' ? 0.12 : 0.03,
+      fillOpacity: isDivisionActive ? 0.14 : 0.04,
     }
   }
+
+  // Field plots
   return {
     color: config.color,
-    weight: currentMode === 'field' ? 1.4 : 1.0,
-    opacity: currentMode === 'field' ? 0.95 : 0.70,
+    weight: 1.4,
+    opacity: 0.90,
     fillColor: config.fillColor,
-    fillOpacity: currentMode === 'field' ? 0.28 : 0.12,
+    fillOpacity: isDivisionActive ? 0.18 : 0.42,
   }
 }
 
 export function PlantationMap() {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
-  const osmRef = useRef<L.TileLayer | null>(null)
-  const imageryGroupRef = useRef<L.LayerGroup | null>(null)
-  const loadedRef = useRef<Partial<Record<LayerKey, LoadedLayer>>>({})
+
+  // Base map layers
+  const baseMapTileLayersRef = useRef<Partial<Record<BaseMapId, L.TileLayer>>>({})
+
+  // Raster overlay tile layers
+  const rasterTileLayersRef = useRef<Partial<Record<RasterLayerId, L.TileLayer>>>({})
+  const visigeoGroupRef = useRef<L.LayerGroup | null>(null)
+
+  // Vector GeoJSON layers
+  const loadedVectorLayersRef = useRef<Partial<Record<LayerKey, LoadedVectorLayer>>>({})
   const estateBoundsRef = useRef<L.LatLngBounds | null>(null)
-  const activeSelectedLayerRef = useRef<L.Path | null>(null)
+  const activeSelectedPathRef = useRef<L.Path | null>(null)
 
-  const [mode, setMode] = useState<'division' | 'field'>('field')
-  const modeRef = useRef<'division' | 'field'>('field')
-  modeRef.current = mode
+  // State
+  const [baseMap, setBaseMap] = useState<BaseMapId>(INITIAL_BASEMAP)
+  const baseMapRef = useRef(baseMap)
+  baseMapRef.current = baseMap
 
-  const [visibility, setVisibility] = useState(INITIAL_LAYER_VISIBILITY)
-  const visibilityRef = useRef(visibility)
-  visibilityRef.current = visibility
+  const [rasterVisibility, setRasterVisibility] = useState<Record<RasterLayerId, boolean>>(INITIAL_RASTER_VISIBILITY)
+  const rasterVisibilityRef = useRef(rasterVisibility)
+  rasterVisibilityRef.current = rasterVisibility
 
-  const [imageryVisible, setImageryVisible] = useState(true)
+  const [vectorVisibility, setVectorVisibility] = useState<Record<LayerKey, boolean>>(INITIAL_VECTOR_VISIBILITY)
+  const vectorVisibilityRef = useRef(vectorVisibility)
+  vectorVisibilityRef.current = vectorVisibility
+
   const [imageryStatus, setImageryStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [selection, setSelection] = useState<SelectedEstateFeature | null>(null)
   const [loadError, setLoadError] = useState('')
   const [query, setQuery] = useState('')
-  const [allFeatures, setAllFeatures] = useState<Array<{ layerKey: LayerKey; feature: EstateFeature }>>([])
+  const [allSearchableFeatures, setAllSearchableFeatures] = useState<Array<{ layerKey: LayerKey; feature: EstateFeature }>>([])
 
+  // Search filter
   const searchHits = useMemo<SearchHit[]>(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []
 
-    return allFeatures
+    return allSearchableFeatures
       .filter(({ feature }) => searchableText(feature).includes(q))
       .slice(0, 12)
       .map(({ layerKey, feature }, index) => {
-        const config = ESTATE_LAYERS.find((item) => item.key === layerKey)
+        const config = ALL_VECTOR_LAYERS.find((item) => item.key === layerKey)
         const kind = config?.kind ?? 'field'
         const shortLabel = config?.shortLabel ?? 'Feature'
         return {
@@ -94,20 +145,20 @@ export function PlantationMap() {
           feature,
         }
       })
-  }, [allFeatures, query])
+  }, [allSearchableFeatures, query])
 
-  // Clear any active polygon selection highlight
+  // Clear active selection highlight
   const clearSelectionHighlight = () => {
-    if (activeSelectedLayerRef.current) {
-      const prevLayer = activeSelectedLayerRef.current
-      const config = ESTATE_LAYERS.find((c) => {
-        const loaded = loadedRef.current[c.key]
-        return loaded?.layer.hasLayer(prevLayer)
+    if (activeSelectedPathRef.current) {
+      const prevPath = activeSelectedPathRef.current
+      const config = ALL_VECTOR_LAYERS.find((c) => {
+        const loaded = loadedVectorLayersRef.current[c.key]
+        return loaded?.layer.hasLayer(prevPath)
       })
       if (config) {
-        prevLayer.setStyle(getLayerDefaultStyle(config, modeRef.current))
+        prevPath.setStyle(getVectorDefaultStyle(config, vectorVisibilityRef.current.divisions))
       }
-      activeSelectedLayerRef.current = null
+      activeSelectedPathRef.current = null
     }
   }
 
@@ -116,16 +167,35 @@ export function PlantationMap() {
     setSelection(null)
   }
 
-  // Find feature by point coordinates across loaded GeoJSON layers
+  // Find feature by geographic coordinate
   const findFeatureAtPoint = (
     latlng: { lat: number; lng: number },
     targetKind: 'field' | 'division' | 'any',
   ): { layerKey: LayerKey; config: EstateLayerConfig; feature: EstateFeature; pathLayer?: L.Path } | null => {
-    // 1. Check field layers if requested
+    // 1. If division layer is ON and target is division (or any), check division first
+    if (vectorVisibilityRef.current.divisions && (targetKind === 'division' || targetKind === 'any')) {
+      const loaded = loadedVectorLayersRef.current.divisions
+      if (loaded && loaded.data?.features) {
+        for (const feature of loaded.data.features) {
+          if (isPointInFeature(latlng, feature)) {
+            let matchedPath: L.Path | undefined
+            loaded.layer.eachLayer((candidate) => {
+              const raw = (candidate as L.Layer & { feature?: EstateFeature }).feature
+              if (raw === feature && candidate instanceof L.Path) {
+                matchedPath = candidate
+              }
+            })
+            return { layerKey: 'divisions', config: loaded.config, feature, pathLayer: matchedPath }
+          }
+        }
+      }
+    }
+
+    // 2. Check field layers
     if (targetKind === 'field' || targetKind === 'any') {
       for (const config of ESTATE_LAYERS) {
-        if (config.kind === 'field' && visibilityRef.current[config.key]) {
-          const loaded = loadedRef.current[config.key]
+        if (config.kind === 'field' && vectorVisibilityRef.current[config.key]) {
+          const loaded = loadedVectorLayersRef.current[config.key]
           if (loaded && loaded.data?.features) {
             for (const feature of loaded.data.features) {
               if (isPointInFeature(latlng, feature)) {
@@ -144,38 +214,17 @@ export function PlantationMap() {
       }
     }
 
-    // 2. Check division layer if requested
-    if (targetKind === 'division' || targetKind === 'any') {
-      if (visibilityRef.current.divisions) {
-        const loaded = loadedRef.current.divisions
-        if (loaded && loaded.data?.features) {
-          for (const feature of loaded.data.features) {
-            if (isPointInFeature(latlng, feature)) {
-              let matchedPath: L.Path | undefined
-              loaded.layer.eachLayer((candidate) => {
-                const raw = (candidate as L.Layer & { feature?: EstateFeature }).feature
-                if (raw === feature && candidate instanceof L.Path) {
-                  matchedPath = candidate
-                }
-              })
-              return { layerKey: 'divisions', config: loaded.config, feature, pathLayer: matchedPath }
-            }
-          }
-        }
-      }
-    }
-
     return null
   }
 
-  // Select and highlight a feature polygon and show the single inspector panel
+  // Select and highlight a feature
   const selectFeature = (
     layerKey: LayerKey,
     feature: EstateFeature,
     leafletLayer?: L.Layer | null,
   ) => {
-    const config = ESTATE_LAYERS.find((c) => c.key === layerKey)
-    if (!config) return
+    const config = ALL_VECTOR_LAYERS.find((c) => c.key === layerKey)
+    if (!config || !config.interactive) return
 
     clearSelectionHighlight()
 
@@ -183,7 +232,7 @@ export function PlantationMap() {
     if (leafletLayer instanceof L.Path) {
       chosenPath = leafletLayer
     } else {
-      const loaded = loadedRef.current[layerKey]
+      const loaded = loadedVectorLayersRef.current[layerKey]
       if (loaded) {
         loaded.layer.eachLayer((child) => {
           const raw = (child as L.Layer & { feature?: EstateFeature }).feature
@@ -195,16 +244,20 @@ export function PlantationMap() {
     }
 
     if (chosenPath) {
+      activeSelectedPathRef.current = chosenPath
       chosenPath.setStyle({
-        weight: config.kind === 'division' ? 4.0 : 3.0,
-        fillOpacity: config.kind === 'division' ? 0.35 : 0.45,
+        color: '#ffffff',
+        weight: 3.6,
+        fillColor: '#ffffff',
+        fillOpacity: 0.48,
+        dashArray: undefined,
       })
-      activeSelectedLayerRef.current = chosenPath
+      chosenPath.bringToFront()
     }
 
-    const center = chosenPath ? getFeatureCenter(chosenPath) : getFeatureCenter(null)
+    const center = chosenPath ? getFeatureCenter(chosenPath) : { lat: 7.05894, lng: 80.70995 }
     setSelection({
-      layerKey: config.key,
+      layerKey,
       layerLabel: config.label,
       kind: config.kind,
       feature,
@@ -212,67 +265,94 @@ export function PlantationMap() {
     })
   }
 
-  // Update styles dynamically when inspection mode or layer visibility changes
+  // Initialize Leaflet Map
   useEffect(() => {
-    ESTATE_LAYERS.forEach((config) => {
-      const loaded = loadedRef.current[config.key]
-      if (!loaded) return
+    const container = hostRef.current
+    if (!container) return
 
-      loaded.layer.eachLayer((child) => {
-        if (child instanceof L.Path && child !== activeSelectedLayerRef.current) {
-          child.setStyle(getLayerDefaultStyle(config, mode))
-        }
-      })
-    })
-  }, [mode, visibility])
-
-  useEffect(() => {
-    if (!hostRef.current || mapRef.current) return
-
-    const map = L.map(hostRef.current, {
+    const map = L.map(container, {
       zoomControl: false,
       attributionControl: true,
-      minZoom: 12,
+      minZoom: 10,
       maxZoom: 22,
-      zoomSnap: 0.5,
+      maxBounds: [
+        [6.8, 80.4],
+        [7.3, 81.0],
+      ],
+      maxBoundsViscosity: 0.8,
     })
 
+    // Create custom ordered panes
     map.createPane('basemap')
     map.getPane('basemap')!.style.zIndex = '100'
-    map.createPane('imagery')
-    map.getPane('imagery')!.style.zIndex = '200'
-    // Divisions layer sits at 410, fields sit on top at 420 for direct DOM interaction
-    map.createPane('divisions')
-    map.getPane('divisions')!.style.zIndex = '410'
-    map.createPane('fields')
-    map.getPane('fields')!.style.zIndex = '420'
 
-    // Initial center; fitBounds executes upon GeoJSON loading
+    map.createPane('imagery_raster')
+    map.getPane('imagery_raster')!.style.zIndex = '200'
+
+    map.createPane('analysis_raster')
+    map.getPane('analysis_raster')!.style.zIndex = '250'
+
+    map.createPane('boundary_lines')
+    map.getPane('boundary_lines')!.style.zIndex = '300'
+
+    map.createPane('hydrology_streams')
+    map.getPane('hydrology_streams')!.style.zIndex = '350'
+
+    map.createPane('road_network')
+    map.getPane('road_network')!.style.zIndex = '380'
+
+    map.createPane('buildings')
+    map.getPane('buildings')!.style.zIndex = '390'
+
+    map.createPane('fields')
+    map.getPane('fields')!.style.zIndex = '410'
+
+    map.createPane('divisions')
+    map.getPane('divisions')!.style.zIndex = '420'
+
     map.setView([7.05894, 80.70995], 15)
     mapRef.current = map
 
-    // Base OSM layer
-    const osm = L.tileLayer(OSM_TILE_URL, {
+    // 1. Base Map Tile Layers
+    const osmOption = BASE_MAP_OPTIONS.find((o) => o.id === 'osm')!
+    const satOption = BASE_MAP_OPTIONS.find((o) => o.id === 'googleSatellite')!
+
+    const osmTileLayer = L.tileLayer(OSM_TILE_URL, {
       pane: 'basemap',
       minZoom: 1,
       maxZoom: 22,
       maxNativeZoom: 19,
       keepBuffer: 5,
-      attribution: '&copy; OpenStreetMap contributors',
+      attribution: osmOption.attribution,
     })
-    osm.addTo(map)
-    osmRef.current = osm
 
-    // VisiGeo orthophoto layers
+    const googleSatTileLayer = L.tileLayer(GOOGLE_SATELLITE_TILE_URL, {
+      pane: 'basemap',
+      minZoom: 1,
+      maxZoom: 22,
+      maxNativeZoom: 20,
+      keepBuffer: 5,
+      attribution: satOption.attribution,
+    })
+
+    baseMapTileLayersRef.current = {
+      osm: osmTileLayer,
+      googleSatellite: googleSatTileLayer,
+    }
+
+    if (baseMapRef.current === 'osm') osmTileLayer.addTo(map)
+    else googleSatTileLayer.addTo(map)
+
+    // 2. VisiGeo Multi-area Imagery Group
     let successfulVisiGeoTiles = 0
     const imageryLayers = VISIGEO_IMAGERY_LAYERS.map((source) => {
       const layer = L.tileLayer(source.url, {
-        pane: 'imagery',
-        minZoom: 14,
+        pane: 'imagery_raster',
+        minZoom: 13,
         maxZoom: 22,
         maxNativeZoom: 22,
-        keepBuffer: 5,
-        opacity: 1,
+        keepBuffer: 4,
+        opacity: 1.0,
         attribution: 'Weddamulle imagery · VisiGeo',
       })
 
@@ -284,102 +364,142 @@ export function PlantationMap() {
       return layer
     })
 
-    const imageryGroup = L.layerGroup(imageryLayers)
-    imageryGroup.addTo(map)
-    imageryGroupRef.current = imageryGroup
+    const visigeoGroup = L.layerGroup(imageryLayers)
+    visigeoGroupRef.current = visigeoGroup
+    if (rasterVisibilityRef.current.visigeo) {
+      visigeoGroup.addTo(map)
+    }
 
     const imageryHealthTimer = window.setTimeout(() => {
       if (successfulVisiGeoTiles === 0) setImageryStatus('error')
     }, 5000)
 
+    // 3. Terrain & Analysis Raster Layers (CHM, Slope, Landuse)
+    TERRAIN_RASTER_LAYERS.forEach((rasterConfig) => {
+      if (rasterConfig.type === 'visigeo-multi') return
+
+      const tileLayer = L.tileLayer(rasterConfig.urlTemplate, {
+        pane: 'analysis_raster',
+        minZoom: rasterConfig.minZoom ?? 13,
+        maxZoom: rasterConfig.maxZoom ?? 22,
+        opacity: rasterConfig.opacity ?? 0.75,
+        attribution: `Weddamulle ${rasterConfig.label}`,
+      })
+
+      rasterTileLayersRef.current[rasterConfig.id] = tileLayer
+
+      if (rasterVisibilityRef.current[rasterConfig.id]) {
+        tileLayer.addTo(map)
+      }
+    })
+
     L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-    // Centralized background & spatial click dispatcher
+    // Central Map Click Dispatcher
     const handleMapClick = (event: L.LeafletMouseEvent) => {
-      const currentMode = modeRef.current
-      const primaryKind = currentMode === 'field' ? 'field' : 'division'
-      const secondaryKind = currentMode === 'field' ? 'division' : 'field'
-
-      let hit = findFeatureAtPoint(event.latlng, primaryKind)
-      if (!hit) {
-        hit = findFeatureAtPoint(event.latlng, secondaryKind)
+      // If divisions layer is ON, query division first
+      if (vectorVisibilityRef.current.divisions) {
+        const divisionHit = findFeatureAtPoint(event.latlng, 'division')
+        if (divisionHit) {
+          selectFeature(divisionHit.layerKey, divisionHit.feature, divisionHit.pathLayer)
+          return
+        }
       }
 
-      if (hit) {
-        selectFeature(hit.layerKey, hit.feature, hit.pathLayer)
+      // Otherwise query field plots
+      const fieldHit = findFeatureAtPoint(event.latlng, 'field')
+      if (fieldHit) {
+        selectFeature(fieldHit.layerKey, fieldHit.feature, fieldHit.pathLayer)
       } else {
         handleCloseSelection()
       }
     }
     map.on('click', handleMapClick)
 
+    // 4. Load all Vector GeoJSON Layers
     const controller = new AbortController()
 
     Promise.all(
-      ESTATE_LAYERS.map(async (config) => {
-        const data = await fetchGeoJson(config.url, controller.signal)
-        const layer = L.geoJSON(data as never, {
-          pane: config.kind === 'division' ? 'divisions' : 'fields',
-          style: getLayerDefaultStyle(config, modeRef.current),
-          onEachFeature: (rawFeature, leafletLayer) => {
-            const feature = rawFeature as unknown as EstateFeature
+      ALL_VECTOR_LAYERS.map(async (config) => {
+        try {
+          const data = await fetchGeoJson(config.url, controller.signal)
 
-            // Provide responsive tooltip for quick hover identification
-            leafletLayer.bindTooltip(featureTitle(feature, config.kind), {
-              sticky: true,
-              direction: 'top',
-              className: 'estate-tooltip',
-            })
+          const targetPane = config.pane || (config.kind === 'division' ? 'divisions' : 'fields')
 
-            leafletLayer.on({
-              click: (event: L.LeafletMouseEvent) => {
-                L.DomEvent.stopPropagation(event)
+          const layer = L.geoJSON(data as never, {
+            pane: targetPane,
+            style: getVectorDefaultStyle(config, vectorVisibilityRef.current.divisions),
+            onEachFeature: (rawFeature, leafletLayer) => {
+              const feature = rawFeature as unknown as EstateFeature
 
-                // If in field mode and a division received click, check if a field lies underneath
-                if (config.kind === 'division' && modeRef.current === 'field') {
-                  const fieldHit = findFeatureAtPoint(event.latlng, 'field')
-                  if (fieldHit) {
-                    selectFeature(fieldHit.layerKey, fieldHit.feature, fieldHit.pathLayer)
-                    return
-                  }
-                }
+              if (config.interactive) {
+                leafletLayer.bindTooltip(featureTitle(feature, config.kind), {
+                  sticky: true,
+                  direction: 'top',
+                  className: 'estate-tooltip',
+                })
 
-                selectFeature(config.key, feature, leafletLayer)
-              },
-              mouseover: () => {
-                if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedLayerRef.current) {
-                  leafletLayer.setStyle({
-                    weight: config.kind === 'division' ? 3.5 : 2.4,
-                    fillOpacity: config.kind === 'division' ? 0.25 : 0.40,
-                  })
-                }
-              },
-              mouseout: () => {
-                if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedLayerRef.current) {
-                  leafletLayer.setStyle(getLayerDefaultStyle(config, modeRef.current))
-                }
-              },
-            })
-          },
-        })
+                leafletLayer.on({
+                  click: (event: L.LeafletMouseEvent) => {
+                    L.DomEvent.stopPropagation(event)
 
-        if (INITIAL_LAYER_VISIBILITY[config.key]) layer.addTo(map)
-        loadedRef.current[config.key] = { config, data, layer }
-        return { config, data, layer }
+                    if (config.kind === 'division' && !vectorVisibilityRef.current.divisions) {
+                      const fieldHit = findFeatureAtPoint(event.latlng, 'field')
+                      if (fieldHit) {
+                        selectFeature(fieldHit.layerKey, fieldHit.feature, fieldHit.pathLayer)
+                        return
+                      }
+                    }
+
+                    selectFeature(config.key, feature, leafletLayer)
+                  },
+                  mouseover: () => {
+                    if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedPathRef.current) {
+                      leafletLayer.setStyle({
+                        weight: config.kind === 'division' ? 3.4 : 2.4,
+                        fillOpacity: config.kind === 'division' ? 0.28 : 0.44,
+                      })
+                    }
+                  },
+                  mouseout: () => {
+                    if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedPathRef.current) {
+                      leafletLayer.setStyle(getVectorDefaultStyle(config, vectorVisibilityRef.current.divisions))
+                    }
+                  },
+                })
+              }
+            },
+          })
+
+          if (vectorVisibilityRef.current[config.key]) {
+            layer.addTo(map)
+          }
+
+          loadedVectorLayersRef.current[config.key] = { config, data, layer }
+          return { config, data, layer }
+        } catch (err) {
+          console.warn(`Vector layer ${config.key} failed to load:`, err)
+          return null
+        }
       }),
     )
-      .then((loaded) => {
+      .then((loadedResults) => {
         const bounds = L.latLngBounds([])
-        const features: Array<{ layerKey: LayerKey; feature: EstateFeature }> = []
-        loaded.forEach(({ config, data, layer }) => {
+        const searchableFeatures: Array<{ layerKey: LayerKey; feature: EstateFeature }> = []
+
+        loadedResults.forEach((result) => {
+          if (!result) return
+          const { config, data, layer } = result
+
           if (layer && typeof layer.getBounds === 'function') {
             const layerBounds = layer.getBounds()
             if (layerBounds && layerBounds.isValid()) bounds.extend(layerBounds)
           }
-          if (data && Array.isArray(data.features)) {
+
+          if (data && Array.isArray(data.features) && config.interactive) {
             data.features.forEach((feature) => {
               if (feature && feature.properties) {
-                features.push({ layerKey: config.key, feature })
+                searchableFeatures.push({ layerKey: config.key, feature })
               }
             })
           }
@@ -389,11 +509,11 @@ export function PlantationMap() {
           estateBoundsRef.current = bounds
           map.fitBounds(bounds, { padding: [45, 45], maxZoom: 16 })
         }
-        setAllFeatures(features)
+        setAllSearchableFeatures(searchableFeatures)
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return
-        setLoadError(error instanceof Error ? error.message : 'Failed to load estate GIS data.')
+        setLoadError(error instanceof Error ? error.message : 'Failed to load estate GIS layers.')
       })
 
     return () => {
@@ -402,41 +522,138 @@ export function PlantationMap() {
       map.off('click', handleMapClick)
       map.remove()
       mapRef.current = null
-      osmRef.current = null
-      imageryGroupRef.current = null
-      loadedRef.current = {}
-      activeSelectedLayerRef.current = null
+      baseMapTileLayersRef.current = {}
+      visigeoGroupRef.current = null
+      rasterTileLayersRef.current = {}
+      loadedVectorLayersRef.current = {}
+      activeSelectedPathRef.current = null
     }
   }, [])
 
-  const toggleLayer = (key: LayerKey) => {
+  // Dynamic Base Map Switching
+  const handleSelectBaseMap = (nextBaseMap: BaseMapId) => {
     const map = mapRef.current
-    const loaded = loadedRef.current[key]
-    if (!map || !loaded) return
+    if (!map || nextBaseMap === baseMap) return
 
-    setVisibility((current) => {
+    const currentLayer = baseMapTileLayersRef.current[baseMap]
+    const nextLayer = baseMapTileLayersRef.current[nextBaseMap]
+
+    if (currentLayer && map.hasLayer(currentLayer)) {
+      map.removeLayer(currentLayer)
+    }
+
+    if (nextLayer) {
+      map.addLayer(nextLayer)
+    }
+
+    setBaseMap(nextBaseMap)
+  }
+
+  // Toggle Raster Layers
+  const handleToggleRaster = (id: RasterLayerId) => {
+    const map = mapRef.current
+    if (!map) return
+
+    const nextState = !rasterVisibility[id]
+
+    if (id === 'visigeo') {
+      const visigeoGroup = visigeoGroupRef.current
+      if (visigeoGroup) {
+        if (nextState) visigeoGroup.addTo(map)
+        else visigeoGroup.removeFrom(map)
+      }
+    } else {
+      const tileLayer = rasterTileLayersRef.current[id]
+      if (tileLayer) {
+        if (nextState) tileLayer.addTo(map)
+        else tileLayer.removeFrom(map)
+      }
+    }
+
+    setRasterVisibility((prev) => ({ ...prev, [id]: nextState }))
+  }
+
+  // Toggle Vector Layers
+  const handleToggleVector = (key: LayerKey) => {
+    const map = mapRef.current
+    const loaded = loadedVectorLayersRef.current[key]
+
+    setVectorVisibility((current) => {
       const next = !current[key]
-      if (next) loaded.layer.addTo(map)
-      else {
-        loaded.layer.removeFrom(map)
-        if (selection?.layerKey === key) {
-          handleCloseSelection()
+      if (map && loaded?.layer) {
+        if (next) {
+          if (!map.hasLayer(loaded.layer)) {
+            loaded.layer.addTo(map)
+          }
+        } else {
+          if (map.hasLayer(loaded.layer)) {
+            loaded.layer.removeFrom(map)
+          }
+          if (selection?.layerKey === key) {
+            handleCloseSelection()
+          }
         }
       }
       return { ...current, [key]: next }
     })
   }
 
-  const toggleImagery = () => {
-    const map = mapRef.current
-    const imageryGroup = imageryGroupRef.current
-    if (!map || !imageryGroup) return
+  // Update styles dynamically when Division visibility changes
+  useEffect(() => {
+    ALL_VECTOR_LAYERS.forEach((config) => {
+      const loaded = loadedVectorLayersRef.current[config.key]
+      if (!loaded) return
 
-    setImageryVisible((current) => {
-      if (current) imageryGroup.removeFrom(map)
-      else imageryGroup.addTo(map)
-      return !current
+      loaded.layer.eachLayer((child) => {
+        if (child instanceof L.Path && child !== activeSelectedPathRef.current) {
+          child.setStyle(getVectorDefaultStyle(config, vectorVisibility.divisions))
+        }
+      })
     })
+  }, [vectorVisibility.divisions])
+
+  // Reset layers to baseline configuration
+  const handleResetLayersToDefault = () => {
+    const map = mapRef.current
+    if (!map) return
+
+    // 1. Reset Base Map
+    if (baseMap !== INITIAL_BASEMAP) {
+      handleSelectBaseMap(INITIAL_BASEMAP)
+    }
+
+    // 2. Reset Rasters
+    Object.entries(INITIAL_RASTER_VISIBILITY).forEach(([rawId, defaultVal]) => {
+      const id = rawId as RasterLayerId
+      if (rasterVisibility[id] !== defaultVal) {
+        if (id === 'visigeo') {
+          if (defaultVal) visigeoGroupRef.current?.addTo(map)
+          else visigeoGroupRef.current?.removeFrom(map)
+        } else {
+          const layer = rasterTileLayersRef.current[id]
+          if (defaultVal) layer?.addTo(map)
+          else layer?.removeFrom(map)
+        }
+      }
+    })
+    setRasterVisibility(INITIAL_RASTER_VISIBILITY)
+
+    // 3. Reset Vector Layers
+    Object.entries(INITIAL_VECTOR_VISIBILITY).forEach(([rawKey, defaultVal]) => {
+      const key = rawKey as LayerKey
+      const loaded = loadedVectorLayersRef.current[key]
+      if (loaded) {
+        if (defaultVal && !map.hasLayer(loaded.layer)) loaded.layer.addTo(map)
+        else if (!defaultVal && map.hasLayer(loaded.layer)) loaded.layer.removeFrom(map)
+      }
+    })
+    setVectorVisibility(INITIAL_VECTOR_VISIBILITY)
+
+    // 4. Reset View & Selection
+    if (estateBoundsRef.current?.isValid()) {
+      map.fitBounds(estateBoundsRef.current, { padding: [45, 45], maxZoom: 16 })
+    }
+    handleCloseSelection()
   }
 
   const resetView = () => {
@@ -448,19 +665,16 @@ export function PlantationMap() {
     handleCloseSelection()
   }
 
+  // Search hit focus
   const focusSearchHit = (hit: SearchHit) => {
     const map = mapRef.current
-    const loaded = loadedRef.current[hit.layerKey]
-    const config = ESTATE_LAYERS.find((layer) => layer.key === hit.layerKey)
+    const loaded = loadedVectorLayersRef.current[hit.layerKey]
+    const config = ALL_VECTOR_LAYERS.find((layer) => layer.key === hit.layerKey)
     if (!map || !loaded || !config) return
 
-    // Auto-switch mode based on feature kind
-    if (config.kind === 'field') setMode('field')
-    else setMode('division')
-
-    if (!visibility[hit.layerKey]) {
+    if (!vectorVisibility[hit.layerKey]) {
       loaded.layer.addTo(map)
-      setVisibility((current) => ({ ...current, [hit.layerKey]: true }))
+      setVectorVisibility((current) => ({ ...current, [hit.layerKey]: true }))
     }
 
     clearSelectionHighlight()
@@ -472,9 +686,9 @@ export function PlantationMap() {
       if (candidate instanceof L.Path) {
         candidate.setStyle({
           weight: config.kind === 'division' ? 4.0 : 3.0,
-          fillOpacity: config.kind === 'division' ? 0.35 : 0.45,
+          fillOpacity: config.kind === 'division' ? 0.35 : 0.48,
         })
-        activeSelectedLayerRef.current = candidate
+        activeSelectedPathRef.current = candidate
       }
 
       const center = getFeatureCenter(candidate)
@@ -512,12 +726,14 @@ export function PlantationMap() {
 
       <div className="map-left-rail">
         <LayerController
-          visibility={visibility}
-          imageryVisible={imageryVisible}
+          baseMap={baseMap}
+          onSelectBaseMap={handleSelectBaseMap}
+          rasterVisibility={rasterVisibility}
+          onToggleRaster={handleToggleRaster}
+          vectorVisibility={vectorVisibility}
+          onToggleVector={handleToggleVector}
           imageryStatus={imageryStatus}
-          onToggleLayer={toggleLayer}
-          onToggleImagery={toggleImagery}
-          onResetView={resetView}
+          onResetLayersToDefault={handleResetLayersToDefault}
         />
       </div>
 
@@ -527,7 +743,7 @@ export function PlantationMap() {
 
       <div className="map-source-badge">
         <span>GIS</span>
-        Uploaded Weddamulle estate data · VisiGeo imagery
+        Weddamulle Plantation · {baseMap === 'osm' ? 'OpenStreetMap' : 'Google Satellite'} · Terrain & Field Overlays
       </div>
     </div>
   )

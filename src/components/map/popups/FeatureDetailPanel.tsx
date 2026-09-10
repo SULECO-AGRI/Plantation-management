@@ -35,9 +35,9 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
   const breakdown = isDivision ? getDivisionBreakdown(feature.properties) : null
   const cleanLayerLabel = layerLabel
     ? layerLabel
-        .replace(/\b(fields|field|divisions|division)\b/gi, '')
-        .replace(/^estate\s*$/i, '')
-        .trim()
+      .replace(/\b(fields|field|divisions|division)\b/gi, '')
+      .replace(/^estate\s*$/i, '')
+      .trim()
     : ''
 
   const entries = Object.entries(feature.properties || {}).filter(
