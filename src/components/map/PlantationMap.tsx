@@ -126,6 +126,9 @@ export function PlantationMap() {
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null)
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null)
   const [drawnItemsGroup, setDrawnItemsGroup] = useState<L.FeatureGroup | null>(null)
+  const [isDrawingActive, setIsDrawingActive] = useState(false)
+  const isDrawingActiveRef = useRef(false)
+  isDrawingActiveRef.current = isDrawingActive
 
   const [imageryStatus, setImageryStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [selection, setSelection] = useState<SelectedEstateFeature | null>(null)
@@ -318,6 +321,9 @@ export function PlantationMap() {
     map.createPane('divisions')
     map.getPane('divisions')!.style.zIndex = '420'
 
+    map.createPane('drawn_features')
+    map.getPane('drawn_features')!.style.zIndex = '500'
+
     map.setView([7.05894, 80.70995], 15)
     mapRef.current = map
 
@@ -456,6 +462,7 @@ export function PlantationMap() {
 
                 leafletLayer.on({
                   click: (event: L.LeafletMouseEvent) => {
+                    if (isDrawingActiveRef.current) return
                     L.DomEvent.stopPropagation(event)
 
                     if (config.kind === 'division' && !vectorVisibilityRef.current.divisions) {
@@ -469,6 +476,7 @@ export function PlantationMap() {
                     selectFeature(config.key, feature, leafletLayer)
                   },
                   mouseover: () => {
+                    if (isDrawingActiveRef.current) return
                     if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedPathRef.current) {
                       leafletLayer.setStyle({
                         weight: config.kind === 'division' ? 3.4 : 2.4,
@@ -477,6 +485,7 @@ export function PlantationMap() {
                     }
                   },
                   mouseout: () => {
+                    if (isDrawingActiveRef.current) return
                     if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedPathRef.current) {
                       leafletLayer.setStyle(getVectorDefaultStyle(config, vectorVisibilityRef.current.divisions))
                     }
@@ -756,6 +765,7 @@ export function PlantationMap() {
         map={mapInstance}
         drawnItems={drawnItemsGroup}
         isDetailOpen={Boolean(selection)}
+        onActiveToolChange={(tool) => setIsDrawingActive(Boolean(tool))}
       />
 
       <BaseMapSwitcher

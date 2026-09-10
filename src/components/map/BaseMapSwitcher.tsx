@@ -22,10 +22,6 @@ export function BaseMapSwitcher({ activeBaseLayer, onSelectBaseLayer }: Props) {
       className="basemap-floating-switcher"
       aria-label="Base Imagery and Map Selector"
     >
-      <div className="basemap-floating-switcher__label">
-        <span className="switcher-title">Base Layer</span>
-      </div>
-
       <div className="basemap-floating-switcher__cards" role="radiogroup" aria-label="Base map selection">
         {IMAGERY_BASE_LAYER_OPTIONS.map((option) => {
           const isSelected = activeBaseLayer === option.id

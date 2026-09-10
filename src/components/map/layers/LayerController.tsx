@@ -63,7 +63,7 @@ export function LayerController({
           <Layers size={15} />
         </span>
         <span className="layer-controller-pill__text">
-          <strong>Overlays & Features</strong>
+          <strong>Layers</strong>
           <span className="layer-count-chip">{totalThematicActive} active</span>
         </span>
         <ChevronDown size={14} className="layer-controller-pill__chevron" />
@@ -72,14 +72,13 @@ export function LayerController({
   }
 
   return (
-    <section className="map-card layer-controller-floating" aria-label="Map overlays and feature layers">
+    <section className="map-card layer-controller-floating" aria-label="Map layers and overlays">
       {/* Header */}
       <div className="map-card__header">
         <div className="layer-controller-header__title">
-          <span className="eyebrow">Thematic Layers</span>
           <h2>
             <Layers size={15} />
-            <span>Overlays & Features</span>
+            <span>Layers</span>
             <span className="layer-count-chip">{totalThematicActive} active</span>
           </h2>
         </div>

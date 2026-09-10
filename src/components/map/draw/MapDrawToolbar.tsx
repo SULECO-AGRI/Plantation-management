@@ -3,6 +3,7 @@ import L from 'leaflet'
 import 'leaflet-draw'
 import 'leaflet-draw/dist/leaflet.draw.css'
 import {
+  Check,
   Circle,
   Download,
   Edit3,
@@ -29,9 +30,15 @@ type Props = {
   map: L.Map | null
   drawnItems: L.FeatureGroup | null
   isDetailOpen?: boolean
+  onActiveToolChange?: (tool: DrawToolType) => void
 }
 
-export function MapDrawToolbar({ map, drawnItems, isDetailOpen }: Props) {
+export function MapDrawToolbar({
+  map,
+  drawnItems,
+  isDetailOpen,
+  onActiveToolChange,
+}: Props) {
   const [activeTool, setActiveTool] = useState<DrawToolType>(null)
   const [featureCount, setFeatureCount] = useState<number>(0)
   const activeHandlerRef = useRef<any>(null)
@@ -119,6 +126,7 @@ export function MapDrawToolbar({ map, drawnItems, isDetailOpen }: Props) {
       drawnItems.addLayer(layer)
       updateFeatureCount()
       setActiveTool(null)
+      onActiveToolChange?.(null)
       activeHandlerRef.current = null
     }
 
@@ -160,6 +168,7 @@ export function MapDrawToolbar({ map, drawnItems, isDetailOpen }: Props) {
       activeHandlerRef.current = null
     }
     setActiveTool(null)
+    onActiveToolChange?.(null)
   }
 
   // Trigger drawing tool
@@ -174,6 +183,7 @@ export function MapDrawToolbar({ map, drawnItems, isDetailOpen }: Props) {
     disableCurrentHandler()
 
     const shapeOptions = {
+      pane: 'drawn_features',
       color: '#10b981',
       weight: 3,
       opacity: 0.95,
@@ -185,16 +195,31 @@ export function MapDrawToolbar({ map, drawnItems, isDetailOpen }: Props) {
 
     switch (tool) {
       case 'polyline':
-        handler = new (L.Draw as any).Polyline(map, { shapeOptions })
+        handler = new (L.Draw as any).Polyline(map, {
+          shapeOptions,
+          metric: true,
+        })
         break
       case 'polygon':
-        handler = new (L.Draw as any).Polygon(map, { shapeOptions })
+        handler = new (L.Draw as any).Polygon(map, {
+          allowIntersection: true,
+          showArea: true,
+          metric: true,
+          shapeOptions,
+          guidelineDistance: 15,
+        })
         break
       case 'rectangle':
-        handler = new (L.Draw as any).Rectangle(map, { shapeOptions })
+        handler = new (L.Draw as any).Rectangle(map, {
+          shapeOptions,
+          metric: true,
+        })
         break
       case 'circle':
-        handler = new (L.Draw as any).Circle(map, { shapeOptions })
+        handler = new (L.Draw as any).Circle(map, {
+          shapeOptions,
+          metric: true,
+        })
         break
       case 'marker':
         handler = new (L.Draw as any).Marker(map, {
@@ -236,6 +261,7 @@ export function MapDrawToolbar({ map, drawnItems, isDetailOpen }: Props) {
       handler.enable()
       activeHandlerRef.current = handler
       setActiveTool(tool)
+      onActiveToolChange?.(tool)
     }
   }
 
@@ -372,13 +398,49 @@ export function MapDrawToolbar({ map, drawnItems, isDetailOpen }: Props) {
         </button>
       </div>
 
-      {/* Active Drawing Tool Cancel Bar */}
+      {/* Active Drawing Tool Helper Bar */}
       {activeTool && (
         <div className="draw-active-indicator">
-          <span>Drawing: <strong>{activeTool}</strong></span>
-          <button type="button" onClick={disableCurrentHandler} title="Cancel drawing">
-            <X size={12} />
-          </button>
+          <div className="draw-active-info">
+            <span className="draw-active-title">
+              {activeTool === 'polygon' && 'Click points to draw polygon'}
+              {activeTool === 'rectangle' && 'Click & drag across map'}
+              {activeTool === 'polyline' && 'Click points to draw line'}
+              {activeTool === 'circle' && 'Click & drag for radius'}
+              {activeTool === 'marker' && 'Click on map to place pin'}
+              {activeTool === 'edit' && 'Drag vertices to reshape'}
+              {activeTool === 'delete' && 'Click shapes to delete'}
+            </span>
+          </div>
+          <div className="draw-active-actions">
+            {(activeTool === 'polygon' || activeTool === 'polyline' || activeTool === 'edit' || activeTool === 'delete') && (
+              <button
+                type="button"
+                className="draw-btn-finish"
+                onClick={() => {
+                  if (activeHandlerRef.current) {
+                    if (typeof activeHandlerRef.current.completeShape === 'function') {
+                      activeHandlerRef.current.completeShape()
+                    } else if (typeof activeHandlerRef.current.save === 'function') {
+                      activeHandlerRef.current.save()
+                    }
+                  }
+                  disableCurrentHandler()
+                }}
+                title="Finish and save shape"
+              >
+                <Check size={13} /> Finish
+              </button>
+            )}
+            <button
+              type="button"
+              className="draw-btn-cancel"
+              onClick={disableCurrentHandler}
+              title="Cancel drawing"
+            >
+              <X size={13} />
+            </button>
+          </div>
         </div>
       )}
     </div>
