@@ -29,3 +29,5 @@ Thumbs.db
 
 # Agent caches / scratch
 review-output.txt
+.agents/skills/gstack/gstack/
+
