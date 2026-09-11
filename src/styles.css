@@ -3053,3 +3053,125 @@ h1, h2, h3, h4, h5 {
   border-radius: 3px;
 }
 
+/* ==========================================================================
+   CARTOGRAPHIC FIELD MAP PARCEL LABELS (Exact Match to Survey Sheets)
+   ========================================================================== */
+.leaflet-tooltip.field-map-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #1a1a1a !important;
+  font-family: "Times New Roman", Times, "Georgia", "Baskerville", serif !important;
+  font-weight: 700 !important;
+  font-size: 7.5px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.01em !important;
+  text-align: center !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+  text-shadow:
+    -1px -1px 0 rgba(255, 255, 255, 0.95),
+     1px -1px 0 rgba(255, 255, 255, 0.95),
+    -1px  1px 0 rgba(255, 255, 255, 0.95),
+     1px  1px 0 rgba(255, 255, 255, 0.95),
+     0 0 2px rgba(255, 255, 255, 1) !important;
+}
+
+.leaflet-tooltip.field-map-label::before {
+  display: none !important; /* Hide default leaflet tooltip arrow triangle */
+}
+
+/* Small sub-parcels and narrow strips */
+.leaflet-tooltip.field-map-label-sm {
+  font-size: 5.8px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Extra small / tiny patches */
+.leaflet-tooltip.field-map-label-xs {
+  font-size: 4.8px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Big Cartographic Division Watermark */
+.leaflet-tooltip.division-watermark-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.leaflet-tooltip.division-watermark-tooltip::before {
+  display: none !important;
+}
+
+.division-map-watermark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.division-map-name {
+  font-family: "Times New Roman", Times, "Georgia", "Baskerville", serif;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  color: rgba(30, 41, 59, 0.72);
+  text-transform: uppercase;
+  line-height: 1.15;
+  text-shadow:
+    -1px -1px 0 rgba(255, 255, 255, 0.8),
+     1px -1px 0 rgba(255, 255, 255, 0.8),
+    -1px  1px 0 rgba(255, 255, 255, 0.8),
+     1px  1px 0 rgba(255, 255, 255, 0.8),
+     0 0 8px rgba(255, 255, 255, 0.9);
+}
+
+.division-map-suffix {
+  font-family: "Times New Roman", Times, "Georgia", "Baskerville", serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.38em;
+  color: rgba(30, 41, 59, 0.72);
+  text-transform: uppercase;
+  line-height: 1.15;
+  margin-top: 2px;
+  text-shadow:
+    -1px -1px 0 rgba(255, 255, 255, 0.8),
+     1px -1px 0 rgba(255, 255, 255, 0.8),
+    -1px  1px 0 rgba(255, 255, 255, 0.8),
+     1px  1px 0 rgba(255, 255, 255, 0.8),
+     0 0 8px rgba(255, 255, 255, 0.9);
+}
+
+/* Dark glassmorphic tooltip for infrastructure / estate elements */
+.leaflet-tooltip.estate-tooltip {
+  background: rgba(15, 23, 42, 0.88) !important;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 6px !important;
+  color: #f8fafc !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.leaflet-tooltip.estate-tooltip::before {
+  border-top-color: rgba(15, 23, 42, 0.88) !important;
+}
+
+
+

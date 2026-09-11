@@ -17,8 +17,10 @@ import {
   featureSubtitle,
   featureTitle,
   fetchGeoJson,
+  getDivisionNameParts,
   getFeatureCenter,
   isPointInFeature,
+  numeric,
   searchableText,
 } from '../../utils/gisUtils'
 import type {
@@ -108,12 +110,12 @@ function getVectorFeatureStyle(
     }
   }
 
-  // Field plots
+  // Field plots - very thin light black boundary outline
   const fieldColor = config.fillColor || config.color
   return {
-    color: config.color,
-    weight: 1.2,
-    opacity: 0.90,
+    color: '#2a2a2a',
+    weight: 0.75,
+    opacity: 0.85,
     fillColor: fieldColor,
     fillOpacity: 0.65,
   }
@@ -337,6 +339,11 @@ export function PlantationMap() {
     map.createPane('fields')
     map.getPane('fields')!.style.zIndex = '320'
 
+    // Direct On-Map Field Parcel Labels
+    map.createPane('field_labels')
+    map.getPane('field_labels')!.style.zIndex = '330'
+    map.getPane('field_labels')!.style.pointerEvents = 'none'
+
     // Upper layers: Infrastructure & Hydrology
     map.createPane('hydrology_streams')
     map.getPane('hydrology_streams')!.style.zIndex = '350'
@@ -358,7 +365,7 @@ export function PlantationMap() {
     map.createPane('drawn_features')
     map.getPane('drawn_features')!.style.zIndex = '500'
 
-    map.setView([7.05894, 80.70995], 16)
+    map.setView([7.0545, 80.7115], 15.0)
     mapRef.current = map
 
     // 0. User Drawing Feature Group
@@ -498,7 +505,48 @@ export function PlantationMap() {
                 ;(leafletLayer as L.Path & { _estateFeature?: EstateFeature })._estateFeature = feature
               }
 
-              if (config.interactive) {
+              if (config.kind === 'field') {
+                const fieldNo = String(
+                  feature.properties?.Field_No ||
+                  feature.properties?.Field ||
+                  feature.properties?.OBJECTID ||
+                  ''
+                ).trim()
+
+                if (fieldNo) {
+                  const areaProp = numeric(feature.properties?.Shape_Area)
+                  let sizeClass = ''
+                  if (areaProp !== undefined) {
+                    if (areaProp < 500) sizeClass = 'field-map-label-xs'
+                    else if (areaProp < 3500) sizeClass = 'field-map-label-sm'
+                  } else if (leafletLayer instanceof L.Polygon) {
+                    const b = leafletLayer.getBounds()
+                    const latSpan = b.getNorth() - b.getSouth()
+                    const lngSpan = b.getEast() - b.getWest()
+                    const approxArea = latSpan * lngSpan * 111000 * 111000 * 0.99
+                    if (approxArea < 500) sizeClass = 'field-map-label-xs'
+                    else if (approxArea < 3500) sizeClass = 'field-map-label-sm'
+                  }
+
+                  leafletLayer.bindTooltip(fieldNo, {
+                    permanent: true,
+                    direction: 'center',
+                    className: `field-map-label ${sizeClass}`.trim(),
+                    interactive: false,
+                    pane: 'field_labels',
+                  })
+                }
+              } else if (config.kind === 'division') {
+                const parts = getDivisionNameParts(feature)
+                const html = `<div class="division-map-watermark"><span class="division-map-name">${parts.name}</span><span class="division-map-suffix">${parts.suffix}</span></div>`
+                leafletLayer.bindTooltip(html, {
+                  permanent: true,
+                  direction: 'center',
+                  className: 'division-watermark-tooltip',
+                  interactive: false,
+                  pane: 'divisions',
+                })
+              } else if (config.interactive) {
                 leafletLayer.bindTooltip(featureTitle(feature, config.kind), {
                   sticky: true,
                   direction: 'top',
@@ -580,7 +628,7 @@ export function PlantationMap() {
 
         if (bounds.isValid()) {
           estateBoundsRef.current = bounds
-          map.fitBounds(bounds, { padding: [20, 20], maxZoom: 17 })
+          map.setView([7.0545, 80.7115], 15.0)
         }
         setAllSearchableFeatures(searchableFeatures)
       })
@@ -770,17 +818,14 @@ export function PlantationMap() {
     setVectorVisibility(INITIAL_VECTOR_VISIBILITY)
 
     // 4. Reset View & Selection
-    if (estateBoundsRef.current?.isValid()) {
-      map.fitBounds(estateBoundsRef.current, { padding: [20, 20], maxZoom: 17 })
-    }
+    map.setView([7.0545, 80.7115], 15.0)
     handleCloseSelection()
   }
 
   const resetView = () => {
     const map = mapRef.current
-    const bounds = estateBoundsRef.current
-    if (map && bounds?.isValid()) {
-      map.fitBounds(bounds, { padding: [20, 20], maxZoom: 17 })
+    if (map) {
+      map.setView([7.0545, 80.7115], 15.0)
     }
     handleCloseSelection()
   }
