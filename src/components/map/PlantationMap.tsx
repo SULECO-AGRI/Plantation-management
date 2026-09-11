@@ -435,7 +435,7 @@ export function PlantationMap() {
         pane: 'analysis_raster',
         minZoom: rasterConfig.minZoom ?? 13,
         maxZoom: rasterConfig.maxZoom ?? 22,
-        opacity: rasterConfig.opacity ?? 0.75,
+        opacity: 1.0,
         attribution: `Weddamulle ${rasterConfig.label}`,
       })
 
@@ -625,7 +625,7 @@ export function PlantationMap() {
     }
   }
 
-  // Toggle Thematic Raster Analysis Layers
+  // Toggle Thematic Raster Analysis Layers (Exclusive per analysis layer)
   const handleToggleRaster = (id: RasterLayerId) => {
     const map = mapRef.current
     if (!map) return
@@ -638,15 +638,44 @@ export function PlantationMap() {
         if (nextState) visigeoGroup.addTo(map)
         else visigeoGroup.removeFrom(map)
       }
-    } else {
-      const tileLayer = rasterTileLayersRef.current[id]
-      if (tileLayer) {
-        if (nextState) tileLayer.addTo(map)
-        else tileLayer.removeFrom(map)
-      }
+      setRasterVisibility((prev) => ({ ...prev, visigeo: nextState }))
+      return
     }
 
-    setRasterVisibility((prev) => ({ ...prev, [id]: nextState }))
+    // Analysis rasters: chm, slope, landuse
+    if (nextState) {
+      // Turn off any other active analysis layers so they display separately without overlapping
+      const analysisIds: RasterLayerId[] = ['chm', 'slope', 'landuse']
+      analysisIds.forEach((otherId) => {
+        if (otherId !== id) {
+          const otherLayer = rasterTileLayersRef.current[otherId]
+          if (otherLayer && map.hasLayer(otherLayer)) {
+            map.removeLayer(otherLayer)
+          }
+        }
+      })
+
+      const tileLayer = rasterTileLayersRef.current[id]
+      if (tileLayer) {
+        tileLayer.setOpacity(1.0)
+        if (!map.hasLayer(tileLayer)) {
+          tileLayer.addTo(map)
+        }
+      }
+
+      setRasterVisibility((prev) => ({
+        ...prev,
+        chm: id === 'chm',
+        slope: id === 'slope',
+        landuse: id === 'landuse',
+      }))
+    } else {
+      const tileLayer = rasterTileLayersRef.current[id]
+      if (tileLayer && map.hasLayer(tileLayer)) {
+        map.removeLayer(tileLayer)
+      }
+      setRasterVisibility((prev) => ({ ...prev, [id]: false }))
+    }
   }
 
   // Toggle Vector Layers

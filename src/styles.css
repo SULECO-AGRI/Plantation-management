@@ -2739,9 +2739,44 @@ h1, h2, h3, h4, h5 {
    Cartographic Map Symbology & Legend
    ========================================================================== */
 
-.layer-row-wrap {
+.layer-item-block {
   display: flex;
   flex-direction: column;
+}
+
+.layer-opacity-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px 8px;
+  background: #fbfdfc;
+  border-bottom: 1px solid #eef4f0;
+  animation: fadeIn 0.15s ease;
+}
+
+.layer-opacity-strip__info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  color: #557264;
+  min-width: 68px;
+  flex-shrink: 0;
+}
+
+.layer-opacity-strip__info strong {
+  font-size: 10px;
+  color: #173628;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+.layer-opacity-strip input[type="range"] {
+  flex: 1;
+  height: 4px;
+  accent-color: var(--emerald-600);
+  cursor: pointer;
+  margin: 0;
 }
 
 .layer-swatch--multi {
@@ -2753,19 +2788,6 @@ h1, h2, h3, h4, h5 {
   gap: 0;
 }
 .layer-swatch--multi span {
-  flex: 1;
-  height: 100%;
-}
-
-.layer-minibar {
-  display: flex;
-  height: 4px;
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 0 14px 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-}
-.layer-minibar span {
   flex: 1;
   height: 100%;
 }

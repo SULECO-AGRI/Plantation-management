@@ -117,7 +117,7 @@ export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
     defaultVisible: false,
     minZoom: 13,
     maxZoom: 22,
-    opacity: 0.75,
+    opacity: 1.0,
     type: 'raster-tile',
   },
   {
@@ -130,7 +130,7 @@ export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
     defaultVisible: false,
     minZoom: 13,
     maxZoom: 22,
-    opacity: 0.7,
+    opacity: 1.0,
     type: 'raster-tile',
   },
   {
@@ -143,7 +143,7 @@ export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
     defaultVisible: false,
     minZoom: 13,
     maxZoom: 22,
-    opacity: 0.75,
+    opacity: 1.0,
     type: 'raster-tile',
   },
 ]
