@@ -3054,46 +3054,53 @@ h1, h2, h3, h4, h5 {
 }
 
 /* ==========================================================================
-   CARTOGRAPHIC FIELD MAP PARCEL LABELS (Exact Match to Survey Sheets)
+   CARTOGRAPHIC FIELD MAP PARCEL LABELS (Clear, Readable & High Visibility)
    ========================================================================== */
-.leaflet-tooltip.field-map-label {
+.leaflet-tooltip.field-map-label,
+.leaflet-pane .leaflet-tooltip.field-map-label,
+.leaflet-zoom-animated .leaflet-tooltip.field-map-label {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
   margin: 0 !important;
-  color: #1a1a1a !important;
+  color: #111827 !important;
   font-family: "Times New Roman", Times, "Georgia", "Baskerville", serif !important;
   font-weight: 700 !important;
-  font-size: 7.5px !important;
+  font-size: 11px !important;
   line-height: 1 !important;
   letter-spacing: -0.01em !important;
   text-align: center !important;
   pointer-events: none !important;
   user-select: none !important;
   white-space: nowrap !important;
+  transform-origin: center center !important;
   text-shadow:
     -1px -1px 0 rgba(255, 255, 255, 0.95),
      1px -1px 0 rgba(255, 255, 255, 0.95),
     -1px  1px 0 rgba(255, 255, 255, 0.95),
      1px  1px 0 rgba(255, 255, 255, 0.95),
-     0 0 2px rgba(255, 255, 255, 1) !important;
+     0 0 3px rgba(255, 255, 255, 1) !important;
 }
 
 .leaflet-tooltip.field-map-label::before {
   display: none !important; /* Hide default leaflet tooltip arrow triangle */
 }
 
-/* Small sub-parcels and narrow strips */
-.leaflet-tooltip.field-map-label-sm {
-  font-size: 5.8px !important;
+/* Small sub-parcels and narrow strips - clear visibility */
+.leaflet-tooltip.field-map-label-sm,
+.leaflet-pane .leaflet-tooltip.field-map-label-sm,
+.leaflet-zoom-animated .leaflet-tooltip.field-map-label-sm {
+  font-size: 9px !important;
   font-weight: 700 !important;
   letter-spacing: 0 !important;
 }
 
-/* Extra small / tiny patches */
-.leaflet-tooltip.field-map-label-xs {
-  font-size: 4.8px !important;
+/* Extra small / tiny patches - clear visibility */
+.leaflet-tooltip.field-map-label-xs,
+.leaflet-pane .leaflet-tooltip.field-map-label-xs,
+.leaflet-zoom-animated .leaflet-tooltip.field-map-label-xs {
+  font-size: 7.5px !important;
   font-weight: 700 !important;
   letter-spacing: 0 !important;
 }

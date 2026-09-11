@@ -365,7 +365,7 @@ export function PlantationMap() {
     map.createPane('drawn_features')
     map.getPane('drawn_features')!.style.zIndex = '500'
 
-    map.setView([7.0545, 80.7115], 15.0)
+    map.setView([7.0545, 80.7115], 14.3)
     mapRef.current = map
 
     // 0. User Drawing Feature Group
@@ -628,7 +628,7 @@ export function PlantationMap() {
 
         if (bounds.isValid()) {
           estateBoundsRef.current = bounds
-          map.setView([7.0545, 80.7115], 15.0)
+          map.setView([7.0545, 80.7115], 14.3)
         }
         setAllSearchableFeatures(searchableFeatures)
       })
@@ -818,14 +818,14 @@ export function PlantationMap() {
     setVectorVisibility(INITIAL_VECTOR_VISIBILITY)
 
     // 4. Reset View & Selection
-    map.setView([7.0545, 80.7115], 15.0)
+    map.setView([7.0545, 80.7115], 14.3)
     handleCloseSelection()
   }
 
   const resetView = () => {
     const map = mapRef.current
     if (map) {
-      map.setView([7.0545, 80.7115], 15.0)
+      map.setView([7.0545, 80.7115], 14.3)
     }
     handleCloseSelection()
   }
