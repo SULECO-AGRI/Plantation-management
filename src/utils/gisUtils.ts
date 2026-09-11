@@ -88,6 +88,23 @@ export function getDivisionName(feature: EstateFeature | null | undefined): stri
 }
 
 /**
+ * Get split division title parts (e.g. { name: "WEWANDON", suffix: "DIVISION" }).
+ */
+export function getDivisionNameParts(feature: EstateFeature | null | undefined): { name: string; suffix: string } {
+  const full = getDivisionName(feature)
+  if (full.endsWith(' DIVISION')) {
+    return {
+      name: full.replace(/ DIVISION$/, '').trim(),
+      suffix: 'DIVISION',
+    }
+  }
+  return {
+    name: full,
+    suffix: 'DIVISION',
+  }
+}
+
+/**
  * Safe title for a feature based on its properties and layer kind.
  */
 export function featureTitle(feature: EstateFeature | null | undefined, kind: LayerKind): string {

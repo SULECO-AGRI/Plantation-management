@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800;900&display=swap');
 
 :root {
   --font-heading: 'Outfit', sans-serif;
@@ -1470,25 +1470,47 @@ h1, h2, h3, h4, h5 {
 
 .division-map-label {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-family: var(--font-heading), 'Times New Roman', serif;
-  font-size: 13px;
-  font-weight: 850;
-  letter-spacing: 0.12em;
+  font-family: 'Cinzel', 'Times New Roman', 'Georgia', serif;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1.15;
+}
+
+.division-name-main {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #1a2c24;
+  color: #242e33;
   text-shadow:
     -1.5px -1.5px 0 #ffffff,
     1.5px -1.5px 0 #ffffff,
     -1.5px 1.5px 0 #ffffff,
     1.5px 1.5px 0 #ffffff,
-    0 0 8px rgba(255, 255, 255, 0.95),
-    0 1px 4px rgba(0, 0, 0, 0.20);
-  pointer-events: none;
+    0 0 6px rgba(255, 255, 255, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.20);
   white-space: nowrap;
-  user-select: none;
+}
+
+.division-name-sub {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #364248;
+  margin-top: 1px;
+  text-shadow:
+    -1.5px -1.5px 0 #ffffff,
+    1.5px -1.5px 0 #ffffff,
+    -1.5px 1.5px 0 #ffffff,
+    1.5px 1.5px 0 #ffffff,
+    0 0 6px rgba(255, 255, 255, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.20);
+  white-space: nowrap;
 }
 
 .map-topbar {

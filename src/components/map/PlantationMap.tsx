@@ -498,18 +498,7 @@ export function PlantationMap() {
                 ;(leafletLayer as L.Path & { _estateFeature?: EstateFeature })._estateFeature = feature
               }
 
-              if (config.kind === 'division') {
-                const divName = featureTitle(feature, 'division')
-                leafletLayer.bindTooltip(
-                  `<div class="division-map-label"><span>${divName}</span></div>`,
-                  {
-                    permanent: true,
-                    direction: 'center',
-                    className: 'division-label-tooltip',
-                    interactive: false,
-                  },
-                )
-              } else if (config.interactive) {
+              if (config.interactive) {
                 leafletLayer.bindTooltip(featureTitle(feature, config.kind), {
                   sticky: true,
                   direction: 'top',
