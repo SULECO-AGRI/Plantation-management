@@ -11,6 +11,7 @@ import {
   OSM_TILE_URL,
   TERRAIN_RASTER_LAYERS,
   VISIGEO_IMAGERY_LAYERS,
+  CARTOGRAPHIC_COLORS,
 } from '../../data/layers'
 import {
   featureSubtitle,
@@ -25,6 +26,7 @@ import type {
   EstateFeature,
   EstateFeatureCollection,
   EstateLayerConfig,
+  GisScalar,
   ImageryBaseLayerId,
   LayerKey,
   RasterLayerId,
@@ -36,6 +38,7 @@ import { LayerController } from './layers/LayerController'
 import { FeatureDetailPanel } from './popups/FeatureDetailPanel'
 import { MapTopBar } from './MapTopBar'
 import { MapDrawToolbar } from './draw/MapDrawToolbar'
+import { MapCartographicLegend } from './legend/MapCartographicLegend'
 
 type LoadedVectorLayer = {
   config: EstateLayerConfig
@@ -43,53 +46,79 @@ type LoadedVectorLayer = {
   layer: L.GeoJSON
 }
 
-function getVectorDefaultStyle(config: EstateLayerConfig, isDivisionActive: boolean): L.PathOptions {
+export function getDivisionColorByName(nameOrId?: GisScalar | undefined): string {
+  const str = String(nameOrId ?? '').toLowerCase()
+  if (str.includes('weddamulla') || str === '2') return CARTOGRAPHIC_COLORS.divisions.weddamulla.hex
+  if (str.includes('ramboda') || str === '3') return CARTOGRAPHIC_COLORS.divisions.ramboda.hex
+  if (str.includes('camnethan') || str === '5') return CARTOGRAPHIC_COLORS.divisions.camnethan.hex
+  if (str.includes('lilliesland') || str === '4') return CARTOGRAPHIC_COLORS.divisions.lilliesland.hex
+  if (str.includes('wewandon') || str === '1') return CARTOGRAPHIC_COLORS.divisions.wewandon.hex
+  return CARTOGRAPHIC_COLORS.divisions.weddamulla.hex
+}
+
+function getVectorFeatureStyle(
+  feature: EstateFeature | null | undefined,
+  config: EstateLayerConfig,
+  isDivisionActive: boolean,
+): L.PathOptions {
   if (config.kind === 'boundary') {
     return {
-      color: config.color,
-      weight: config.weight ?? 2.8,
-      opacity: 0.95,
-      fillColor: config.fillColor,
-      fillOpacity: config.fillOpacity ?? 0.05,
+      color: CARTOGRAPHIC_COLORS.estateBoundary.hex,
+      weight: 3.0,
+      opacity: 0.98,
+      fillColor: CARTOGRAPHIC_COLORS.estateBoundary.hex,
+      fillOpacity: 0.04,
     }
   }
 
   if (config.kind === 'infrastructure') {
-    if (config.key === 'roads' || config.key === 'streams') {
+    if (config.key === 'roads') {
+      const cat = feature?.properties?.category
+      const isPrimary = cat === 1 || cat === 2 || cat === 3 || !cat
       return {
-        color: config.color,
-        weight: config.weight ?? 2.2,
+        color: isPrimary ? CARTOGRAPHIC_COLORS.roadsPrimary.hex : CARTOGRAPHIC_COLORS.roadsLocal.hex,
+        weight: isPrimary ? 2.6 : 1.8,
+        opacity: 0.95,
+        dashArray: cat === 5 ? '4, 4' : undefined,
+      }
+    }
+    if (config.key === 'streams') {
+      return {
+        color: CARTOGRAPHIC_COLORS.streams.hex,
+        weight: 2.2,
         opacity: 0.92,
       }
     }
     if (config.key === 'buildings') {
       return {
-        color: config.color,
-        weight: config.weight ?? 1.5,
+        color: CARTOGRAPHIC_COLORS.buildings.hex,
+        weight: 1.4,
         opacity: 0.95,
-        fillColor: config.fillColor,
-        fillOpacity: config.fillOpacity ?? 0.8,
+        fillColor: CARTOGRAPHIC_COLORS.buildings.hex,
+        fillOpacity: 0.85,
       }
     }
   }
 
   if (config.kind === 'division') {
+    const divColor = getDivisionColorByName(feature?.properties?.Name ?? feature?.properties?.ID)
     return {
-      color: config.color,
-      weight: isDivisionActive ? 2.8 : 1.6,
+      color: CARTOGRAPHIC_COLORS.estateBoundary.hex,
+      weight: isDivisionActive ? 2.8 : 1.8,
       opacity: 0.95,
-      fillColor: config.fillColor,
-      fillOpacity: isDivisionActive ? 0.14 : 0.04,
+      fillColor: divColor,
+      fillOpacity: isDivisionActive ? 0.35 : 0.12,
     }
   }
 
   // Field plots
+  const fieldColor = config.fillColor || config.color
   return {
     color: config.color,
-    weight: 1.4,
-    opacity: 0.90,
-    fillColor: config.fillColor,
-    fillOpacity: isDivisionActive ? 0.18 : 0.42,
+    weight: 1.5,
+    opacity: 0.92,
+    fillColor: fieldColor,
+    fillOpacity: isDivisionActive ? 0.22 : 0.45,
   }
 }
 
@@ -167,7 +196,10 @@ export function PlantationMap() {
         return loaded?.layer.hasLayer(prevPath)
       })
       if (config) {
-        prevPath.setStyle(getVectorDefaultStyle(config, vectorVisibilityRef.current.divisions))
+        const feat =
+          (prevPath as L.Path & { _estateFeature?: EstateFeature })._estateFeature ||
+          (prevPath as L.Layer & { feature?: EstateFeature }).feature
+        prevPath.setStyle(getVectorFeatureStyle(feat, config, vectorVisibilityRef.current.divisions))
       }
       activeSelectedPathRef.current = null
     }
@@ -449,9 +481,17 @@ export function PlantationMap() {
 
           const layer = L.geoJSON(data as never, {
             pane: targetPane,
-            style: getVectorDefaultStyle(config, vectorVisibilityRef.current.divisions),
+            style: (feature) =>
+              getVectorFeatureStyle(
+                feature as unknown as EstateFeature,
+                config,
+                vectorVisibilityRef.current.divisions,
+              ),
             onEachFeature: (rawFeature, leafletLayer) => {
               const feature = rawFeature as unknown as EstateFeature
+              if (leafletLayer instanceof L.Path) {
+                ;(leafletLayer as L.Path & { _estateFeature?: EstateFeature })._estateFeature = feature
+              }
 
               if (config.interactive) {
                 leafletLayer.bindTooltip(featureTitle(feature, config.kind), {
@@ -480,14 +520,16 @@ export function PlantationMap() {
                     if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedPathRef.current) {
                       leafletLayer.setStyle({
                         weight: config.kind === 'division' ? 3.4 : 2.4,
-                        fillOpacity: config.kind === 'division' ? 0.28 : 0.44,
+                        fillOpacity: config.kind === 'division' ? 0.48 : 0.60,
                       })
                     }
                   },
                   mouseout: () => {
                     if (isDrawingActiveRef.current) return
                     if (leafletLayer instanceof L.Path && leafletLayer !== activeSelectedPathRef.current) {
-                      leafletLayer.setStyle(getVectorDefaultStyle(config, vectorVisibilityRef.current.divisions))
+                      leafletLayer.setStyle(
+                        getVectorFeatureStyle(feature, config, vectorVisibilityRef.current.divisions),
+                      )
                     }
                   },
                 })
@@ -640,7 +682,10 @@ export function PlantationMap() {
 
       loaded.layer.eachLayer((child) => {
         if (child instanceof L.Path && child !== activeSelectedPathRef.current) {
-          child.setStyle(getVectorDefaultStyle(config, vectorVisibility.divisions))
+          const feat =
+            (child as L.Path & { _estateFeature?: EstateFeature })._estateFeature ||
+            (child as L.Layer & { feature?: EstateFeature }).feature
+          child.setStyle(getVectorFeatureStyle(feat, config, vectorVisibility.divisions))
         }
       })
     })
@@ -713,7 +758,7 @@ export function PlantationMap() {
       if (candidate instanceof L.Path) {
         candidate.setStyle({
           weight: config.kind === 'division' ? 4.0 : 3.0,
-          fillOpacity: config.kind === 'division' ? 0.35 : 0.48,
+          fillOpacity: config.kind === 'division' ? 0.45 : 0.55,
         })
         activeSelectedPathRef.current = candidate
       }
@@ -767,6 +812,13 @@ export function PlantationMap() {
         isDetailOpen={Boolean(selection)}
         onActiveToolChange={(tool) => setIsDrawingActive(Boolean(tool))}
       />
+
+      <div className="map-legend-rail">
+        <MapCartographicLegend
+          rasterVisibility={rasterVisibility}
+          vectorVisibility={vectorVisibility}
+        />
+      </div>
 
       <BaseMapSwitcher
         activeBaseLayer={activeBaseLayer}

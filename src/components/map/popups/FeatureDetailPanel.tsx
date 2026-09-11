@@ -97,7 +97,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
         {isDivision && breakdown && (
           <div className="landuse-section">
             <div className="attribute-heading">
-              <span><PieChart size={13} /> Land Use & Allocation</span>
+              <span><PieChart size={13} /> Land Use &amp; Allocation</span>
               {breakdown.estateSharePct !== undefined && (
                 <span className="share-pill">{formatNumber(breakdown.estateSharePct, 2)}% of Estate</span>
               )}
@@ -112,14 +112,20 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               )}
               {breakdown.vegAcres !== undefined && (
                 <div className="landuse-card landuse-card--veg">
-                  <small>Vegetation</small>
+                  <small>Vegetable Crop</small>
                   <strong>{formatNumber(breakdown.vegAcres)} ac</strong>
                 </div>
               )}
               {breakdown.grassAcres !== undefined && (
                 <div className="landuse-card landuse-card--grass">
-                  <small>Grass</small>
+                  <small>Shrubs / Grass</small>
                   <strong>{formatNumber(breakdown.grassAcres)} ac</strong>
+                </div>
+              )}
+              {breakdown.highVegAcres !== undefined && (
+                <div className="landuse-card landuse-card--forest">
+                  <small>High Forest</small>
+                  <strong>{formatNumber(breakdown.highVegAcres)} ac</strong>
                 </div>
               )}
               {breakdown.devAcres !== undefined && (

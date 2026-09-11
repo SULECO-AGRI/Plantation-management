@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import {
   ANALYSIS_RASTER_LAYERS,
+  CARTOGRAPHIC_COLORS,
   ESTATE_LAYERS,
   INFRASTRUCTURE_LAYERS,
 } from '../../../data/layers'
@@ -115,7 +116,7 @@ export function LayerController({
             onClick={() => toggleSection('terrain')}
             aria-expanded={openSections.terrain}
           >
-            <span className="category-title">Remote Sensing & Terrain</span>
+            <span className="category-title">Remote Sensing &amp; Terrain</span>
             <span className="category-meta">
               {activeAnalysisCount > 0 && (
                 <span className="category-active-tag">{activeAnalysisCount}</span>
@@ -133,25 +134,49 @@ export function LayerController({
                 const isVisible = rasterVisibility[layer.id]
 
                 return (
-                  <button
-                    key={layer.id}
-                    type="button"
-                    className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
-                    onClick={() => onToggleRaster(layer.id)}
-                    aria-label={`Toggle ${layer.label}`}
-                  >
-                    <span className="layer-copy">
-                      <strong>{layer.shortLabel}</strong>
-                      <small>{layer.description}</small>
-                    </span>
-
-                    <span
-                      className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
-                      aria-hidden="true"
+                  <div key={layer.id} className="layer-row-wrap">
+                    <button
+                      type="button"
+                      className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
+                      onClick={() => onToggleRaster(layer.id)}
+                      aria-label={`Toggle ${layer.label}`}
                     >
-                      <span className="layer-toggle-switch__thumb" />
-                    </span>
-                  </button>
+                      <span className="layer-copy">
+                        <strong>{layer.shortLabel}</strong>
+                        <small>{layer.description}</small>
+                      </span>
+
+                      <span
+                        className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <span className="layer-toggle-switch__thumb" />
+                      </span>
+                    </button>
+
+                    {/* Active Classification Mini-Bar */}
+                    {isVisible && layer.id === 'chm' && (
+                      <div className="layer-minibar" title="CHM Canopy Strata: 0-2m (Low), 2-5m (Med), 5-15m+ (High)">
+                        {CARTOGRAPHIC_COLORS.chm.map((c, i) => (
+                          <span key={i} style={{ backgroundColor: c.hex }} title={c.label} />
+                        ))}
+                      </div>
+                    )}
+                    {isVisible && layer.id === 'slope' && (
+                      <div className="layer-minibar" title="Slope: Flat (0-15°), Mod (15-30°), Steep (30-45°), Cliff (>45°)">
+                        {CARTOGRAPHIC_COLORS.slope.map((c, i) => (
+                          <span key={i} style={{ backgroundColor: c.hex }} title={c.label} />
+                        ))}
+                      </div>
+                    )}
+                    {isVisible && layer.id === 'landuse' && (
+                      <div className="layer-minibar" title="Land Use: Tea, Shrubs, Forest, Vegetables, Developed">
+                        {Object.values(CARTOGRAPHIC_COLORS.landUse).map((c, i) => (
+                          <span key={i} style={{ backgroundColor: c.hex }} title={c.label} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>
@@ -168,7 +193,7 @@ export function LayerController({
             onClick={() => toggleSection('infrastructure')}
             aria-expanded={openSections.infrastructure}
           >
-            <span className="category-title">Infrastructure & Hydrology</span>
+            <span className="category-title">Infrastructure &amp; Hydrology</span>
             <span className="category-meta">
               {activeInfraCount > 0 && (
                 <span className="category-active-tag">{activeInfraCount}</span>
@@ -196,7 +221,7 @@ export function LayerController({
                       className="layer-swatch"
                       style={{
                         borderColor: layer.color,
-                        background: layer.fillColor || `${layer.color}22`,
+                        background: layer.fillColor || `${layer.color}33`,
                       }}
                     />
                     <span className="layer-copy">
@@ -225,7 +250,7 @@ export function LayerController({
             onClick={() => toggleSection('estate')}
             aria-expanded={openSections.estate}
           >
-            <span className="category-title">Plantation Sectors & Blocks</span>
+            <span className="category-title">Plantation Sectors &amp; Blocks</span>
             <span className="category-meta">
               {activeEstateCount > 0 && (
                 <span className="category-active-tag">{activeEstateCount}</span>
@@ -248,13 +273,16 @@ export function LayerController({
                   onClick={() => onToggleVector(divisionLayer.key)}
                   aria-label={`Toggle ${divisionLayer.label}`}
                 >
-                  <span
-                    className="layer-swatch"
-                    style={{ borderColor: divisionLayer.color, background: divisionLayer.fillColor }}
-                  />
+                  <span className="layer-swatch layer-swatch--multi" title="Master 5 Division Themes">
+                    <span style={{ background: CARTOGRAPHIC_COLORS.divisions.weddamulla.hex }} />
+                    <span style={{ background: CARTOGRAPHIC_COLORS.divisions.ramboda.hex }} />
+                    <span style={{ background: CARTOGRAPHIC_COLORS.divisions.camnethan.hex }} />
+                    <span style={{ background: CARTOGRAPHIC_COLORS.divisions.lilliesland.hex }} />
+                    <span style={{ background: CARTOGRAPHIC_COLORS.divisions.wewandon.hex }} />
+                  </span>
                   <span className="layer-copy">
                     <strong>{divisionLayer.shortLabel}</strong>
-                    <small>Estate Divisions boundary & areas</small>
+                    <small>Estate Divisions boundary &amp; areas</small>
                   </span>
                   <span
                     className={`layer-toggle-switch ${vectorVisibility[divisionLayer.key] ? 'layer-toggle-switch--active' : ''}`}
