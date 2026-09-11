@@ -38,21 +38,35 @@ export const IMAGERY_BASE_LAYER_OPTIONS: Array<{
   label: string
   shortLabel: string
   subtitle: string
-  thumbnailType: 'satellite' | 'rgb'
+  thumbnailType: 'osm' | 'osmOrtho' | 'satellite' | 'satelliteOrtho'
 }> = [
   {
-    id: 'rgb',
-    label: 'RGB Orthomosaic',
+    id: 'osm',
+    label: 'OpenStreetMap (Base Map)',
+    shortLabel: 'Street Map',
+    subtitle: 'Standard Map',
+    thumbnailType: 'osm',
+  },
+  {
+    id: 'osmOrtho',
+    label: 'Street Map + RGB Ortho',
     shortLabel: 'RGB Ortho',
-    subtitle: 'Weddamulle + Street Map',
-    thumbnailType: 'rgb',
+    subtitle: 'Street + RGB Drone',
+    thumbnailType: 'osmOrtho',
   },
   {
     id: 'googleSatellite',
-    label: 'Satellite + Weddamulle',
+    label: 'Google Satellite Base',
     shortLabel: 'Satellite',
-    subtitle: 'Weddamulle + Satellite',
+    subtitle: 'Satellite Map',
     thumbnailType: 'satellite',
+  },
+  {
+    id: 'satelliteOrtho',
+    label: 'Satellite + RGB Ortho',
+    shortLabel: 'Sat + Ortho',
+    subtitle: 'Satellite + RGB Drone',
+    thumbnailType: 'satelliteOrtho',
   },
 ]
 

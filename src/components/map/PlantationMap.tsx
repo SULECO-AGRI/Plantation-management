@@ -38,7 +38,6 @@ import { LayerController } from './layers/LayerController'
 import { FeatureDetailPanel } from './popups/FeatureDetailPanel'
 import { MapTopBar } from './MapTopBar'
 import { MapDrawToolbar } from './draw/MapDrawToolbar'
-import { MapCartographicLegend } from './legend/MapCartographicLegend'
 
 type LoadedVectorLayer = {
   config: EstateLayerConfig
@@ -139,7 +138,7 @@ export function PlantationMap() {
   const activeSelectedPathRef = useRef<L.Path | null>(null)
 
   // State
-  const [activeBaseLayer, setActiveBaseLayer] = useState<ImageryBaseLayerId>('rgb')
+  const [activeBaseLayer, setActiveBaseLayer] = useState<ImageryBaseLayerId>('osmOrtho')
   const [baseMap, setBaseMap] = useState<BaseMapId>('osm')
   const baseMapRef = useRef(baseMap)
   baseMapRef.current = baseMap
@@ -610,13 +609,25 @@ export function PlantationMap() {
     const satLayer = baseMapTileLayersRef.current.googleSatellite
     const visigeoGroup = visigeoGroupRef.current
 
-    if (nextId === 'rgb') {
+    if (nextId === 'osm') {
+      if (satLayer && map.hasLayer(satLayer)) map.removeLayer(satLayer)
+      if (osmLayer && !map.hasLayer(osmLayer)) map.addLayer(osmLayer)
+      if (visigeoGroup && map.hasLayer(visigeoGroup)) map.removeLayer(visigeoGroup)
+      setBaseMap('osm')
+      setRasterVisibility((prev) => ({ ...prev, visigeo: false }))
+    } else if (nextId === 'osmOrtho') {
       if (satLayer && map.hasLayer(satLayer)) map.removeLayer(satLayer)
       if (osmLayer && !map.hasLayer(osmLayer)) map.addLayer(osmLayer)
       if (visigeoGroup && !map.hasLayer(visigeoGroup)) map.addLayer(visigeoGroup)
       setBaseMap('osm')
       setRasterVisibility((prev) => ({ ...prev, visigeo: true }))
     } else if (nextId === 'googleSatellite') {
+      if (osmLayer && map.hasLayer(osmLayer)) map.removeLayer(osmLayer)
+      if (satLayer && !map.hasLayer(satLayer)) map.addLayer(satLayer)
+      if (visigeoGroup && map.hasLayer(visigeoGroup)) map.removeLayer(visigeoGroup)
+      setBaseMap('googleSatellite')
+      setRasterVisibility((prev) => ({ ...prev, visigeo: false }))
+    } else if (nextId === 'satelliteOrtho') {
       if (osmLayer && map.hasLayer(osmLayer)) map.removeLayer(osmLayer)
       if (satLayer && !map.hasLayer(satLayer)) map.addLayer(satLayer)
       if (visigeoGroup && !map.hasLayer(visigeoGroup)) map.addLayer(visigeoGroup)
@@ -725,8 +736,8 @@ export function PlantationMap() {
     const map = mapRef.current
     if (!map) return
 
-    // 1. Reset Base Layer to RGB
-    handleSelectBaseLayer('rgb')
+    // 1. Reset Base Layer to Street Map + RGB Ortho
+    handleSelectBaseLayer('osmOrtho')
 
     // 2. Reset Thematic Rasters (CHM, Slope, Landuse to false)
     Object.entries(INITIAL_RASTER_VISIBILITY).forEach(([rawId, defaultVal]) => {
@@ -842,13 +853,6 @@ export function PlantationMap() {
         onActiveToolChange={(tool) => setIsDrawingActive(Boolean(tool))}
       />
 
-      <div className="map-legend-rail">
-        <MapCartographicLegend
-          rasterVisibility={rasterVisibility}
-          vectorVisibility={vectorVisibility}
-        />
-      </div>
-
       <BaseMapSwitcher
         activeBaseLayer={activeBaseLayer}
         onSelectBaseLayer={handleSelectBaseLayer}
@@ -857,11 +861,6 @@ export function PlantationMap() {
       <FeatureDetailPanel selection={selection} onClose={handleCloseSelection} />
 
       {loadError && <div className="map-error">{loadError}</div>}
-
-      <div className="map-source-badge">
-        <span>GIS</span>
-        Weddamulle Plantation · {activeBaseLayer === 'googleSatellite' ? 'Satellite Imagery + Weddamulle Ortho' : 'Street Map + RGB Ortho'}
-      </div>
     </div>
   )
 }

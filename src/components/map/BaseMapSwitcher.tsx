@@ -1,4 +1,3 @@
-import { Globe, Layers } from 'lucide-react'
 import { IMAGERY_BASE_LAYER_OPTIONS } from '../../data/layers'
 import type { ImageryBaseLayerId } from '../../types/gis'
 
@@ -8,15 +7,6 @@ type Props = {
 }
 
 export function BaseMapSwitcher({ activeBaseLayer, onSelectBaseLayer }: Props) {
-  const getIcon = (type: 'satellite' | 'rgb') => {
-    switch (type) {
-      case 'satellite':
-        return <Globe size={14} />
-      case 'rgb':
-        return <Layers size={14} />
-    }
-  }
-
   return (
     <aside
       className="basemap-floating-switcher"
@@ -35,14 +25,8 @@ export function BaseMapSwitcher({ activeBaseLayer, onSelectBaseLayer }: Props) {
               onClick={() => onSelectBaseLayer(option.id)}
               title={option.label}
             >
-              <span className={`basemap-pill-card__thumb basemap-pill-card__thumb--${option.thumbnailType}`}>
-                {getIcon(option.thumbnailType)}
-              </span>
-              <div className="basemap-pill-card__info">
-                <strong>{option.shortLabel}</strong>
-                <small>{option.subtitle}</small>
-              </div>
-              <div className={`basemap-pill-dot ${isSelected ? 'basemap-pill-dot--selected' : ''}`} />
+              <span className="basemap-pill-card__label">{option.shortLabel}</span>
+              <span className={`basemap-pill-dot ${isSelected ? 'basemap-pill-dot--selected' : ''}`} />
             </button>
           )
         })}
