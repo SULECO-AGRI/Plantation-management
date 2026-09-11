@@ -134,49 +134,25 @@ export function LayerController({
                 const isVisible = rasterVisibility[layer.id]
 
                 return (
-                  <div key={layer.id} className="layer-row-wrap">
-                    <button
-                      type="button"
-                      className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
-                      onClick={() => onToggleRaster(layer.id)}
-                      aria-label={`Toggle ${layer.label}`}
+                  <button
+                    key={layer.id}
+                    type="button"
+                    className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
+                    onClick={() => onToggleRaster(layer.id)}
+                    aria-label={`Toggle ${layer.label}`}
+                  >
+                    <span className="layer-copy">
+                      <strong>{layer.shortLabel}</strong>
+                      <small>{layer.description}</small>
+                    </span>
+
+                    <span
+                      className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
+                      aria-hidden="true"
                     >
-                      <span className="layer-copy">
-                        <strong>{layer.shortLabel}</strong>
-                        <small>{layer.description}</small>
-                      </span>
-
-                      <span
-                        className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
-                        aria-hidden="true"
-                      >
-                        <span className="layer-toggle-switch__thumb" />
-                      </span>
-                    </button>
-
-                    {/* Active Classification Mini-Bar */}
-                    {isVisible && layer.id === 'chm' && (
-                      <div className="layer-minibar" title="CHM Canopy Strata: 0-2m (Low), 2-5m (Med), 5-15m+ (High)">
-                        {CARTOGRAPHIC_COLORS.chm.map((c, i) => (
-                          <span key={i} style={{ backgroundColor: c.hex }} title={c.label} />
-                        ))}
-                      </div>
-                    )}
-                    {isVisible && layer.id === 'slope' && (
-                      <div className="layer-minibar" title="Slope: Flat (0-15°), Mod (15-30°), Steep (30-45°), Cliff (>45°)">
-                        {CARTOGRAPHIC_COLORS.slope.map((c, i) => (
-                          <span key={i} style={{ backgroundColor: c.hex }} title={c.label} />
-                        ))}
-                      </div>
-                    )}
-                    {isVisible && layer.id === 'landuse' && (
-                      <div className="layer-minibar" title="Land Use: Tea, Shrubs, Forest, Vegetables, Developed">
-                        {Object.values(CARTOGRAPHIC_COLORS.landUse).map((c, i) => (
-                          <span key={i} style={{ backgroundColor: c.hex }} title={c.label} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                      <span className="layer-toggle-switch__thumb" />
+                    </span>
+                  </button>
                 )
               })}
             </div>
