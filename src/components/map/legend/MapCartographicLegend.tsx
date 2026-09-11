@@ -91,7 +91,7 @@ export function MapCartographicLegend({ rasterVisibility, vectorVisibility }: Pr
           <section className="carto-legend-section">
             <div className="carto-section-title">
               <Layers size={13} />
-              <span>Division Thematic Fills (Master Key Map)</span>
+              <span>Agricultural Fields (Thematic Fills)</span>
             </div>
             <div className="carto-swatch-grid carto-swatch-grid--divisions">
               {Object.entries(CARTOGRAPHIC_COLORS.divisions).map(([key, item]) => (
@@ -234,30 +234,16 @@ export function MapCartographicLegend({ rasterVisibility, vectorVisibility }: Pr
                 </div>
               </div>
 
-              {/* Roads Primary */}
+              {/* Estate Road Network */}
               <div className="carto-swatch-item">
                 <span
                   className="carto-line-swatch"
-                  style={{ backgroundColor: CARTOGRAPHIC_COLORS.roadsPrimary.hex, height: '3.5px' }}
+                  style={{ backgroundColor: CARTOGRAPHIC_COLORS.roadsPrimary.hex, height: '3px' }}
                 />
                 <div className="carto-swatch-info">
-                  <strong>Primary / Main Roads</strong>
+                  <strong>Estate Road Network</strong>
                   <small>
                     <code>{CARTOGRAPHIC_COLORS.roadsPrimary.hex}</code> &middot; Warm terracotta
-                  </small>
-                </div>
-              </div>
-
-              {/* Roads Local */}
-              <div className="carto-swatch-item">
-                <span
-                  className="carto-line-swatch"
-                  style={{ backgroundColor: CARTOGRAPHIC_COLORS.roadsLocal.hex, height: '2px', borderTop: '1px dashed #ffffff33' }}
-                />
-                <div className="carto-swatch-info">
-                  <strong>Local Roads &amp; Footpaths</strong>
-                  <small>
-                    <code>{CARTOGRAPHIC_COLORS.roadsLocal.hex}</code> &middot; Neutral slate
                   </small>
                 </div>
               </div>

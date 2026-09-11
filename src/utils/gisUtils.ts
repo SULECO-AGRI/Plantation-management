@@ -69,6 +69,25 @@ export function acresToHectares(acres: number): number {
 }
 
 /**
+ * Get formatted division title (e.g. "WEWANDON DIVISION", "WEDDAMULLA DIVISION").
+ */
+export function getDivisionName(feature: EstateFeature | null | undefined): string {
+  if (!feature) return 'Estate Division'
+  const p = feature.properties || {}
+  const rawName = String(p.Name || '').trim()
+  if (rawName && rawName.toLowerCase() !== 'division') {
+    return rawName.toUpperCase().includes('DIVISION') ? rawName.toUpperCase() : `${rawName.toUpperCase()} DIVISION`
+  }
+  const id = String(feature.id ?? p.ID ?? p.OBJECTID ?? '')
+  if (id === '1' || id.toLowerCase().includes('wewandon')) return 'WEWANDON DIVISION'
+  if (id === '2' || id.toLowerCase().includes('weddamulla')) return 'WEDDAMULLA DIVISION'
+  if (id === '3' || id.toLowerCase().includes('ramboda')) return 'RAMBODA DIVISION'
+  if (id === '4' || id.toLowerCase().includes('lilliesland')) return 'LILLIESLAND DIVISION'
+  if (id === '5' || id.toLowerCase().includes('camnethan')) return 'CAMNETHAN DIVISION'
+  return 'ESTATE DIVISION'
+}
+
+/**
  * Safe title for a feature based on its properties and layer kind.
  */
 export function featureTitle(feature: EstateFeature | null | undefined, kind: LayerKind): string {
@@ -81,7 +100,7 @@ export function featureTitle(feature: EstateFeature | null | undefined, kind: La
     return text(p.Name) || text(p.Type) || (p.OBJECTID ? `Infrastructure #${p.OBJECTID}` : 'Estate Infrastructure')
   }
   if (kind === 'division') {
-    return text(p.Name) || `Division ${text(p.ID) || text(p.OBJECTID) || ''}`.trim() || 'Division'
+    return getDivisionName(feature)
   }
   return `Field ${text(p.Field_No) || text(p.OBJECTID) || 'Unknown'}`
 }

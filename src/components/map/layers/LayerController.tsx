@@ -33,9 +33,9 @@ export function LayerController({
 }: Props) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    terrain: true,
     infrastructure: true,
     estate: true,
+    terrain: false,
   })
 
   const toggleSection = (sec: string) => {
@@ -107,60 +107,7 @@ export function LayerController({
 
       <div className="layer-controller__scroll-body">
         {/* =========================================================================
-            CATEGORY 1: Remote Sensing / Terrain Analysis (Rasters)
-           ========================================================================= */}
-        <div className="layer-category">
-          <button
-            type="button"
-            className="layer-category__header"
-            onClick={() => toggleSection('terrain')}
-            aria-expanded={openSections.terrain}
-          >
-            <span className="category-title">Remote Sensing &amp; Terrain</span>
-            <span className="category-meta">
-              {activeAnalysisCount > 0 && (
-                <span className="category-active-tag">{activeAnalysisCount}</span>
-              )}
-              <ChevronDown
-                size={13}
-                className={`category-chevron ${openSections.terrain ? 'category-chevron--open' : ''}`}
-              />
-            </span>
-          </button>
-
-          {openSections.terrain && (
-            <div className="layer-category__content">
-              {ANALYSIS_RASTER_LAYERS.map((layer) => {
-                const isVisible = rasterVisibility[layer.id]
-
-                return (
-                  <button
-                    key={layer.id}
-                    type="button"
-                    className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
-                    onClick={() => onToggleRaster(layer.id)}
-                    aria-label={`Toggle ${layer.label}`}
-                  >
-                    <span className="layer-copy">
-                      <strong>{layer.shortLabel}</strong>
-                      <small>{layer.description}</small>
-                    </span>
-
-                    <span
-                      className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
-                      aria-hidden="true"
-                    >
-                      <span className="layer-toggle-switch__thumb" />
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* =========================================================================
-            CATEGORY 2: Infrastructure & Hydrology (Vectors)
+            CATEGORY 1: Infrastructure & Hydrology (Vectors)
            ========================================================================= */}
         <div className="layer-category">
           <button
@@ -185,6 +132,7 @@ export function LayerController({
             <div className="layer-category__content">
               {INFRASTRUCTURE_LAYERS.map((layer) => {
                 const isVisible = vectorVisibility[layer.key]
+                const isOutlined = layer.key === 'roads' || layer.key === 'streams'
                 return (
                   <button
                     key={layer.key}
@@ -197,7 +145,8 @@ export function LayerController({
                       className="layer-swatch"
                       style={{
                         borderColor: layer.color,
-                        background: layer.fillColor || `${layer.color}33`,
+                        background: isOutlined ? (layer.fillColor || '#FFFFFF') : (layer.fillColor || layer.color),
+                        borderWidth: isOutlined ? '2px' : '1.5px',
                       }}
                     />
                     <span className="layer-copy">
@@ -217,7 +166,7 @@ export function LayerController({
         </div>
 
         {/* =========================================================================
-            CATEGORY 3: Plantation Sectors & Blocks (Divisions & Fields)
+            CATEGORY 2: Plantation Sectors & Blocks (Divisions & Fields)
            ========================================================================= */}
         <div className="layer-category">
           <button
@@ -288,7 +237,7 @@ export function LayerController({
                       >
                         <span
                           className="layer-swatch layer-swatch--compact"
-                          style={{ borderColor: layer.color, background: layer.fillColor }}
+                          style={{ borderColor: layer.color, background: layer.fillColor || layer.color }}
                         />
                         <span className="layer-copy">
                           <strong>{layer.shortLabel}</strong>
@@ -304,6 +253,59 @@ export function LayerController({
                   })}
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* =========================================================================
+            CATEGORY 3: Remote Sensing / Terrain Analysis (Rasters)
+           ========================================================================= */}
+        <div className="layer-category">
+          <button
+            type="button"
+            className="layer-category__header"
+            onClick={() => toggleSection('terrain')}
+            aria-expanded={openSections.terrain}
+          >
+            <span className="category-title">Remote Sensing &amp; Terrain</span>
+            <span className="category-meta">
+              {activeAnalysisCount > 0 && (
+                <span className="category-active-tag">{activeAnalysisCount}</span>
+              )}
+              <ChevronDown
+                size={13}
+                className={`category-chevron ${openSections.terrain ? 'category-chevron--open' : ''}`}
+              />
+            </span>
+          </button>
+
+          {openSections.terrain && (
+            <div className="layer-category__content">
+              {ANALYSIS_RASTER_LAYERS.map((layer) => {
+                const isVisible = rasterVisibility[layer.id]
+
+                return (
+                  <button
+                    key={layer.id}
+                    type="button"
+                    className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
+                    onClick={() => onToggleRaster(layer.id)}
+                    aria-label={`Toggle ${layer.label}`}
+                  >
+                    <span className="layer-copy">
+                      <strong>{layer.shortLabel}</strong>
+                      <small>{layer.description}</small>
+                    </span>
+
+                    <span
+                      className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
+                      aria-hidden="true"
+                    >
+                      <span className="layer-toggle-switch__thumb" />
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>

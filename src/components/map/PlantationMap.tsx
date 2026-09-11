@@ -75,16 +75,15 @@ function getVectorFeatureStyle(
       const cat = feature?.properties?.category
       const isPrimary = cat === 1 || cat === 2 || cat === 3 || !cat
       return {
-        color: isPrimary ? CARTOGRAPHIC_COLORS.roadsPrimary.hex : CARTOGRAPHIC_COLORS.roadsLocal.hex,
-        weight: isPrimary ? 2.6 : 1.8,
+        color: CARTOGRAPHIC_COLORS.roadsPrimary.hex,
+        weight: isPrimary ? 1.4 : 1.0,
         opacity: 0.95,
-        dashArray: cat === 5 ? '4, 4' : undefined,
       }
     }
     if (config.key === 'streams') {
       return {
         color: CARTOGRAPHIC_COLORS.streams.hex,
-        weight: 2.2,
+        weight: 1.2,
         opacity: 0.92,
       }
     }
@@ -100,13 +99,12 @@ function getVectorFeatureStyle(
   }
 
   if (config.kind === 'division') {
-    const divColor = getDivisionColorByName(feature?.properties?.Name ?? feature?.properties?.ID)
     return {
-      color: CARTOGRAPHIC_COLORS.estateBoundary.hex,
-      weight: isDivisionActive ? 2.8 : 1.8,
-      opacity: 0.95,
-      fillColor: divColor,
-      fillOpacity: isDivisionActive ? 0.35 : 0.12,
+      color: CARTOGRAPHIC_COLORS.divisionBoundary.hex,
+      weight: isDivisionActive ? 1.8 : 1.2,
+      opacity: 0.85,
+      fillColor: CARTOGRAPHIC_COLORS.divisionFill.hex,
+      fillOpacity: isDivisionActive ? 0.50 : 0.15,
     }
   }
 
@@ -114,10 +112,10 @@ function getVectorFeatureStyle(
   const fieldColor = config.fillColor || config.color
   return {
     color: config.color,
-    weight: 1.5,
-    opacity: 0.92,
+    weight: 1.2,
+    opacity: 0.90,
     fillColor: fieldColor,
-    fillOpacity: isDivisionActive ? 0.22 : 0.45,
+    fillOpacity: 0.65,
   }
 }
 
@@ -138,7 +136,7 @@ export function PlantationMap() {
   const activeSelectedPathRef = useRef<L.Path | null>(null)
 
   // State
-  const [activeBaseLayer, setActiveBaseLayer] = useState<ImageryBaseLayerId>('osmOrtho')
+  const [activeBaseLayer, setActiveBaseLayer] = useState<ImageryBaseLayerId>('osm')
   const [baseMap, setBaseMap] = useState<BaseMapId>('osm')
   const baseMapRef = useRef(baseMap)
   baseMapRef.current = baseMap
@@ -209,31 +207,12 @@ export function PlantationMap() {
     setSelection(null)
   }
 
-  // Find feature by geographic coordinate
+  // Find feature by geographic coordinate (Fields first, then Divisions)
   const findFeatureAtPoint = (
     latlng: { lat: number; lng: number },
     targetKind: 'field' | 'division' | 'any',
   ): { layerKey: LayerKey; config: EstateLayerConfig; feature: EstateFeature; pathLayer?: L.Path } | null => {
-    // 1. If division layer is ON and target is division (or any), check division first
-    if (vectorVisibilityRef.current.divisions && (targetKind === 'division' || targetKind === 'any')) {
-      const loaded = loadedVectorLayersRef.current.divisions
-      if (loaded && loaded.data?.features) {
-        for (const feature of loaded.data.features) {
-          if (isPointInFeature(latlng, feature)) {
-            let matchedPath: L.Path | undefined
-            loaded.layer.eachLayer((candidate) => {
-              const raw = (candidate as L.Layer & { feature?: EstateFeature }).feature
-              if (raw === feature && candidate instanceof L.Path) {
-                matchedPath = candidate
-              }
-            })
-            return { layerKey: 'divisions', config: loaded.config, feature, pathLayer: matchedPath }
-          }
-        }
-      }
-    }
-
-    // 2. Check field layers
+    // 1. Check agricultural field layers first (highest specificity)
     if (targetKind === 'field' || targetKind === 'any') {
       for (const config of ESTATE_LAYERS) {
         if (config.kind === 'field' && vectorVisibilityRef.current[config.key]) {
@@ -251,6 +230,25 @@ export function PlantationMap() {
                 return { layerKey: config.key, config, feature, pathLayer: matchedPath }
               }
             }
+          }
+        }
+      }
+    }
+
+    // 2. Check estate division layer (broader boundary)
+    if (vectorVisibilityRef.current.divisions && (targetKind === 'division' || targetKind === 'any')) {
+      const loaded = loadedVectorLayersRef.current.divisions
+      if (loaded && loaded.data?.features) {
+        for (const feature of loaded.data.features) {
+          if (isPointInFeature(latlng, feature)) {
+            let matchedPath: L.Path | undefined
+            loaded.layer.eachLayer((candidate) => {
+              const raw = (candidate as L.Layer & { feature?: EstateFeature }).feature
+              if (raw === feature && candidate instanceof L.Path) {
+                matchedPath = candidate
+              }
+            })
+            return { layerKey: 'divisions', config: loaded.config, feature, pathLayer: matchedPath }
           }
         }
       }
@@ -324,38 +322,43 @@ export function PlantationMap() {
       maxBoundsViscosity: 0.8,
     })
 
-    // Create custom ordered panes
+    // Create custom ordered panes: Basemap -> Imagery -> Divisions (lowest) -> Fields -> Infrastructure -> Analysis Rasters (top)
     map.createPane('basemap')
     map.getPane('basemap')!.style.zIndex = '100'
 
     map.createPane('imagery_raster')
     map.getPane('imagery_raster')!.style.zIndex = '200'
 
-    map.createPane('analysis_raster')
-    map.getPane('analysis_raster')!.style.zIndex = '250'
+    // Below layer: Divisions
+    map.createPane('divisions')
+    map.getPane('divisions')!.style.zIndex = '300'
 
-    map.createPane('boundary_lines')
-    map.getPane('boundary_lines')!.style.zIndex = '300'
+    // Middle layer: Agricultural Fields
+    map.createPane('fields')
+    map.getPane('fields')!.style.zIndex = '320'
 
+    // Upper layers: Infrastructure & Hydrology
     map.createPane('hydrology_streams')
     map.getPane('hydrology_streams')!.style.zIndex = '350'
 
     map.createPane('road_network')
-    map.getPane('road_network')!.style.zIndex = '380'
+    map.getPane('road_network')!.style.zIndex = '370'
 
     map.createPane('buildings')
     map.getPane('buildings')!.style.zIndex = '390'
 
-    map.createPane('fields')
-    map.getPane('fields')!.style.zIndex = '410'
+    map.createPane('boundary_lines')
+    map.getPane('boundary_lines')!.style.zIndex = '410'
 
-    map.createPane('divisions')
-    map.getPane('divisions')!.style.zIndex = '420'
+    // On top of all layers (all above vectors): Thematic Analysis Rasters (Canopy Height, Slope, Land Use)
+    map.createPane('analysis_raster')
+    map.getPane('analysis_raster')!.style.zIndex = '450'
 
+    // Top layer: User Drawing Tools
     map.createPane('drawn_features')
     map.getPane('drawn_features')!.style.zIndex = '500'
 
-    map.setView([7.05894, 80.70995], 15)
+    map.setView([7.05894, 80.70995], 16)
     mapRef.current = map
 
     // 0. User Drawing Feature Group
@@ -449,7 +452,16 @@ export function PlantationMap() {
 
     // Central Map Click Dispatcher
     const handleMapClick = (event: L.LeafletMouseEvent) => {
-      // If divisions layer is ON, query division first
+      if (isDrawingActiveRef.current) return
+
+      // 1. Query field parcels first (specific agricultural block)
+      const fieldHit = findFeatureAtPoint(event.latlng, 'field')
+      if (fieldHit) {
+        selectFeature(fieldHit.layerKey, fieldHit.feature, fieldHit.pathLayer)
+        return
+      }
+
+      // 2. Query division if field was not hit
       if (vectorVisibilityRef.current.divisions) {
         const divisionHit = findFeatureAtPoint(event.latlng, 'division')
         if (divisionHit) {
@@ -458,13 +470,7 @@ export function PlantationMap() {
         }
       }
 
-      // Otherwise query field plots
-      const fieldHit = findFeatureAtPoint(event.latlng, 'field')
-      if (fieldHit) {
-        selectFeature(fieldHit.layerKey, fieldHit.feature, fieldHit.pathLayer)
-      } else {
-        handleCloseSelection()
-      }
+      handleCloseSelection()
     }
     map.on('click', handleMapClick)
 
@@ -492,19 +498,32 @@ export function PlantationMap() {
                 ;(leafletLayer as L.Path & { _estateFeature?: EstateFeature })._estateFeature = feature
               }
 
-              if (config.interactive) {
+              if (config.kind === 'division') {
+                const divName = featureTitle(feature, 'division')
+                leafletLayer.bindTooltip(
+                  `<div class="division-map-label"><span>${divName}</span></div>`,
+                  {
+                    permanent: true,
+                    direction: 'center',
+                    className: 'division-label-tooltip',
+                    interactive: false,
+                  },
+                )
+              } else if (config.interactive) {
                 leafletLayer.bindTooltip(featureTitle(feature, config.kind), {
                   sticky: true,
                   direction: 'top',
                   className: 'estate-tooltip',
                 })
+              }
 
+              if (config.interactive) {
                 leafletLayer.on({
                   click: (event: L.LeafletMouseEvent) => {
                     if (isDrawingActiveRef.current) return
                     L.DomEvent.stopPropagation(event)
 
-                    if (config.kind === 'division' && !vectorVisibilityRef.current.divisions) {
+                    if (config.kind === 'division') {
                       const fieldHit = findFeatureAtPoint(event.latlng, 'field')
                       if (fieldHit) {
                         selectFeature(fieldHit.layerKey, fieldHit.feature, fieldHit.pathLayer)
@@ -572,7 +591,7 @@ export function PlantationMap() {
 
         if (bounds.isValid()) {
           estateBoundsRef.current = bounds
-          map.fitBounds(bounds, { padding: [45, 45], maxZoom: 16 })
+          map.fitBounds(bounds, { padding: [20, 20], maxZoom: 17 })
         }
         setAllSearchableFeatures(searchableFeatures)
       })
@@ -736,8 +755,8 @@ export function PlantationMap() {
     const map = mapRef.current
     if (!map) return
 
-    // 1. Reset Base Layer to Street Map + RGB Ortho
-    handleSelectBaseLayer('osmOrtho')
+    // 1. Reset Base Layer to Street Map (OSM)
+    handleSelectBaseLayer('osm')
 
     // 2. Reset Thematic Rasters (CHM, Slope, Landuse to false)
     Object.entries(INITIAL_RASTER_VISIBILITY).forEach(([rawId, defaultVal]) => {
@@ -763,7 +782,7 @@ export function PlantationMap() {
 
     // 4. Reset View & Selection
     if (estateBoundsRef.current?.isValid()) {
-      map.fitBounds(estateBoundsRef.current, { padding: [45, 45], maxZoom: 16 })
+      map.fitBounds(estateBoundsRef.current, { padding: [20, 20], maxZoom: 17 })
     }
     handleCloseSelection()
   }
@@ -772,7 +791,7 @@ export function PlantationMap() {
     const map = mapRef.current
     const bounds = estateBoundsRef.current
     if (map && bounds?.isValid()) {
-      map.fitBounds(bounds, { padding: [45, 45], maxZoom: 16 })
+      map.fitBounds(bounds, { padding: [20, 20], maxZoom: 17 })
     }
     handleCloseSelection()
   }

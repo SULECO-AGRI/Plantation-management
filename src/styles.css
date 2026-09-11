@@ -1455,6 +1455,42 @@ h1, h2, h3, h4, h5 {
 }
 .estate-tooltip::before { display: none; }
 
+/* Permanent Division Names on Map */
+.division-label-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+}
+.division-label-tooltip::before {
+  display: none !important;
+}
+
+.division-map-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-heading), 'Times New Roman', serif;
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1a2c24;
+  text-shadow:
+    -1.5px -1.5px 0 #ffffff,
+    1.5px -1.5px 0 #ffffff,
+    -1.5px 1.5px 0 #ffffff,
+    1.5px 1.5px 0 #ffffff,
+    0 0 8px rgba(255, 255, 255, 0.95),
+    0 1px 4px rgba(0, 0, 0, 0.20);
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
 .map-topbar {
   position: absolute;
   top: 18px;
@@ -2732,7 +2768,7 @@ h1, h2, h3, h4, h5 {
   display: flex !important;
   flex-direction: row;
   overflow: hidden;
-  border: 1.5px solid #1C1E1B !important;
+  border: 1.5px solid #4B5563 !important;
   padding: 0;
   gap: 0;
 }
