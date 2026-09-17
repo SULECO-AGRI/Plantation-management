@@ -173,6 +173,7 @@ export const CARTOGRAPHIC_COLORS = {
   // General Features & Infrastructure
   estateBoundary: { hex: '#1C1E1B', rgb: 'rgb(28, 30, 27)', label: 'Estate Outer Boundary' },
   fieldBoundary: { hex: '#2A2A2A', rgb: 'rgb(42, 42, 42)', label: 'Field Parcel Boundary (Thin Light Black)' },
+  selectedField: { hex: '#991B1B', rgb: 'rgb(153, 27, 27)', label: 'Selected Field Border (Dark Red)' },
   divisionBoundary: { hex: '#4B5563', rgb: 'rgb(75, 85, 99)', label: 'Division Boundary' },
   divisionFill: { hex: '#ECECEC', rgb: 'rgb(236, 236, 236)', label: 'All Divisions Base Fill' },
   buildings: { hex: '#5F1439', rgb: 'rgb(95, 20, 57)', label: 'Buildings / Built-up Footprints' },

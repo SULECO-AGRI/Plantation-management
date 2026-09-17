@@ -3056,6 +3056,10 @@ h1, h2, h3, h4, h5 {
 /* ==========================================================================
    CARTOGRAPHIC FIELD MAP PARCEL LABELS (Clear, Readable & High Visibility)
    ========================================================================== */
+.leaflet-pane.leaflet-field_labels-pane {
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .leaflet-tooltip.field-map-label,
 .leaflet-pane .leaflet-tooltip.field-map-label,
 .leaflet-zoom-animated .leaflet-tooltip.field-map-label {

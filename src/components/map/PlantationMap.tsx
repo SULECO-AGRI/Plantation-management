@@ -287,11 +287,13 @@ export function PlantationMap() {
 
     if (chosenPath) {
       activeSelectedPathRef.current = chosenPath
+      const isField = config.kind === 'field'
       chosenPath.setStyle({
-        color: '#ffffff',
-        weight: 3.6,
-        fillColor: '#ffffff',
-        fillOpacity: 0.48,
+        color: CARTOGRAPHIC_COLORS.selectedField?.hex || '#991b1b',
+        weight: 1.8,
+        opacity: 1.0,
+        fillColor: isField ? (config.fillColor || config.color || '#991b1b') : '#ffffff',
+        fillOpacity: isField ? 0.70 : 0.48,
         dashArray: undefined,
       })
       chosenPath.bringToFront()
@@ -454,6 +456,27 @@ export function PlantationMap() {
         tileLayer.addTo(map)
       }
     })
+
+    const updateZoomLabels = () => {
+      const zoom = map.getZoom()
+      const fieldLabelsPane = map.getPane('field_labels')
+      if (fieldLabelsPane) {
+        if (zoom < 14.8) {
+          fieldLabelsPane.style.display = 'none'
+          fieldLabelsPane.style.opacity = '0'
+        } else if (zoom < 15.5) {
+          fieldLabelsPane.style.display = 'block'
+          fieldLabelsPane.style.opacity = '0.75'
+        } else {
+          fieldLabelsPane.style.display = 'block'
+          fieldLabelsPane.style.opacity = '1'
+        }
+      }
+    }
+
+    map.on('zoom', updateZoomLabels)
+    map.on('zoomend', updateZoomLabels)
+    updateZoomLabels()
 
     L.control.zoom({ position: 'bottomright' }).addTo(map)
 
@@ -641,6 +664,8 @@ export function PlantationMap() {
       controller.abort()
       window.clearTimeout(imageryHealthTimer)
       map.off('click', handleMapClick)
+      map.off('zoom', updateZoomLabels)
+      map.off('zoomend', updateZoomLabels)
       map.remove()
       mapRef.current = null
       drawnItemsRef.current = null
@@ -653,6 +678,26 @@ export function PlantationMap() {
       activeSelectedPathRef.current = null
     }
   }, [])
+
+  // Toggle Google Satellite Base Map
+  const handleToggleSatellite = () => {
+    const map = mapRef.current
+    if (!map) return
+
+    const nextBaseMap: BaseMapId = baseMap === 'googleSatellite' ? 'osm' : 'googleSatellite'
+    setBaseMap(nextBaseMap)
+
+    const osmLayer = baseMapTileLayersRef.current.osm
+    const satLayer = baseMapTileLayersRef.current.googleSatellite
+
+    if (nextBaseMap === 'googleSatellite') {
+      if (osmLayer && map.hasLayer(osmLayer)) map.removeLayer(osmLayer)
+      if (satLayer && !map.hasLayer(satLayer)) map.addLayer(satLayer)
+    } else {
+      if (satLayer && map.hasLayer(satLayer)) map.removeLayer(satLayer)
+      if (osmLayer && !map.hasLayer(osmLayer)) map.addLayer(osmLayer)
+    }
+  }
 
   // Dynamic Base Layer Selection (Bottom-Left Switcher)
   const handleSelectBaseLayer = (nextId: ImageryBaseLayerId) => {
@@ -849,11 +894,17 @@ export function PlantationMap() {
       if (raw !== hit.feature) return
 
       if (candidate instanceof L.Path) {
+        const isField = config.kind === 'field'
         candidate.setStyle({
-          weight: config.kind === 'division' ? 4.0 : 3.0,
-          fillOpacity: config.kind === 'division' ? 0.45 : 0.55,
+          color: CARTOGRAPHIC_COLORS.selectedField?.hex || '#991b1b',
+          weight: 1.8,
+          opacity: 1.0,
+          fillColor: isField ? (config.fillColor || config.color || '#991b1b') : '#ffffff',
+          fillOpacity: isField ? 0.70 : 0.48,
+          dashArray: undefined,
         })
         activeSelectedPathRef.current = candidate
+        candidate.bringToFront()
       }
 
       const center = getFeatureCenter(candidate)
@@ -907,8 +958,10 @@ export function PlantationMap() {
       />
 
       <BaseMapSwitcher
-        activeBaseLayer={activeBaseLayer}
-        onSelectBaseLayer={handleSelectBaseLayer}
+        isSatelliteActive={baseMap === 'googleSatellite'}
+        onToggleSatellite={handleToggleSatellite}
+        isRgbActive={Boolean(rasterVisibility.visigeo)}
+        onToggleRgb={() => handleToggleRaster('visigeo')}
       />
 
       <FeatureDetailPanel selection={selection} onClose={handleCloseSelection} />
