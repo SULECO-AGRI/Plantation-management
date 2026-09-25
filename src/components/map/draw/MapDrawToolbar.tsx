@@ -114,11 +114,11 @@ export function MapDrawToolbar({
 
       if (layer instanceof L.Path) {
         layer.setStyle({
-          color: '#10b981',
-          weight: 3,
+          color: '#6C004B',
+          weight: 2.2,
           opacity: 0.9,
-          fillColor: '#10b981',
-          fillOpacity: 0.25,
+          fillColor: '#6C004B',
+          fillOpacity: 0.18,
         })
       }
 
@@ -184,11 +184,11 @@ export function MapDrawToolbar({
 
     const shapeOptions = {
       pane: 'drawn_features',
-      color: '#10b981',
-      weight: 3,
-      opacity: 0.95,
-      fillColor: '#10b981',
-      fillOpacity: 0.28,
+      color: '#6C004B',
+      weight: 2.2,
+      opacity: 0.92,
+      fillColor: '#6C004B',
+      fillOpacity: 0.18,
     }
 
     let handler: any = null
@@ -239,9 +239,9 @@ export function MapDrawToolbar({
         handler = new (L as any).EditToolbar.Edit(map, {
           featureGroup: drawnItems,
           selectedPathOptions: {
-            color: '#f59e0b',
-            fillColor: '#f59e0b',
-            fillOpacity: 0.35,
+            color: '#B86B3E',
+            fillColor: '#B86B3E',
+            fillOpacity: 0.26,
             dashArray: '5, 5',
           },
         })

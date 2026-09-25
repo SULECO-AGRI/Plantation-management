@@ -65,10 +65,10 @@ function getVectorFeatureStyle(
   if (config.kind === 'boundary') {
     return {
       color: CARTOGRAPHIC_COLORS.estateBoundary.hex,
-      weight: 3.0,
-      opacity: 0.98,
+      weight: 2.2,
+      opacity: 0.92,
       fillColor: CARTOGRAPHIC_COLORS.estateBoundary.hex,
-      fillOpacity: 0.04,
+      fillOpacity: 0.02,
     }
   }
 
@@ -78,24 +78,24 @@ function getVectorFeatureStyle(
       const isPrimary = cat === 1 || cat === 2 || cat === 3 || !cat
       return {
         color: CARTOGRAPHIC_COLORS.roadsPrimary.hex,
-        weight: isPrimary ? 1.4 : 1.0,
-        opacity: 0.95,
+        weight: isPrimary ? 1.25 : 0.85,
+        opacity: 0.88,
       }
     }
     if (config.key === 'streams') {
       return {
         color: CARTOGRAPHIC_COLORS.streams.hex,
-        weight: 1.2,
-        opacity: 0.92,
+        weight: 1.1,
+        opacity: 0.88,
       }
     }
     if (config.key === 'buildings') {
       return {
         color: CARTOGRAPHIC_COLORS.buildings.hex,
-        weight: 1.4,
+        weight: 1.05,
         opacity: 0.95,
         fillColor: CARTOGRAPHIC_COLORS.buildings.hex,
-        fillOpacity: 0.85,
+        fillOpacity: 0.90,
       }
     }
   }
@@ -103,21 +103,21 @@ function getVectorFeatureStyle(
   if (config.kind === 'division') {
     return {
       color: CARTOGRAPHIC_COLORS.divisionBoundary.hex,
-      weight: isDivisionActive ? 1.8 : 1.2,
-      opacity: 0.85,
+      weight: isDivisionActive ? 1.35 : 0.95,
+      opacity: 0.72,
       fillColor: CARTOGRAPHIC_COLORS.divisionFill.hex,
-      fillOpacity: isDivisionActive ? 0.50 : 0.15,
+      fillOpacity: isDivisionActive ? 0.34 : 0.10,
     }
   }
 
   // Field plots - very thin light black boundary outline
   const fieldColor = config.fillColor || config.color
   return {
-    color: '#2a2a2a',
-    weight: 0.75,
-    opacity: 0.85,
+    color: CARTOGRAPHIC_COLORS.fieldBoundary.hex,
+    weight: 0.65,
+    opacity: 0.78,
     fillColor: fieldColor,
-    fillOpacity: 0.65,
+    fillOpacity: 0.56,
   }
 }
 
@@ -289,11 +289,11 @@ export function PlantationMap() {
       activeSelectedPathRef.current = chosenPath
       const isField = config.kind === 'field'
       chosenPath.setStyle({
-        color: CARTOGRAPHIC_COLORS.selectedField?.hex || '#991b1b',
+        color: CARTOGRAPHIC_COLORS.selectedField?.hex || '#6C004B',
         weight: 1.8,
         opacity: 1.0,
-        fillColor: isField ? (config.fillColor || config.color || '#991b1b') : '#ffffff',
-        fillOpacity: isField ? 0.70 : 0.48,
+        fillColor: isField ? (config.fillColor || config.color || '#6C004B') : '#F7F5EE',
+        fillOpacity: isField ? 0.62 : 0.40,
         dashArray: undefined,
       })
       chosenPath.bringToFront()
@@ -336,6 +336,11 @@ export function PlantationMap() {
     // Below layer: Divisions
     map.createPane('divisions')
     map.getPane('divisions')!.style.zIndex = '300'
+
+    // Division watermark labels
+    map.createPane('division_labels')
+    map.getPane('division_labels')!.style.zIndex = '310'
+    map.getPane('division_labels')!.style.pointerEvents = 'none'
 
     // Middle layer: Agricultural Fields
     map.createPane('fields')
@@ -459,6 +464,8 @@ export function PlantationMap() {
 
     const updateZoomLabels = () => {
       const zoom = map.getZoom()
+
+      // Field Labels: Visible at zoom >= 14.8, hidden when zoomed out (< 14.8)
       const fieldLabelsPane = map.getPane('field_labels')
       if (fieldLabelsPane) {
         if (zoom < 14.8) {
@@ -470,6 +477,21 @@ export function PlantationMap() {
         } else {
           fieldLabelsPane.style.display = 'block'
           fieldLabelsPane.style.opacity = '1'
+        }
+      }
+
+      // Division Watermark Names: Visible in estate view, hidden when zoomed far out (< 13.5)
+      const divisionLabelsPane = map.getPane('division_labels')
+      if (divisionLabelsPane) {
+        if (zoom < 13.5) {
+          divisionLabelsPane.style.display = 'none'
+          divisionLabelsPane.style.opacity = '0'
+        } else if (zoom < 14.2) {
+          divisionLabelsPane.style.display = 'block'
+          divisionLabelsPane.style.opacity = '0.7'
+        } else {
+          divisionLabelsPane.style.display = 'block'
+          divisionLabelsPane.style.opacity = '1'
         }
       }
     }
@@ -567,7 +589,7 @@ export function PlantationMap() {
                   direction: 'center',
                   className: 'division-watermark-tooltip',
                   interactive: false,
-                  pane: 'divisions',
+                  pane: 'division_labels',
                 })
               } else if (config.interactive) {
                 leafletLayer.bindTooltip(featureTitle(feature, config.kind), {
@@ -896,11 +918,11 @@ export function PlantationMap() {
       if (candidate instanceof L.Path) {
         const isField = config.kind === 'field'
         candidate.setStyle({
-          color: CARTOGRAPHIC_COLORS.selectedField?.hex || '#991b1b',
+          color: CARTOGRAPHIC_COLORS.selectedField?.hex || '#6C004B',
           weight: 1.8,
           opacity: 1.0,
-          fillColor: isField ? (config.fillColor || config.color || '#991b1b') : '#ffffff',
-          fillOpacity: isField ? 0.70 : 0.48,
+          fillColor: isField ? (config.fillColor || config.color || '#6C004B') : '#F7F5EE',
+          fillOpacity: isField ? 0.62 : 0.40,
           dashArray: undefined,
         })
         activeSelectedPathRef.current = candidate

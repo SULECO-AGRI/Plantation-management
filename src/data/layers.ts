@@ -171,34 +171,34 @@ export const ANALYSIS_RASTER_LAYERS: RasterOverlayConfig[] = TERRAIN_RASTER_LAYE
  */
 export const CARTOGRAPHIC_COLORS = {
   // General Features & Infrastructure
-  estateBoundary: { hex: '#1C1E1B', rgb: 'rgb(28, 30, 27)', label: 'Estate Outer Boundary' },
-  fieldBoundary: { hex: '#2A2A2A', rgb: 'rgb(42, 42, 42)', label: 'Field Parcel Boundary (Thin Light Black)' },
-  selectedField: { hex: '#991B1B', rgb: 'rgb(153, 27, 27)', label: 'Selected Field Border (Dark Red)' },
-  divisionBoundary: { hex: '#4B5563', rgb: 'rgb(75, 85, 99)', label: 'Division Boundary' },
-  divisionFill: { hex: '#ECECEC', rgb: 'rgb(236, 236, 236)', label: 'All Divisions Base Fill' },
-  buildings: { hex: '#5F1439', rgb: 'rgb(95, 20, 57)', label: 'Buildings / Built-up Footprints' },
+  estateBoundary: { hex: '#333430', rgb: 'rgb(51, 52, 48)', label: 'Estate Outer Boundary' },
+  fieldBoundary: { hex: '#3A3A36', rgb: 'rgb(58, 58, 54)', label: 'Field Parcel Boundary (Thin Light Black)' },
+  selectedField: { hex: '#6C004B', rgb: 'rgb(108, 0, 75)', label: 'Selected Field Border (Survey Plum)' },
+  divisionBoundary: { hex: '#6E716B', rgb: 'rgb(110, 113, 107)', label: 'Division Boundary' },
+  divisionFill: { hex: '#F1F0EB', rgb: 'rgb(241, 240, 235)', label: 'All Divisions Base Fill' },
+  buildings: { hex: '#6C004B', rgb: 'rgb(108, 0, 75)', label: 'Buildings / Built-up Footprints' },
   roadsPrimary: { hex: '#B86B3E', rgb: 'rgb(184, 107, 62)', label: 'Roads (Primary / Collector / Main)' },
   roadsLocal: { hex: '#8E8A85', rgb: 'rgb(142, 138, 133)', label: 'Roads (Local Road / Track / Footpath)' },
-  streams: { hex: '#5B9BD5', rgb: 'rgb(91, 155, 213)', label: 'Streams & Watercourses' },
-  contourIndex: { hex: '#A87C52', rgb: 'rgb(168, 124, 82)', label: 'Contour Lines (Index)' },
-  contourMinor: { hex: '#D7BA97', rgb: 'rgb(215, 186, 151)', label: 'Contour Lines (Intermediate / Minor)' },
+  streams: { hex: '#7EB9C4', rgb: 'rgb(126, 185, 196)', label: 'Streams & Watercourses' },
+  contourIndex: { hex: '#C18A5A', rgb: 'rgb(193, 138, 90)', label: 'Contour Lines (Index)' },
+  contourMinor: { hex: '#DBC9A9', rgb: 'rgb(219, 201, 169)', label: 'Contour Lines (Intermediate / Minor)' },
 
   // Division & Agricultural Field Thematic Fills
   divisions: {
-    weddamulla: { hex: '#F1C884', rgb: 'rgb(241, 200, 132)', label: 'Weddamulla', tone: 'Soft warm amber' },
-    camnethan: { hex: '#F3DDD8', rgb: 'rgb(243, 221, 216)', label: 'Camnethan', tone: 'Soft pale blush peach' },
-    lilliesland: { hex: '#E7DAED', rgb: 'rgb(231, 218, 237)', label: 'Lilliesland', tone: 'Soft pale pastel lilac' },
+    weddamulla: { hex: '#F0D090', rgb: 'rgb(240, 208, 144)', label: 'Weddamulla', tone: 'Soft warm amber' },
+    camnethan: { hex: '#F0D8D8', rgb: 'rgb(240, 216, 216)', label: 'Camnethan', tone: 'Soft pale blush peach' },
+    lilliesland: { hex: '#E8D8F0', rgb: 'rgb(232, 216, 240)', label: 'Lilliesland', tone: 'Soft pale pastel lilac' },
     ramboda: { hex: '#C0BFB3', rgb: 'rgb(192, 191, 179)', label: 'Ramboda', tone: 'Neutral warm stone grey' },
-    wewandon: { hex: '#E2EBB9', rgb: 'rgb(226, 235, 185)', label: 'Wewandon', tone: 'Pale light chartreuse' },
+    wewandon: { hex: '#E0F0C0', rgb: 'rgb(224, 240, 192)', label: 'Wewandon', tone: 'Pale light chartreuse' },
   },
 
   // Land Use Categories (Land Cover Maps)
   landUse: {
-    tea: { hex: '#B73E1E', rgb: 'rgb(183, 62, 30)', label: 'Tea Cultivation' },
-    shrubs: { hex: '#E5A824', rgb: 'rgb(229, 168, 36)', label: 'Green Shrubs / Scrub' },
-    forest: { hex: '#458A18', rgb: 'rgb(69, 138, 24)', label: 'High Vegetation / Forest' },
-    vegetable: { hex: '#75A929', rgb: 'rgb(117, 169, 41)', label: 'Vegetable Cultivation' },
-    developed: { hex: '#5E173C', rgb: 'rgb(94, 23, 60)', label: 'Developed Area' },
+    tea: { hex: '#B04818', rgb: 'rgb(176, 72, 24)', label: 'Tea Cultivation' },
+    shrubs: { hex: '#E8A018', rgb: 'rgb(232, 160, 24)', label: 'Green Shrubs / Scrub' },
+    forest: { hex: '#408018', rgb: 'rgb(64, 128, 24)', label: 'High Vegetation / Forest' },
+    vegetable: { hex: '#80B018', rgb: 'rgb(128, 176, 24)', label: 'Vegetable Cultivation' },
+    developed: { hex: '#6C004B', rgb: 'rgb(108, 0, 75)', label: 'Developed Area' },
   },
 
   // Canopy Height Model (CHM / Vegetation Strata)

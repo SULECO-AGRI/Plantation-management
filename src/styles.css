@@ -3056,7 +3056,8 @@ h1, h2, h3, h4, h5 {
 /* ==========================================================================
    CARTOGRAPHIC FIELD MAP PARCEL LABELS (Clear, Readable & High Visibility)
    ========================================================================== */
-.leaflet-pane.leaflet-field_labels-pane {
+.leaflet-pane.leaflet-field_labels-pane,
+.leaflet-pane.leaflet-division_labels-pane {
   transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -3186,3 +3187,1371 @@ h1, h2, h3, h4, h5 {
 
 
 
+
+/* ========================================================================== 
+   AGALAWATTA SURVEY-SHEET RESKIN
+   Visual-only overrides based on Agalawatta_Plantaion_A2.pdf.
+   No interaction, data, source, event, or map-layer behavior is changed here.
+   ========================================================================== */
+
+.estate-page,
+.plantation-map-shell {
+  --survey-paper: #f7f5ee;
+  --survey-paper-soft: #fbfaf4;
+  --survey-paper-muted: #efeee8;
+  --survey-map-green: #d4e1c5;
+  --survey-ink: #333430;
+  --survey-ink-soft: #5d5f59;
+  --survey-muted: #7d7e76;
+  --survey-line: #b7b8b0;
+  --survey-line-soft: #d9d8d0;
+  --survey-plum: #6c004b;
+  --survey-road: #b86b3e;
+  --survey-water: #7eb9c4;
+  --survey-paper-shadow: 0 3px 12px rgba(51, 52, 48, 0.16);
+  --survey-paper-shadow-strong: 0 6px 18px rgba(51, 52, 48, 0.20);
+  --survey-serif: "Times New Roman", Times, Georgia, serif;
+  --survey-sans: Arial, Helvetica, sans-serif;
+}
+
+/* Estate map page chrome - modern sleek emerald aesthetic */
+.estate-page {
+  background: #f8faf9;
+}
+
+.estate-header {
+  height: 56px;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #eef2ef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.estate-header .nav-brand__text strong {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #111827;
+}
+
+.estate-header .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.15s ease;
+}
+
+.estate-header .back-link:hover {
+  color: #1b5e40;
+}
+
+.plantation-map-shell,
+.plantation-map,
+.leaflet-container {
+  background: #e9f0ec;
+}
+
+/* --------------------------------------------------------------------------
+   Native Leaflet controls
+   -------------------------------------------------------------------------- */
+.leaflet-control-zoom {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 16px -2px rgba(10, 30, 20, 0.08) !important;
+  overflow: hidden;
+  background: #ffffff !important;
+}
+
+.leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid #f1f5f2 !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  transition: all 0.15s ease !important;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom: 0 !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #f8fafc !important;
+  color: #1b5e40 !important;
+}
+
+.leaflet-control-attribution {
+  padding: 2px 6px !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  color: #64748b !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 9px !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  border-left: 1px solid rgba(226, 232, 240, 0.8);
+  border-top-left-radius: 6px;
+}
+
+.leaflet-control-attribution a {
+  color: #1b5e40 !important;
+}
+
+/* --------------------------------------------------------------------------
+   Top search and estate reset - modern emerald aesthetic
+   -------------------------------------------------------------------------- */
+.map-topbar {
+  top: 16px;
+  left: 350px;
+  gap: 8px;
+  max-width: calc(100% - 350px - 410px);
+}
+
+.map-search-wrap {
+  height: 42px;
+  width: 320px;
+  max-width: 360px;
+  gap: 10px;
+  padding: 0 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px -2px rgba(10, 30, 20, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.15s ease;
+}
+
+.map-search-wrap:focus-within {
+  border-color: #1b5e40;
+  box-shadow: 0 4px 20px -2px rgba(27, 94, 64, 0.15);
+}
+
+.map-search-wrap svg {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.map-search-wrap input {
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.map-search-wrap input::placeholder {
+  color: #94a3b8;
+}
+
+.search-clear {
+  width: 24px;
+  height: 24px;
+  color: #94a3b8;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.search-clear:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+.search-results {
+  top: 48px;
+  max-height: 360px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(10, 30, 20, 0.12);
+  overflow: hidden;
+}
+
+.search-results button {
+  gap: 3px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f2;
+  background: #ffffff;
+  color: #111827;
+  transition: background 0.12s ease;
+}
+
+.search-results button:hover {
+  background: #f8faf9;
+}
+
+.search-results strong {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.search-results span,
+.search-results p {
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+}
+
+.estate-chip {
+  height: 42px;
+  padding: 0 14px;
+  gap: 7px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px -2px rgba(10, 30, 20, 0.08);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+
+.estate-chip svg {
+  color: #1b5e40;
+}
+
+.estate-chip:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Left layers panel - flat cartographic legend treatment
+   -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   Left layers panel - modern sleek emerald aesthetic (matching design screenshot)
+   -------------------------------------------------------------------------- */
+.map-top-left-rail {
+  left: 16px;
+  top: 16px;
+  bottom: 82px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100% - 98px);
+  z-index: 800;
+  pointer-events: auto;
+}
+
+.layer-controller-pill,
+.map-card,
+.layer-controller-floating {
+  background: #ffffff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #eaf0ec;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(10, 30, 20, 0.08), 0 2px 6px -1px rgba(10, 30, 20, 0.04);
+}
+
+.layer-controller-floating {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+.layer-controller-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px;
+  gap: 8px;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.layer-controller-pill:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.layer-controller-pill__icon {
+  color: #111827;
+  display: grid;
+  place-items: center;
+}
+
+.layer-controller-pill__chevron {
+  color: #64748b;
+}
+
+.layer-controller-pill__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.layer-controller-pill__text strong {
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+/* Panel Header */
+.map-card__header {
+  min-height: 48px;
+  padding: 12px 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f2;
+  background: #ffffff;
+}
+
+.layer-controller-header__title h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.layer-controller-header__title h2 svg {
+  stroke-width: 2.2px;
+  color: #111827;
+}
+
+.layer-count-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #1b5e40;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  border: none;
+  margin-left: 2px;
+}
+
+.layer-controller-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Scroll body */
+.layer-controller__scroll-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+/* Layer Category */
+.layer-category {
+  border-bottom: 1px solid #f1f5f2;
+}
+
+.layer-category:last-child {
+  border-bottom: none;
+}
+
+.layer-category__header {
+  width: 100%;
+  padding: 11px 14px 7px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.layer-category__header:hover {
+  background: #fafcfb;
+}
+
+.category-title {
+  color: #1a382b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.category-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.category-active-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: #e6f4ea;
+  color: #1b5e40;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+}
+
+.category-chevron {
+  color: #1a382b;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.category-chevron--open {
+  transform: rotate(180deg);
+}
+
+.layer-category__content {
+  padding: 2px 0 8px;
+  background: #ffffff;
+}
+
+/* Layer Rows */
+.layer-row {
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.layer-row:hover {
+  background: #f8faf9;
+}
+
+.layer-row--active {
+  background: transparent;
+}
+
+.layer-row--compact {
+  min-height: 35px;
+  padding: 4px 10px;
+}
+
+/* Layer Swatches */
+.layer-swatch {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.layer-swatch--compact {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.layer-swatch--multi {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0;
+}
+
+.layer-swatch--multi span {
+  flex: 1;
+  height: 100%;
+}
+
+.layer-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.layer-copy strong {
+  color: #1a202c;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.layer-copy small {
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+/* Fields Sub-group */
+.fields-subgroup {
+  margin: 6px 10px 4px;
+  padding: 8px 4px 6px;
+  background: #f6f9f7;
+  border: 1px solid #e3ede6;
+  border-radius: 10px;
+}
+
+.fields-subgroup__header {
+  padding: 0 8px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: none;
+}
+
+.fields-subgroup__header span {
+  color: #234b39;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fields-subgroup__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fields-subgroup .layer-row {
+  border-radius: 6px;
+}
+
+.fields-subgroup .layer-row:hover {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.fields-subgroup .layer-copy strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+/* Toggle Switch - Modern iOS Emerald Style */
+.layer-toggle-switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  position: relative;
+  display: inline-block;
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  border: none;
+}
+
+.layer-toggle-switch--compact {
+  width: 36px;
+  height: 20px;
+}
+
+.layer-toggle-switch--active {
+  background: #1b5e40;
+  border-color: #1b5e40;
+}
+
+.layer-toggle-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.layer-toggle-switch--compact .layer-toggle-switch__thumb {
+  width: 16px;
+  height: 16px;
+}
+
+.layer-toggle-switch--active .layer-toggle-switch__thumb {
+  transform: translateX(16px);
+}
+
+.layer-toggle-switch--compact.layer-toggle-switch--active .layer-toggle-switch__thumb {
+  transform: translateX(16px);
+}
+
+/* --------------------------------------------------------------------------
+   Drawing toolbar - modern sleek emerald aesthetic
+   -------------------------------------------------------------------------- */
+.map-draw-toolbar {
+  right: 16px;
+  top: 16px;
+  gap: 8px;
+}
+
+.map-draw-toolbar--with-detail {
+  right: min(410px, calc(100% - 56px));
+}
+
+.draw-tool-group {
+  width: 36px;
+  background: #ffffff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px -2px rgba(10, 30, 20, 0.08);
+  overflow: hidden;
+}
+
+.draw-tool-btn {
+  width: 36px;
+  height: 36px;
+  border-bottom: 1px solid #f1f5f2;
+  color: #475569;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s ease;
+}
+
+.draw-tool-btn:hover {
+  background: #f8fafc;
+  color: #1b5e40;
+}
+
+.draw-tool-btn--active {
+  background: #e6f4ea !important;
+  color: #1b5e40 !important;
+  box-shadow: inset 3px 0 0 #1b5e40;
+}
+
+.draw-tool-badge {
+  top: 3px;
+  right: 3px;
+  background: #1b5e40;
+  color: #ffffff;
+  border-radius: 999px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+}
+
+.draw-active-indicator {
+  padding: 6px 10px;
+  border: 1px solid rgba(27, 94, 64, 0.2);
+  border-radius: 8px;
+  background: #1b5e40;
+  box-shadow: 0 4px 16px rgba(10, 30, 20, 0.15);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.draw-active-title {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.draw-btn-finish,
+.draw-btn-cancel {
+  border-radius: 6px;
+}
+
+.draw-btn-finish {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.draw-btn-finish:hover {
+  background: #059669;
+  transform: none;
+}
+
+.leaflet-draw-tooltip {
+  background: rgba(17, 37, 29, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 11px !important;
+  padding: 5px 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.leaflet-draw-tooltip:before {
+  border-right-color: rgba(17, 37, 29, 0.95) !important;
+}
+
+.leaflet-draw-tooltip-subtext {
+  color: #6ee7b7 !important;
+}
+
+.pin-dot {
+  width: 14px;
+  height: 14px;
+  background: #1b5e40;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   Basemap switcher - modern sleek emerald pill cards
+   -------------------------------------------------------------------------- */
+.basemap-floating-switcher {
+  left: 16px;
+  bottom: 16px;
+  z-index: 800;
+}
+
+.basemap-floating-switcher__cards {
+  gap: 4px;
+  padding: 4px;
+  background: #ffffff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px -2px rgba(10, 30, 20, 0.08);
+  display: flex;
+  align-items: center;
+}
+
+.basemap-pill-card {
+  min-height: 32px;
+  padding: 5px 12px;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+
+.basemap-pill-card:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.basemap-pill-card--active {
+  background: #e6f4ea;
+  border-color: transparent;
+}
+
+.basemap-pill-card__label {
+  color: #475569;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.basemap-pill-card--active .basemap-pill-card__label {
+  color: #1b5e40;
+  font-weight: 750;
+}
+
+.basemap-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: all 0.15s ease;
+}
+
+.basemap-pill-dot--selected {
+  background: #1b5e40;
+  box-shadow: 0 0 0 2px rgba(27, 94, 64, 0.25);
+}
+
+/* --------------------------------------------------------------------------
+   Feature detail panel - modern sleek emerald aesthetic (matching design system)
+   -------------------------------------------------------------------------- */
+.feature-panel {
+  right: 16px;
+  top: 16px;
+  bottom: 16px;
+  width: min(380px, calc(100% - 32px));
+  border: 1px solid #eaf0ec;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(10, 30, 20, 0.12), 0 2px 8px rgba(10, 30, 20, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 805;
+}
+
+.feature-panel__top,
+.feature-panel__top--division,
+.feature-panel__top--field {
+  padding: 16px 18px 12px;
+  gap: 12px;
+  background: #ffffff;
+  color: #111827;
+  border-top: none;
+  border-bottom: 1px solid #f1f5f2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.feature-panel__badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.entity-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2.5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #e6f4ea;
+  color: #1b5e40;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.feature-panel .eyebrow--light {
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.feature-panel__top h2 {
+  margin: 5px 0 2px;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.feature-panel__top p {
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.feature-panel .icon-btn--light {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.feature-panel .icon-btn--light:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.feature-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 16px 20px;
+  background: #ffffff;
+}
+
+.detail-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.detail-metrics article {
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #f8faf9;
+  border: 1px solid #e5ede8;
+  border-radius: 10px;
+  color: #1b5e40;
+  transition: all 0.15s ease;
+}
+
+.detail-metrics article:hover {
+  background: #f0f7f3;
+  border-color: #d0e5d9;
+}
+
+.detail-metrics article svg {
+  color: #1b5e40;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.detail-metrics small {
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detail-metrics strong {
+  margin-top: 2px;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 14.5px;
+  font-weight: 750;
+}
+
+.detail-metrics em {
+  margin-top: 1px;
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.landuse-section {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: #f8faf9;
+  border: 1px solid #e5ede8;
+  border-radius: 12px;
+}
+
+.attribute-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.attribute-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1a382b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.attribute-heading span svg {
+  color: #1b5e40;
+}
+
+.share-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px 8px;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #1b5e40;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  border: none;
+}
+
+.landuse-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.landuse-card {
+  padding: 8px 11px;
+  border: 1px solid #e2ebe5;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.landuse-card small {
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.landuse-card strong {
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 750;
+}
+
+/* Land-use thematic color strips */
+.landuse-card--tea { border-left: 3.5px solid #b04818; }
+.landuse-card--veg { border-left: 3.5px solid #80b018; }
+.landuse-card--grass { border-left: 3.5px solid #e8a018; }
+.landuse-card--forest { border-left: 3.5px solid #408018; }
+.landuse-card--dev { border-left: 3.5px solid #6c004b; }
+
+.panel-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-dropdown {
+  border: 1px solid #e5ede8;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.category-dropdown:hover {
+  border-color: #cfdfd6;
+}
+
+.category-dropdown__header {
+  width: 100%;
+  padding: 10px 14px;
+  background: #f8faf9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.category-dropdown__header:hover {
+  background: #f1f7f3;
+}
+
+.category-dropdown__header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #1a382b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.category-dropdown__header span svg {
+  color: #1b5e40;
+}
+
+.category-dropdown .category-chevron {
+  color: #1a382b;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.category-dropdown .category-chevron--open {
+  transform: rotate(180deg);
+}
+
+.category-dropdown__content {
+  padding: 2px 14px 8px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f2;
+}
+
+.attribute-list {
+  margin: 0;
+  padding: 0;
+}
+
+.attribute-list > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f1f5f2;
+}
+
+.attribute-list > div:last-child {
+  border-bottom: none;
+}
+
+.attribute-list dt {
+  color: #475569;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.attribute-list dd {
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: right;
+  margin: 0;
+}
+
+.field-placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   Cartographic labels, hover tooltips and popups
+   -------------------------------------------------------------------------- */
+.leaflet-tooltip.field-map-label,
+.leaflet-pane .leaflet-tooltip.field-map-label,
+.leaflet-zoom-animated .leaflet-tooltip.field-map-label {
+  color: #3c3d38 !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  text-shadow:
+    -1px -1px 0 rgba(247, 245, 238, 0.88),
+     1px -1px 0 rgba(247, 245, 238, 0.88),
+    -1px  1px 0 rgba(247, 245, 238, 0.88),
+     1px  1px 0 rgba(247, 245, 238, 0.88) !important;
+}
+
+.leaflet-tooltip.field-map-label-sm,
+.leaflet-pane .leaflet-tooltip.field-map-label-sm,
+.leaflet-zoom-animated .leaflet-tooltip.field-map-label-sm {
+  font-size: 8px !important;
+}
+
+.leaflet-tooltip.field-map-label-xs,
+.leaflet-pane .leaflet-tooltip.field-map-label-xs,
+.leaflet-zoom-animated .leaflet-tooltip.field-map-label-xs {
+  font-size: 6.8px !important;
+}
+
+.division-map-name {
+  color: rgba(65, 66, 61, 0.78);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-shadow:
+    -1px -1px 0 rgba(247, 245, 238, 0.76),
+     1px -1px 0 rgba(247, 245, 238, 0.76),
+    -1px  1px 0 rgba(247, 245, 238, 0.76),
+     1px  1px 0 rgba(247, 245, 238, 0.76);
+}
+
+.division-map-suffix {
+  margin-top: 0;
+  color: rgba(65, 66, 61, 0.78);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-shadow:
+    -1px -1px 0 rgba(247, 245, 238, 0.76),
+     1px -1px 0 rgba(247, 245, 238, 0.76),
+    -1px  1px 0 rgba(247, 245, 238, 0.76),
+     1px  1px 0 rgba(247, 245, 238, 0.76);
+}
+
+.leaflet-tooltip.estate-tooltip {
+  background: #ffffff !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  color: #111827 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 4px 8px !important;
+  box-shadow: 0 4px 16px -2px rgba(10, 30, 20, 0.1) !important;
+}
+
+.leaflet-tooltip.estate-tooltip::before {
+  border-top-color: #e2e8f0 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 30px rgba(10, 30, 20, 0.12) !important;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.leaflet-popup-close-button {
+  color: #64748b !important;
+}
+
+.draw-popup-content {
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+}
+
+.draw-popup-header {
+  color: #1b5e40;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-bottom-color: #f1f5f2;
+}
+
+.draw-popup-row span {
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 10.5px;
+}
+
+.draw-popup-row strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.map-error {
+  top: 72px;
+  padding: 8px 14px;
+  background: #ef4444;
+  border: 1px solid #dc2626;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Mobile keeps the same survey-sheet visual language while preserving existing layout behavior. */
+@media (max-width: 760px) {
+  .estate-header {
+    height: 52px;
+    padding: 0 12px;
+  }
+
+  .estate-header .nav-brand__text strong {
+    font-size: 12px;
+  }
+
+  .map-top-left-rail {
+    left: 10px;
+    top: 62px;
+    bottom: 74px;
+    width: min(286px, calc(100% - 20px));
+  }
+
+  .map-topbar {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .map-search-wrap {
+    height: 38px;
+  }
+
+  .map-draw-toolbar {
+    top: 62px;
+    right: 10px;
+  }
+
+  .basemap-floating-switcher {
+    left: 10px;
+    bottom: 10px;
+  }
+
+  .feature-panel {
+    right: 10px;
+    top: 10px;
+    bottom: 10px;
+    width: calc(100% - 20px);
+  }
+}
