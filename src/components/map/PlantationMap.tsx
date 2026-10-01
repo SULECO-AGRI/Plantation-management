@@ -339,7 +339,7 @@ export function PlantationMap() {
 
     // Division watermark labels
     map.createPane('division_labels')
-    map.getPane('division_labels')!.style.zIndex = '310'
+    map.getPane('division_labels')!.style.zIndex = '420'
     map.getPane('division_labels')!.style.pointerEvents = 'none'
 
     // Middle layer: Agricultural Fields
