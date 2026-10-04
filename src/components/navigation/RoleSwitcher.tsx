@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Check, ChevronDown, ShieldCheck, Sparkles, UserCheck } from 'lucide-react'
+import { Check, ChevronDown, ShieldCheck, Sparkles, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import type { UserRole } from '../../types/auth'
 
@@ -20,6 +20,21 @@ export const RoleSwitcher: React.FC = () => {
 
   if (!currentUser) return null
 
+  const getRoleDisplayName = (role: UserRole) => {
+    switch (role) {
+      case 'estate_manager':
+        return 'Super Admin'
+      case 'field_officer':
+        return 'Field Officer'
+      case 'kangany':
+        return 'Division Kangany'
+      case 'agronomist':
+        return 'Chief Agronomist'
+      default:
+        return 'Staff'
+    }
+  }
+
   const handleSelectRole = async (role: UserRole) => {
     await switchRole(role)
     setIsOpen(false)
@@ -32,34 +47,17 @@ export const RoleSwitcher: React.FC = () => {
         className="role-switcher-btn"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
-        title="Switch User Persona (RBAC Testing)"
+        title="Switch User Role"
       >
-        <div className="role-avatar-wrapper">
-          <img
-            src={currentUser.avatar}
-            alt={currentUser.name}
-            className="role-avatar-img"
-          />
-          <span
-            className="role-status-dot"
-            style={{ backgroundColor: currentUser.badgeColor }}
-          />
+        <div
+          className="role-icon-circle"
+          style={{ backgroundColor: `${currentUser.badgeColor}22`, color: currentUser.badgeColor }}
+        >
+          <User size={15} />
         </div>
-        <div className="role-switcher-text">
-          <span className="role-user-name">{currentUser.name}</span>
-          <span className="role-user-title">
-            <span
-              className="role-badge-pill"
-              style={{ backgroundColor: `${currentUser.badgeColor}18`, color: currentUser.badgeColor }}
-            >
-              {currentUser.role === 'estate_manager' && 'Super Admin'}
-              {currentUser.role === 'field_officer' && 'Supervisor'}
-              {currentUser.role === 'kangany' && 'Field Lead'}
-              {currentUser.role === 'agronomist' && 'Agronomist'}
-            </span>
-            <span className="role-scope-chip">{currentUser.divisionScope}</span>
-          </span>
-        </div>
+        <span className="role-label-name">
+          {getRoleDisplayName(currentUser.role)}
+        </span>
         <ChevronDown size={14} className={`role-chevron ${isOpen ? 'role-chevron--open' : ''}`} />
       </button>
 
@@ -71,7 +69,7 @@ export const RoleSwitcher: React.FC = () => {
               <span>Role-Based Access Control (RBAC)</span>
             </div>
             <p className="role-dropdown-header__subtitle">
-              Switch persona to test permissions and operational scopes
+              Switch role to test permissions and operational scopes
             </p>
           </div>
 
@@ -86,26 +84,29 @@ export const RoleSwitcher: React.FC = () => {
                   onClick={() => handleSelectRole(user.role)}
                   disabled={isLoading}
                 >
-                  <div className="role-option-avatar-box">
-                    <img src={user.avatar} alt={user.name} />
+                  <div
+                    className="role-option-icon-box"
+                    style={{ backgroundColor: `${user.badgeColor}20`, color: user.badgeColor }}
+                  >
+                    <User size={16} />
                     {isActive && (
                       <span className="role-option-check">
-                        <Check size={11} />
+                        <Check size={10} />
                       </span>
                     )}
                   </div>
                   <div className="role-option-info">
                     <div className="role-option-headline">
-                      <strong>{user.name}</strong>
+                      <strong>{getRoleDisplayName(user.role)}</strong>
                       <span
                         className="role-tag"
                         style={{ backgroundColor: `${user.badgeColor}22`, color: user.badgeColor }}
                       >
-                        {user.role === 'estate_manager' ? 'Super Admin' : user.roleTitle.split('/')[0].trim()}
+                        {user.divisionScope}
                       </span>
                     </div>
                     <div className="role-option-meta">
-                      <span>Scope: <strong>{user.divisionScope}</strong></span>
+                      <span>{user.name}</span>
                       <span>•</span>
                       <span>{user.phone}</span>
                     </div>

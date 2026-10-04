@@ -4793,8 +4793,8 @@ h1, h2, h3, h4, h5 {
 .role-switcher-btn {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 4px 10px 4px 5px;
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
   background: var(--bg-subtle);
   border: 1px solid var(--border-card);
   border-radius: 999px;
@@ -4808,28 +4808,21 @@ h1, h2, h3, h4, h5 {
   box-shadow: 0 2px 8px rgba(15, 36, 28, 0.06);
 }
 
-.role-avatar-wrapper {
-  position: relative;
-  width: 30px;
-  height: 30px;
+.role-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.role-avatar-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1.5px solid #ffffff;
-}
-
-.role-status-dot {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 1.5px solid #ffffff;
+.role-label-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
 }
 
 .role-switcher-text {
@@ -4946,18 +4939,15 @@ h1, h2, h3, h4, h5 {
   border-color: var(--emerald-400);
 }
 
-.role-option-avatar-box {
+.role-option-icon-box {
   position: relative;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-}
-
-.role-option-avatar-box img {
-  width: 100%;
-  height: 100%;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .role-option-check {
