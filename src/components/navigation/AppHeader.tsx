@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   AlertTriangle,
-  ArrowLeft,
   CalendarCheck2,
   CheckCircle2,
   Layers,
@@ -139,12 +138,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Role Switcher Dropdown */}
         <RoleSwitcher />
-
-        {/* Back Link to Landing */}
-        <Link to="/" className="erp-overview-link" title="Return to Public Landing Page">
-          <ArrowLeft size={15} />
-          <span>Overview</span>
-        </Link>
       </div>
     </header>
   )
