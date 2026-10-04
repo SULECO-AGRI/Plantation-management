@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle2,
   Eye,
   EyeOff,
   KeyRound,
   Lock,
-  LogIn,
   ShieldCheck,
   Sparkles,
   User,
@@ -254,14 +252,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
             {isSubmitting ? (
               <>
                 <span className="spinner-border spinner-border-sm" />
-                <span>Authenticating &amp; Routing...</span>
+                <span>Signing In...</span>
               </>
             ) : (
-              <>
-                <LogIn size={16} />
-                <span>Sign In to Plantation Portal</span>
-                <ArrowRight size={15} />
-              </>
+              <span>Sign In</span>
             )}
           </button>
         </form>
