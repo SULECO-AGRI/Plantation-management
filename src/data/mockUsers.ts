@@ -3,6 +3,7 @@ import type { UserProfile } from '../types/auth'
 export const MOCK_USERS: UserProfile[] = [
   {
     id: 'user-manager-01',
+    username: 'manager',
     name: 'M. S. Senanayake',
     role: 'estate_manager',
     roleTitle: 'Estate General Manager (Super Admin)',
@@ -11,6 +12,8 @@ export const MOCK_USERS: UserProfile[] = [
     divisionScope: 'All Divisions',
     phone: '+94 77 912 3456',
     email: 'm.senanayake@weddamulla-tea.lk',
+    password: 'estate123',
+    defaultTab: 'map',
     description: 'Global authority across Weddamulla, Ramboda, Camnethan, Lilliesland, & Wewandon. Full yield analytics, financial approvals & work order authorizations.',
     permissions: [
       'view_all_divisions',
@@ -27,6 +30,7 @@ export const MOCK_USERS: UserProfile[] = [
   },
   {
     id: 'user-supervisor-02',
+    username: 'officer',
     name: 'K. Bandara',
     role: 'field_officer',
     roleTitle: 'Field Officer / Asst. Superintendent',
@@ -36,6 +40,8 @@ export const MOCK_USERS: UserProfile[] = [
     assignedDivision: 'Weddamulla',
     phone: '+94 71 845 2211',
     email: 'k.bandara@weddamulla-tea.lk',
+    password: 'estate123',
+    defaultTab: 'tasks',
     description: 'Manages division task dispatch, monitors field crew movements, signs off daily pluck weight aggregates, and approves fertilizer/chemical requests.',
     permissions: [
       'view_assigned_division_only',
@@ -49,6 +55,7 @@ export const MOCK_USERS: UserProfile[] = [
   },
   {
     id: 'user-kangany-03',
+    username: 'kangany',
     name: 'S. Raman',
     role: 'kangany',
     roleTitle: 'Division Kangany / Field Lead',
@@ -58,6 +65,8 @@ export const MOCK_USERS: UserProfile[] = [
     assignedDivision: 'Weddamulla',
     phone: '+94 77 341 8970',
     email: 's.raman@weddamulla-field.lk',
+    password: 'estate123',
+    defaultTab: 'harvest',
     description: 'Direct field supervisor for harvester gang #2. Conducts morning roll-call, operates mobile weigh-in scale, and reports field hazards.',
     permissions: [
       'view_assigned_division_only',
@@ -68,6 +77,7 @@ export const MOCK_USERS: UserProfile[] = [
   },
   {
     id: 'user-agronomist-04',
+    username: 'agronomist',
     name: 'Dr. Nilmini Perera',
     role: 'agronomist',
     roleTitle: 'Chief Agronomist & Soil Specialist',
@@ -76,6 +86,8 @@ export const MOCK_USERS: UserProfile[] = [
     divisionScope: 'All Divisions',
     phone: '+94 76 550 4932',
     email: 'n.perera@weddamulla-tea.lk',
+    password: 'estate123',
+    defaultTab: 'incidents',
     description: 'Oversees bush health, fertilizer formulas, canopy monitoring, disease outbreak isolation, and plucking quality standards.',
     permissions: [
       'view_all_divisions',

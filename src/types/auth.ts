@@ -15,6 +15,7 @@ export type Permission =
 
 export type UserProfile = {
   id: string
+  username: string
   name: string
   role: UserRole
   roleTitle: string
@@ -26,4 +27,6 @@ export type UserProfile = {
   email: string
   permissions: Permission[]
   description: string
+  password?: string
+  defaultTab?: 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents'
 }

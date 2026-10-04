@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { AppHeader, PortalTab } from '../components/navigation/AppHeader'
 import { PlantationMap, LocateTarget } from '../components/map/PlantationMap'
 import { WorkforceView } from '../components/workforce/WorkforceView'
@@ -9,10 +10,27 @@ import { WorkforceDirectoryModal } from '../components/workforce/WorkforceDirect
 import type { Worker } from '../types/workforce'
 import type { Incident } from '../types/incident'
 
+const VALID_TABS: PortalTab[] = ['map', 'workforce', 'tasks', 'harvest', 'incidents']
+
 export function EstateMapPage() {
-  const [activeTab, setActiveTab] = useState<PortalTab>('map')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tabParam = searchParams.get('tab') as PortalTab | null
+  const initialTab: PortalTab = (tabParam && VALID_TABS.includes(tabParam)) ? tabParam : 'map'
+
+  const [activeTab, setActiveTab] = useState<PortalTab>(initialTab)
   const [locateTarget, setLocateTarget] = useState<LocateTarget | null>(null)
   const [isWorkforceModalOpen, setIsWorkforceModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (tabParam && VALID_TABS.includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
+
+  const handleTabChange = (tab: PortalTab) => {
+    setActiveTab(tab)
+    setSearchParams({ tab }, { replace: true })
+  }
 
   const handleLocateWorker = (worker: Worker) => {
     setLocateTarget({
@@ -22,7 +40,7 @@ export function EstateMapPage() {
       lng: worker.lng,
       title: `${worker.name} (${worker.id})`,
     })
-    setActiveTab('map')
+    handleTabChange('map')
   }
 
   const handleLocateIncident = (incident: Incident) => {
@@ -33,14 +51,14 @@ export function EstateMapPage() {
       lng: incident.lng,
       title: `${incident.incidentNumber} - ${incident.title}`,
     })
-    setActiveTab('map')
+    handleTabChange('map')
   }
 
   return (
     <main className="estate-page">
       <AppHeader
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onOpenWorkforceModal={() => setIsWorkforceModalOpen(true)}
       />
 
