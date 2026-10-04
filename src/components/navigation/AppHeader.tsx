@@ -30,14 +30,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onTabChange,
   onOpenWorkforceModal,
 }) => {
-  const { currentUser, selectedDivisionFilter, setSelectedDivisionFilter } = useAuth()
+  const { currentUser } = useAuth()
   const { setIsCreateModalOpen } = useTask()
   const { setIsLogModalOpen } = useHarvest()
   const { setIsReportModalOpen, incidents } = useIncident()
 
   const unresolvedIncidentsCount = incidents.filter((i) => i.status !== 'resolved').length
-
-  const divisions = ['All Divisions', 'Weddamulla', 'Ramboda', 'Camnethan', 'Lilliesland', 'Wewandon']
 
   return (
     <header className="erp-header">
@@ -51,25 +49,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <small>Weddamulla Estate · Nuwara Eliya</small>
           </div>
         </Link>
-
-        {/* Division Scope Filter */}
-        <div className="erp-division-selector">
-          <label htmlFor="estate-division-select" className="sr-only">Estate Division</label>
-          <select
-            id="estate-division-select"
-            value={selectedDivisionFilter}
-            onChange={(e) => setSelectedDivisionFilter(e.target.value)}
-            disabled={currentUser?.divisionScope !== 'All Divisions'}
-            className="erp-division-select"
-            title={currentUser?.divisionScope !== 'All Divisions' ? `Locked to ${currentUser?.divisionScope}` : 'Filter estate division'}
-          >
-            {divisions.map((d) => (
-              <option key={d} value={d}>
-                {d === 'All Divisions' ? '🌿 All Estate Divisions' : `📍 ${d} Division`}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       {/* Main ERP Navigation Tabs */}
