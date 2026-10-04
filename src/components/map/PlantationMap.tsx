@@ -40,6 +40,22 @@ import { LayerController } from './layers/LayerController'
 import { FeatureDetailPanel } from './popups/FeatureDetailPanel'
 import { MapTopBar } from './MapTopBar'
 import { MapDrawToolbar } from './draw/MapDrawToolbar'
+import { useWorkforce } from '../../context/WorkforceContext'
+import { useIncident } from '../../context/IncidentContext'
+import { useHarvest } from '../../context/HarvestContext'
+
+export type LocateTarget = {
+  type: 'worker' | 'incident'
+  id: string
+  lat: number
+  lng: number
+  title?: string
+}
+
+type PlantationMapProps = {
+  locateTarget?: LocateTarget | null
+  onClearLocateTarget?: () => void
+}
 
 type LoadedVectorLayer = {
   config: EstateLayerConfig
@@ -121,9 +137,17 @@ function getVectorFeatureStyle(
   }
 }
 
-export function PlantationMap() {
+export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationMapProps = {}) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
+
+  // Workforce & Incident Contexts
+  const { workers, isGpsLayerVisible, setSelectedWorker } = useWorkforce()
+  const { incidents, isIncidentLayerVisible, setSelectedIncident, setDropLocation, setIsReportModalOpen } = useIncident()
+  const { setIsLogModalOpen } = useHarvest()
+
+  const workforceMarkersGroupRef = useRef<L.LayerGroup | null>(null)
+  const incidentMarkersGroupRef = useRef<L.LayerGroup | null>(null)
 
   // Base map layers
   const baseMapTileLayersRef = useRef<Partial<Record<BaseMapId, L.TileLayer>>>({})
@@ -372,6 +396,14 @@ export function PlantationMap() {
     map.createPane('drawn_features')
     map.getPane('drawn_features')!.style.zIndex = '500'
 
+    // Workforce GPS Markers Pane
+    map.createPane('workforce_markers')
+    map.getPane('workforce_markers')!.style.zIndex = '520'
+
+    // Incident Hazard Markers Pane
+    map.createPane('incident_markers')
+    map.getPane('incident_markers')!.style.zIndex = '530'
+
     map.setView([7.0545, 80.7115], 14.8)
     mapRef.current = map
 
@@ -380,6 +412,19 @@ export function PlantationMap() {
     map.addLayer(drawnItems)
     drawnItemsRef.current = drawnItems
     setDrawnItemsGroup(drawnItems)
+
+    // Markers Groups
+    const workforceGroup = L.layerGroup().addTo(map)
+    const incidentGroup = L.layerGroup().addTo(map)
+    workforceMarkersGroupRef.current = workforceGroup
+    incidentMarkersGroupRef.current = incidentGroup
+
+    // Map right click to report incident at exact coordinate
+    map.on('contextmenu', (e: L.LeafletMouseEvent) => {
+      setDropLocation({ lat: e.latlng.lat, lng: e.latlng.lng })
+      setIsReportModalOpen(true)
+    })
+
     setMapInstance(map)
 
     // 1. Base Map Tile Layers
@@ -948,6 +993,173 @@ export function PlantationMap() {
     })
     setQuery('')
   }
+
+  // Effect: Render Workforce Markers on Leaflet Map
+  useEffect(() => {
+    const group = workforceMarkersGroupRef.current
+    if (!group) return
+
+    group.clearLayers()
+    if (!isGpsLayerVisible) return
+
+    workers.forEach((w) => {
+      let roleColor = '#f59e0b'
+      let roleLetter = 'H'
+      if (w.role === 'kangany') {
+        roleColor = '#7c3aed'
+        roleLetter = 'K'
+      } else if (w.role === 'sprayer') {
+        roleColor = '#2563eb'
+        roleLetter = 'S'
+      } else if (w.role === 'sundry') {
+        roleColor = '#64748b'
+        roleLetter = 'M'
+      }
+
+      const icon = L.divIcon({
+        className: 'custom-worker-pin-wrapper',
+        html: `
+          <div class="custom-worker-pin" style="--role-color: ${roleColor};">
+            <span class="custom-worker-pin__pulse"></span>
+            <span class="custom-worker-pin__core">${roleLetter}</span>
+            <span class="custom-worker-pin__name">${w.name.split(' ')[0]}</span>
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -18],
+      })
+
+      const marker = L.marker([w.lat, w.lng], {
+        icon,
+        pane: 'workforce_markers',
+      })
+
+      const popupHtml = `
+        <div class="worker-popup-card">
+          <div class="worker-popup-header" style="border-left: 4px solid ${roleColor}">
+            <div>
+              <h4 class="worker-popup-name">${w.name}</h4>
+              <span class="worker-popup-id">${w.id} · ${w.roleLabel}</span>
+            </div>
+          </div>
+          <div class="worker-popup-body">
+            <div class="worker-popup-row">
+              <span class="label">Division / Field:</span>
+              <strong>${w.division} (${w.fieldBlock})</strong>
+            </div>
+            <div class="worker-popup-row">
+              <span class="label">Assigned Task:</span>
+              <span>${w.currentTask}</span>
+            </div>
+            ${w.role === 'harvester' ? `
+            <div class="worker-popup-row">
+              <span class="label">Today's Leaf:</span>
+              <strong style="color: #059669">${w.todayPluckedKg.toFixed(1)} kg</strong>
+            </div>` : ''}
+            <div class="worker-popup-row">
+              <span class="label">Last GPS Ping:</span>
+              <small>${w.lastPingTime}</small>
+            </div>
+            <div class="worker-popup-row">
+              <span class="label">Direct Contact:</span>
+              <a href="tel:${w.phone}" class="worker-popup-phone">${w.phone}</a>
+            </div>
+          </div>
+        </div>
+      `
+
+      marker.bindPopup(popupHtml, {
+        className: 'estate-leaflet-popup',
+        maxWidth: 280,
+      })
+
+      marker.on('click', () => {
+        setSelectedWorker(w)
+      })
+
+      group.addLayer(marker)
+    })
+  }, [workers, isGpsLayerVisible, setSelectedWorker])
+
+  // Effect: Render Incident Hazard Markers on Leaflet Map
+  useEffect(() => {
+    const group = incidentMarkersGroupRef.current
+    if (!group) return
+
+    group.clearLayers()
+    if (!isIncidentLayerVisible) return
+
+    incidents.forEach((inc) => {
+      let sevColor = '#dc2626'
+      if (inc.severity === 'moderate') sevColor = '#d97706'
+      else if (inc.severity === 'advisory') sevColor = '#2563eb'
+
+      const isResolved = inc.status === 'resolved'
+      if (isResolved) sevColor = '#059669'
+
+      const icon = L.divIcon({
+        className: 'custom-incident-pin-wrapper',
+        html: `
+          <div class="custom-incident-pin ${isResolved ? 'custom-incident-pin--resolved' : ''}" style="--sev-color: ${sevColor};">
+            ${!isResolved ? '<span class="custom-incident-pin__pulse"></span>' : ''}
+            <span class="custom-incident-pin__icon">⚠️</span>
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -18],
+      })
+
+      const marker = L.marker([inc.lat, inc.lng], {
+        icon,
+        pane: 'incident_markers',
+      })
+
+      const popupHtml = `
+        <div class="incident-popup-card">
+          <div class="incident-popup-header" style="border-left: 4px solid ${sevColor}">
+            <div>
+              <div class="incident-popup-badges">
+                <span class="incident-popup-sev" style="background: ${sevColor}22; color: ${sevColor}">${inc.severity.toUpperCase()}</span>
+                <span class="incident-popup-code">${inc.incidentNumber}</span>
+              </div>
+              <h4 class="incident-popup-title">${inc.title}</h4>
+            </div>
+          </div>
+          <div class="incident-popup-body">
+            <div class="incident-popup-cat">${inc.typeLabel} · ${inc.division} ${inc.fieldBlock ? `(${inc.fieldBlock})` : ''}</div>
+            <p class="incident-popup-desc">${inc.description}</p>
+            <div class="incident-popup-status">
+              <span>Status:</span> <strong>${inc.status.toUpperCase()}</strong>
+            </div>
+            <div class="incident-popup-meta">
+              <small>Reported by ${inc.reportedBy} at ${inc.reportedAt}</small>
+            </div>
+          </div>
+        </div>
+      `
+
+      marker.bindPopup(popupHtml, {
+        className: 'estate-leaflet-popup',
+        maxWidth: 300,
+      })
+
+      marker.on('click', () => {
+        setSelectedIncident(inc)
+      })
+
+      group.addLayer(marker)
+    })
+  }, [incidents, isIncidentLayerVisible, setSelectedIncident])
+
+  // Effect: Smooth flyTo when locating a target from external tabs
+  useEffect(() => {
+    if (locateTarget && mapRef.current) {
+      mapRef.current.flyTo([locateTarget.lat, locateTarget.lng], 18, { duration: 1.2 })
+      if (onClearLocateTarget) onClearLocateTarget()
+    }
+  }, [locateTarget, onClearLocateTarget])
 
   return (
     <div className="plantation-map-shell">

@@ -15,6 +15,8 @@ import type {
   LayerKey,
   RasterLayerId,
 } from '../../../types/gis'
+import { useWorkforce } from '../../../context/WorkforceContext'
+import { useIncident } from '../../../context/IncidentContext'
 
 type Props = {
   rasterVisibility: Record<RasterLayerId, boolean>
@@ -31,10 +33,14 @@ export function LayerController({
   onToggleVector,
   onResetLayersToDefault,
 }: Props) {
+  const { isGpsLayerVisible, setIsGpsLayerVisible, workers } = useWorkforce()
+  const { isIncidentLayerVisible, setIsIncidentLayerVisible, incidents } = useIncident()
+
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     infrastructure: true,
     estate: true,
+    telemetry: true,
     terrain: false,
   })
 
@@ -45,7 +51,8 @@ export function LayerController({
   const activeAnalysisCount = ANALYSIS_RASTER_LAYERS.filter((l) => rasterVisibility[l.id]).length
   const activeInfraCount = INFRASTRUCTURE_LAYERS.filter((l) => vectorVisibility[l.key]).length
   const activeEstateCount = ESTATE_LAYERS.filter((l) => vectorVisibility[l.key]).length
-  const totalThematicActive = activeAnalysisCount + activeInfraCount + activeEstateCount
+  const activeTelemetryCount = (isGpsLayerVisible ? 1 : 0) + (isIncidentLayerVisible ? 1 : 0)
+  const totalThematicActive = activeAnalysisCount + activeInfraCount + activeEstateCount + activeTelemetryCount
 
   const divisionLayer = ESTATE_LAYERS.find((l) => l.key === 'divisions')
   const fieldLayers = ESTATE_LAYERS.filter((l) => l.kind === 'field')
@@ -253,6 +260,84 @@ export function LayerController({
                   })}
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* =========================================================================
+            CATEGORY: Operational Telemetry (Workforce GPS & Hazard Overlays)
+           ========================================================================= */}
+        <div className="layer-category">
+          <button
+            type="button"
+            className="layer-category__header"
+            onClick={() => toggleSection('telemetry')}
+            aria-expanded={openSections.telemetry}
+          >
+            <span className="category-title">Operational Telemetry</span>
+            <span className="category-meta">
+              {activeTelemetryCount > 0 && (
+                <span className="category-active-tag">{activeTelemetryCount}</span>
+              )}
+              <ChevronDown
+                size={13}
+                className={`category-chevron ${openSections.telemetry ? 'category-chevron--open' : ''}`}
+              />
+            </span>
+          </button>
+
+          {openSections.telemetry && (
+            <div className="layer-category__content">
+              {/* Workforce GPS Toggle */}
+              <button
+                type="button"
+                className={`layer-row ${isGpsLayerVisible ? 'layer-row--active' : ''}`}
+                onClick={() => setIsGpsLayerVisible(!isGpsLayerVisible)}
+                aria-label="Toggle Workforce GPS layer"
+              >
+                <span className="layer-swatch layer-swatch--multi" title="Kangany (Purple), Harvester (Amber), Sprayer (Blue)">
+                  <span style={{ background: '#7c3aed' }} />
+                  <span style={{ background: '#f59e0b' }} />
+                  <span style={{ background: '#2563eb' }} />
+                </span>
+                <span className="layer-copy">
+                  <strong>Workforce GPS</strong>
+                  <small>Live worker markers ({workers.length} crew)</small>
+                </span>
+                <span
+                  className={`layer-toggle-switch ${isGpsLayerVisible ? 'layer-toggle-switch--active' : ''}`}
+                  aria-hidden="true"
+                >
+                  <span className="layer-toggle-switch__thumb" />
+                </span>
+              </button>
+
+              {/* Incident Alerts Toggle */}
+              <button
+                type="button"
+                className={`layer-row ${isIncidentLayerVisible ? 'layer-row--active' : ''}`}
+                onClick={() => setIsIncidentLayerVisible(!isIncidentLayerVisible)}
+                aria-label="Toggle Incident Alerts layer"
+              >
+                <span
+                  className="layer-swatch"
+                  style={{
+                    borderColor: '#dc2626',
+                    background: '#ef4444',
+                    borderWidth: '1.5px',
+                  }}
+                />
+                <span className="layer-copy">
+                  <strong>Incident Alerts</strong>
+                  <small>Hazard &amp; pest pins ({incidents.filter((i) => i.status !== 'resolved').length} open)</small>
+                </span>
+                <span
+                  className={`layer-toggle-switch ${isIncidentLayerVisible ? 'layer-toggle-switch--active' : ''}`}
+                  aria-hidden="true"
+                >
+                  <span className="layer-toggle-switch__thumb" />
+                </span>
+              </button>
             </div>
           )}
         </div>
