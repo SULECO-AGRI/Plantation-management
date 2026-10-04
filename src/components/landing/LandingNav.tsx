@@ -54,58 +54,36 @@ export function LandingNav() {
             </div>
 
             <div className="nav-actions">
-              {/* Public GIS Map Quick Access */}
-              <Link to="/map" className="btn btn--nav" title="Open Interactive GIS Map">
-                GIS Map
-              </Link>
-
-              {/* Login / Authenticated User Pill */}
+              {/* Authenticated: Show GIS Map button + subtle logout */}
               {isAuthenticated && currentUser ? (
                 <div className="nav-user-cluster">
                   <Link
                     to={`/map?tab=${userTargetTab}`}
-                    className="nav-user-pill"
-                    title={`Logged in as ${currentUser.name} (${currentUser.roleTitle}). Click to open ${getRoleDestinationLabel(currentUser.role)}.`}
+                    className="btn btn--nav"
+                    title={`Open GIS Map (${getRoleDestinationLabel(currentUser.role)})`}
                   >
-                    <img
-                      src={currentUser.avatar}
-                      alt={currentUser.name}
-                      className="nav-user-avatar"
-                    />
-                    <div className="nav-user-details">
-                      <span className="nav-user-name">{currentUser.name}</span>
-                      <span
-                        className="nav-user-badge"
-                        style={{
-                          backgroundColor: `${currentUser.badgeColor}22`,
-                          color: currentUser.badgeColor,
-                        }}
-                      >
-                        {currentUser.role.replace('_', ' ').toUpperCase()}
-                      </span>
-                    </div>
-                    <ArrowRight size={14} className="nav-user-arrow" />
+                    GIS Map
                   </Link>
 
                   <button
                     type="button"
                     className="btn-icon-logout"
                     onClick={handleLogout}
-                    title="Sign Out of Portal"
+                    title={`Logged in as ${currentUser.name} (${currentUser.roleTitle}). Click to sign out.`}
                     aria-label="Sign Out"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={15} />
                   </button>
                 </div>
               ) : (
+                /* Unauthenticated: Show only simple Login button */
                 <button
                   type="button"
-                  className="btn btn--nav-login"
+                  className="btn btn--nav"
                   onClick={() => setIsLoginModalOpen(true)}
-                  title="Sign In to Role-Based ERP Portal"
+                  title="Sign In to Plantation Management Portal"
                 >
-                  <LogIn size={15} />
-                  <span>Portal Login</span>
+                  Login
                 </button>
               )}
 
@@ -135,23 +113,12 @@ export function LandingNav() {
             <div className="nav-mobile-action">
               {isAuthenticated && currentUser ? (
                 <div className="nav-mobile-user-box">
-                  <div className="nav-mobile-user-row">
-                    <img
-                      src={currentUser.avatar}
-                      alt={currentUser.name}
-                      className="nav-user-avatar"
-                    />
-                    <div>
-                      <strong>{currentUser.name}</strong>
-                      <small>{currentUser.roleTitle}</small>
-                    </div>
-                  </div>
                   <Link
                     to={`/map?tab=${userTargetTab}`}
                     className="btn btn--nav-mobile"
                     onClick={closeMobileMenu}
                   >
-                    Open {getRoleDestinationLabel(currentUser.role)}
+                    GIS Map
                   </Link>
                   <button
                     type="button"
@@ -162,26 +129,20 @@ export function LandingNav() {
                     }}
                   >
                     <LogOut size={14} />
-                    <span>Sign Out</span>
+                    <span>Sign Out ({currentUser.name})</span>
                   </button>
                 </div>
               ) : (
-                <div className="nav-mobile-auth-stack">
-                  <button
-                    type="button"
-                    className="btn btn--nav-mobile btn--nav-mobile-login"
-                    onClick={() => {
-                      closeMobileMenu()
-                      setIsLoginModalOpen(true)
-                    }}
-                  >
-                    <LogIn size={16} />
-                    <span>Sign In to ERP Portal</span>
-                  </button>
-                  <Link to="/map" className="btn btn--nav-mobile" onClick={closeMobileMenu}>
-                    Launch GIS Map (Guest)
-                  </Link>
-                </div>
+                <button
+                  type="button"
+                  className="btn btn--nav-mobile"
+                  onClick={() => {
+                    closeMobileMenu()
+                    setIsLoginModalOpen(true)
+                  }}
+                >
+                  Login
+                </button>
               )}
             </div>
           </div>

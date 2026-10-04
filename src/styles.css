@@ -6624,11 +6624,11 @@ h1, h2, h3, h4, h5 {
 }
 
 .btn-icon-logout {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
   background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #d8e3dc;
   color: #64748b;
   display: flex;
   align-items: center;
@@ -6641,7 +6641,7 @@ h1, h2, h3, h4, h5 {
   background: #fee2e2;
   border-color: #fca5a5;
   color: #dc2626;
-  transform: scale(1.05);
+  transform: none;
 }
 
 /* Mobile Drawer Authentication Box */
