@@ -22,7 +22,7 @@ const WorkforceContext = createContext<WorkforceContextType | undefined>(undefin
 export const WorkforceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [workers, setWorkers] = useState<Worker[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isGpsLayerVisible, setIsGpsLayerVisible] = useState(true)
+  const [isGpsLayerVisible, setIsGpsLayerVisible] = useState(false)
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null)
   const [filterRole, setFilterRole] = useState<WorkerRole | 'all'>('all')
   const [filterStatus, setFilterStatus] = useState<WorkerStatus | 'all'>('all')

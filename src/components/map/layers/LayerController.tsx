@@ -15,8 +15,10 @@ import type {
   LayerKey,
   RasterLayerId,
 } from '../../../types/gis'
+import type { Worker } from '../../../types/workforce'
 import { useWorkforce } from '../../../context/WorkforceContext'
 import { useIncident } from '../../../context/IncidentContext'
+import { EmployeeDayDetailModal } from '../../workforce/EmployeeDayDetailModal'
 
 type Props = {
   rasterVisibility: Record<RasterLayerId, boolean>
@@ -24,6 +26,7 @@ type Props = {
   vectorVisibility: Record<LayerKey, boolean>
   onToggleVector: (key: LayerKey) => void
   onResetLayersToDefault: () => void
+  onSelectEmployee?: (worker: Worker) => void
 }
 
 export function LayerController({
@@ -32,11 +35,14 @@ export function LayerController({
   vectorVisibility,
   onToggleVector,
   onResetLayersToDefault,
+  onSelectEmployee,
 }: Props) {
-  const { isGpsLayerVisible, setIsGpsLayerVisible, workers } = useWorkforce()
+  const { isGpsLayerVisible, setIsGpsLayerVisible, workers, setSelectedWorker } = useWorkforce()
   const { isIncidentLayerVisible, setIsIncidentLayerVisible, incidents } = useIncident()
 
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isRosterOpen, setIsRosterOpen] = useState(false)
+  const [fallbackModalWorker, setFallbackModalWorker] = useState<Worker | null>(null)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     infrastructure: true,
     estate: true,
@@ -46,6 +52,18 @@ export function LayerController({
 
   const toggleSection = (sec: string) => {
     setOpenSections((prev) => ({ ...prev, [sec]: !prev[sec] }))
+  }
+
+  const attendedCount = workers.filter((w) => w.attended).length
+  const absentCount = workers.length - attendedCount
+
+  const handleEmployeeClick = (worker: Worker) => {
+    setSelectedWorker(worker)
+    if (onSelectEmployee) {
+      onSelectEmployee(worker)
+    } else {
+      setFallbackModalWorker(worker)
+    }
   }
 
   const activeAnalysisCount = ANALYSIS_RASTER_LAYERS.filter((l) => rasterVisibility[l.id]).length
@@ -288,29 +306,87 @@ export function LayerController({
 
           {openSections.telemetry && (
             <div className="layer-category__content">
-              {/* Workforce GPS Toggle */}
-              <button
-                type="button"
-                className={`layer-row ${isGpsLayerVisible ? 'layer-row--active' : ''}`}
-                onClick={() => setIsGpsLayerVisible(!isGpsLayerVisible)}
-                aria-label="Toggle Workforce GPS layer"
-              >
+              {/* Employees Working Today (Attendance & Overlays) */}
+              <div className={`layer-row ${isGpsLayerVisible ? 'layer-row--active' : ''}`}>
                 <span className="layer-swatch layer-swatch--multi" title="Kangany (Purple), Harvester (Amber), Sprayer (Blue)">
                   <span style={{ background: '#7c3aed' }} />
                   <span style={{ background: '#f59e0b' }} />
                   <span style={{ background: '#2563eb' }} />
                 </span>
-                <span className="layer-copy">
-                  <strong>Workforce GPS</strong>
-                  <small>Live worker markers ({workers.length} crew)</small>
-                </span>
                 <span
+                  className="layer-copy"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setIsRosterOpen((prev) => !prev)}
+                  title="Click to view employees and attendance"
+                >
+                  <strong>Employees Working Today</strong>
+                  <small>
+                    {attendedCount} Present · {absentCount} Absent
+                  </small>
+                </span>
+                <button
+                  type="button"
                   className={`layer-toggle-switch ${isGpsLayerVisible ? 'layer-toggle-switch--active' : ''}`}
-                  aria-hidden="true"
+                  onClick={() => setIsGpsLayerVisible(!isGpsLayerVisible)}
+                  title="Toggle employee map markers on/off"
+                  aria-label="Toggle employee markers on map"
                 >
                   <span className="layer-toggle-switch__thumb" />
-                </span>
+                </button>
+              </div>
+
+              {/* Roster quick-toggle bar */}
+              <button
+                type="button"
+                className="employees-sub-toggle-btn"
+                onClick={() => setIsRosterOpen((prev) => !prev)}
+              >
+                <span>{isRosterOpen ? 'Hide Employee List' : 'View Employees & Daily KGs'}</span>
+                <span>{isRosterOpen ? '▲' : '▼'}</span>
               </button>
+
+              {/* Expandable Employee Roster List */}
+              {isRosterOpen && (
+                <div className="employees-roster-list">
+                  {workers.map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      className="employee-roster-item"
+                      onClick={() => handleEmployeeClick(w)}
+                      title={`Click to view details for ${w.name}`}
+                    >
+                      <div className="employee-roster-item__left">
+                        <span
+                          className={`employee-roster-dot ${
+                            w.attended ? 'employee-roster-dot--present' : 'employee-roster-dot--absent'
+                          }`}
+                        />
+                        <span className="employee-roster-item__name">{w.name}</span>
+                        <span className="employee-roster-item__role">
+                          ({w.roleLabel.split(' ')[0]})
+                        </span>
+                      </div>
+                      <div className="employee-roster-item__right">
+                        {w.attended && w.role === 'harvester' && w.todayPluckedKg > 0 && (
+                          <span className="employee-roster-item__kg">
+                            {w.todayPluckedKg.toFixed(1)} kg
+                          </span>
+                        )}
+                        <span
+                          className={`employee-roster-item__tag ${
+                            w.attended
+                              ? 'employee-roster-item__tag--present'
+                              : 'employee-roster-item__tag--absent'
+                          }`}
+                        >
+                          {w.attended ? 'Present' : 'Absent'}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Incident Alerts Toggle */}
               <button
@@ -395,6 +471,14 @@ export function LayerController({
           )}
         </div>
       </div>
+
+      {fallbackModalWorker && (
+        <EmployeeDayDetailModal
+          worker={fallbackModalWorker}
+          isOpen={Boolean(fallbackModalWorker)}
+          onClose={() => setFallbackModalWorker(null)}
+        />
+      )}
     </section>
   )
 }

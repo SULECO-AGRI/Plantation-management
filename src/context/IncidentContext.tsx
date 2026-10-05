@@ -28,7 +28,7 @@ const IncidentContext = createContext<IncidentContextType | undefined>(undefined
 export const IncidentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isIncidentLayerVisible, setIsIncidentLayerVisible] = useState(true)
+  const [isIncidentLayerVisible, setIsIncidentLayerVisible] = useState(false)
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [dropLocation, setDropLocation] = useState<{ lat: number; lng: number } | null>(null)

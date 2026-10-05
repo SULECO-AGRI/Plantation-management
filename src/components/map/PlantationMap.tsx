@@ -38,6 +38,8 @@ import type {
 import { BaseMapSwitcher } from './BaseMapSwitcher'
 import { LayerController } from './layers/LayerController'
 import { FeatureDetailPanel } from './popups/FeatureDetailPanel'
+import { EmployeeDayDetailModal } from '../workforce/EmployeeDayDetailModal'
+import type { Worker } from '../../types/workforce'
 import { MapTopBar } from './MapTopBar'
 import { MapDrawToolbar } from './draw/MapDrawToolbar'
 import { useWorkforce } from '../../context/WorkforceContext'
@@ -50,6 +52,7 @@ export type LocateTarget = {
   lat: number
   lng: number
   title?: string
+  worker?: Worker
 }
 
 type PlantationMapProps = {
@@ -63,7 +66,7 @@ type LoadedVectorLayer = {
   layer: L.GeoJSON
 }
 
-export function getDivisionColorByName(nameOrId?: GisScalar | undefined): string {
+function getDivisionColorByName(nameOrId?: GisScalar | undefined): string {
   const str = String(nameOrId ?? '').toLowerCase()
   if (str.includes('weddamulla') || str === '2') return CARTOGRAPHIC_COLORS.divisions.weddamulla.hex
   if (str.includes('ramboda') || str === '3') return CARTOGRAPHIC_COLORS.divisions.ramboda.hex
@@ -142,12 +145,16 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
   const mapRef = useRef<L.Map | null>(null)
 
   // Workforce & Incident Contexts
-  const { workers, isGpsLayerVisible, setSelectedWorker } = useWorkforce()
-  const { incidents, isIncidentLayerVisible, setSelectedIncident, setDropLocation, setIsReportModalOpen } = useIncident()
+  const { workers, isGpsLayerVisible, setIsGpsLayerVisible, setSelectedWorker } = useWorkforce()
+  const { incidents, isIncidentLayerVisible, setIsIncidentLayerVisible, setSelectedIncident, setDropLocation, setIsReportModalOpen } = useIncident()
   const { setIsLogModalOpen } = useHarvest()
+
+  const [selectedDayWorker, setSelectedDayWorker] = useState<Worker | null>(null)
+  const [activeLocatedWorker, setActiveLocatedWorker] = useState<Worker | null>(null)
 
   const workforceMarkersGroupRef = useRef<L.LayerGroup | null>(null)
   const incidentMarkersGroupRef = useRef<L.LayerGroup | null>(null)
+  const pinpointMarkerGroupRef = useRef<L.LayerGroup | null>(null)
 
   // Base map layers
   const baseMapTileLayersRef = useRef<Partial<Record<BaseMapId, L.TileLayer>>>({})
@@ -404,6 +411,10 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
     map.createPane('incident_markers')
     map.getPane('incident_markers')!.style.zIndex = '530'
 
+    // Dedicated Pinpoint Marker Pane (high priority, above normal telemetry)
+    map.createPane('pinpoint_marker')
+    map.getPane('pinpoint_marker')!.style.zIndex = '560'
+
     map.setView([7.0545, 80.7115], 14.8)
     mapRef.current = map
 
@@ -416,8 +427,10 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
     // Markers Groups
     const workforceGroup = L.layerGroup().addTo(map)
     const incidentGroup = L.layerGroup().addTo(map)
+    const pinpointGroup = L.layerGroup().addTo(map)
     workforceMarkersGroupRef.current = workforceGroup
     incidentMarkersGroupRef.current = incidentGroup
+    pinpointMarkerGroupRef.current = pinpointGroup
 
     // Map right click to report incident at exact coordinate
     map.on('contextmenu', (e: L.LeafletMouseEvent) => {
@@ -929,9 +942,174 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
     })
     setVectorVisibility(INITIAL_VECTOR_VISIBILITY)
 
-    // 4. Reset View & Selection
+    // 4. Reset Telemetry Layers to default (off)
+    setIsGpsLayerVisible(false)
+    setIsIncidentLayerVisible(false)
+
+    // 5. Reset View & Selection
     map.setView([7.0545, 80.7115], 14.8)
     handleCloseSelection()
+    clearEmployeePinpoint()
+  }
+
+  const clearEmployeePinpoint = () => {
+    pinpointMarkerGroupRef.current?.clearLayers()
+    setActiveLocatedWorker(null)
+    if (onClearLocateTarget) onClearLocateTarget()
+  }
+
+  const renderEmployeePinpoint = (w: Worker) => {
+    const map = mapRef.current
+    const group = pinpointMarkerGroupRef.current
+    if (!map || !group) return
+
+    group.clearLayers()
+    setActiveLocatedWorker(w)
+
+    let roleColor = '#059669' // Harvester emerald
+    let roleLetter = 'H'
+    if (w.role === 'kangany') {
+      roleColor = '#7c3aed'
+      roleLetter = 'K'
+    } else if (w.role === 'sprayer') {
+      roleColor = '#2563eb'
+      roleLetter = 'S'
+    } else if (w.role === 'sundry') {
+      roleColor = '#475569'
+      roleLetter = 'M'
+    }
+
+    const pinIcon = L.divIcon({
+      className: 'simple-pinpoint-wrapper',
+      html: `
+        <div class="simple-pinpoint-marker">
+          <svg viewBox="0 0 28 38" width="28" height="38" class="simple-pinpoint-svg">
+            <path
+              d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 24 14 24s14-13.5 14-24C28 6.268 21.732 0 14 0z"
+              fill="${roleColor}"
+              stroke="#ffffff"
+              stroke-width="1.8"
+            />
+            <circle cx="14" cy="13" r="7.5" fill="#ffffff" />
+            <text
+              x="14"
+              y="16.5"
+              text-anchor="middle"
+              fill="${roleColor}"
+              font-size="10.5"
+              font-weight="900"
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            >${roleLetter}</text>
+          </svg>
+        </div>
+      `,
+      iconSize: [28, 38],
+      iconAnchor: [14, 38],
+      popupAnchor: [0, -38],
+    })
+
+    const marker = L.marker([w.lat, w.lng], {
+      icon: pinIcon,
+      pane: 'pinpoint_marker',
+      zIndexOffset: 1000,
+    })
+
+    const popupHtml = `
+      <div class="worker-popup-card worker-popup-card--pinpoint">
+        <div class="worker-popup-header" style="border-left: 4px solid ${roleColor}">
+          <div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="status-indicator-dot" style="background: ${w.attended ? '#10b981' : '#94a3b8'}"></span>
+              <h4 class="worker-popup-name">${w.name}</h4>
+            </div>
+            <span class="worker-popup-id">${w.id} · ${w.roleLabel}</span>
+          </div>
+        </div>
+        <div class="worker-popup-body">
+          <div class="worker-popup-row">
+            <span class="label">Division / Field:</span>
+            <strong>${w.division} (${w.fieldBlock})</strong>
+          </div>
+          <div class="worker-popup-row">
+            <span class="label">Current Task:</span>
+            <span>${w.currentTask}</span>
+          </div>
+          <div class="worker-popup-row">
+            <span class="label">Attendance:</span>
+            <strong style="color: ${w.attended ? '#059669' : '#64748b'}">
+              ${w.attended ? `Present Today (${w.checkInTime || '06:30 AM'})` : 'Absent'}
+            </strong>
+          </div>
+          ${w.role === 'harvester' ? `
+          <div class="worker-popup-row">
+            <span class="label">Today's Harvest:</span>
+            <strong style="color: #059669">${w.todayPluckedKg.toFixed(1)} kg</strong>
+          </div>` : ''}
+          ${w.attended && w.hoursWorkedToday !== undefined ? `
+          <div class="worker-popup-row">
+            <span class="label">Hours Worked:</span>
+            <strong>${w.hoursWorkedToday.toFixed(1)} hrs</strong>
+          </div>` : ''}
+          <div class="worker-popup-row">
+            <span class="label">Assigned Gang:</span>
+            <span>${w.gangName || 'Field Gang'}</span>
+          </div>
+          <div class="worker-popup-row">
+            <span class="label">Contact:</span>
+            <a href="tel:${w.phone}" class="worker-popup-phone">${w.phone}</a>
+          </div>
+          <div style="margin-top: 10px; display: flex; gap: 6px;">
+            <button type="button" class="btn btn--xs btn--secondary" style="flex: 1; justify-content: center; cursor: pointer;" id="view-day-modal-${w.id}">
+              Full Day Details
+            </button>
+            <button type="button" class="btn btn--xs btn--outline" style="justify-content: center; cursor: pointer;" id="dismiss-pinpoint-${w.id}">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    `
+
+    marker.bindPopup(popupHtml, {
+      className: 'estate-leaflet-popup',
+      maxWidth: 290,
+      autoPan: true,
+      autoPanPaddingTopLeft: L.point(380, 85),
+      autoPanPaddingBottomRight: L.point(30, 30),
+    })
+
+    marker.on('popupopen', () => {
+      const detailBtn = document.getElementById(`view-day-modal-${w.id}`)
+      if (detailBtn) {
+        detailBtn.onclick = () => {
+          setSelectedDayWorker(w)
+          marker.closePopup()
+        }
+      }
+      const dismissBtn = document.getElementById(`dismiss-pinpoint-${w.id}`)
+      if (dismissBtn) {
+        dismissBtn.onclick = () => {
+          clearEmployeePinpoint()
+        }
+      }
+    })
+
+    group.addLayer(marker)
+
+    // Center camera slightly north of marker so popup has full room below top bar
+    map.flyTo([w.lat + 0.00065, w.lng], 17.5, { duration: 1.0 })
+
+    window.setTimeout(() => {
+      if (mapRef.current && marker) {
+        marker.openPopup()
+      }
+    }, 550)
+  }
+
+  const focusEmployeePinpoint = () => {
+    if (activeLocatedWorker) {
+      renderEmployeePinpoint(activeLocatedWorker)
+    }
   }
 
   const resetView = () => {
@@ -940,6 +1118,7 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
       map.setView([7.0545, 80.7115], 14.8)
     }
     handleCloseSelection()
+    clearEmployeePinpoint()
   }
 
   // Search hit focus
@@ -1058,12 +1237,26 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
               <strong style="color: #059669">${w.todayPluckedKg.toFixed(1)} kg</strong>
             </div>` : ''}
             <div class="worker-popup-row">
+              <span class="label">Attendance:</span>
+              <strong style="color: ${w.attended ? '#059669' : '#64748b'}">${w.attended ? 'Present Today' : 'Absent'}</strong>
+            </div>
+            ${w.attended && w.hoursWorkedToday !== undefined ? `
+            <div class="worker-popup-row">
+              <span class="label">Hours Worked:</span>
+              <strong>${w.hoursWorkedToday.toFixed(1)} hrs</strong>
+            </div>` : ''}
+            <div class="worker-popup-row">
               <span class="label">Last GPS Ping:</span>
               <small>${w.lastPingTime}</small>
             </div>
             <div class="worker-popup-row">
               <span class="label">Direct Contact:</span>
               <a href="tel:${w.phone}" class="worker-popup-phone">${w.phone}</a>
+            </div>
+            <div style="margin-top: 8px;">
+              <button type="button" class="btn btn--xs btn--secondary" style="width: 100%; justify-content: center; cursor: pointer;" id="view-day-detail-${w.id}">
+                View Day Details
+              </button>
             </div>
           </div>
         </div>
@@ -1076,6 +1269,16 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
 
       marker.on('click', () => {
         setSelectedWorker(w)
+      })
+
+      marker.on('popupopen', () => {
+        const btn = document.getElementById(`view-day-detail-${w.id}`)
+        if (btn) {
+          btn.onclick = () => {
+            setSelectedDayWorker(w)
+            marker.closePopup()
+          }
+        }
       })
 
       group.addLayer(marker)
@@ -1153,13 +1356,24 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
     })
   }, [incidents, isIncidentLayerVisible, setSelectedIncident])
 
-  // Effect: Smooth flyTo when locating a target from external tabs
+  // Effect: Smooth flyTo and render pinpoint when locating a target from external tabs
   useEffect(() => {
     if (locateTarget && mapRef.current) {
       mapRef.current.flyTo([locateTarget.lat, locateTarget.lng], 18, { duration: 1.2 })
+      if (locateTarget.type === 'worker') {
+        const targetWorker = locateTarget.worker || workers.find((w) => w.id === locateTarget.id)
+        if (targetWorker) {
+          renderEmployeePinpoint(targetWorker)
+        }
+      } else if (locateTarget.type === 'incident') {
+        const targetInc = incidents.find((inc) => inc.id === locateTarget.id)
+        if (targetInc) {
+          setSelectedIncident(targetInc)
+        }
+      }
       if (onClearLocateTarget) onClearLocateTarget()
     }
-  }, [locateTarget, onClearLocateTarget])
+  }, [locateTarget, workers, incidents, onClearLocateTarget, setSelectedIncident])
 
   return (
     <div className="plantation-map-shell">
@@ -1172,6 +1386,9 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
         searchHits={searchHits}
         onSelectHit={focusSearchHit}
         onResetView={resetView}
+        locatedWorker={activeLocatedWorker}
+        onClearLocatedWorker={clearEmployeePinpoint}
+        onFocusLocatedWorker={focusEmployeePinpoint}
       />
 
       <div className="map-top-left-rail">
@@ -1181,6 +1398,7 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
           vectorVisibility={vectorVisibility}
           onToggleVector={handleToggleVector}
           onResetLayersToDefault={handleResetLayersToDefault}
+          onSelectEmployee={setSelectedDayWorker}
         />
       </div>
 
@@ -1199,6 +1417,19 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
       />
 
       <FeatureDetailPanel selection={selection} onClose={handleCloseSelection} />
+
+      <EmployeeDayDetailModal
+        worker={selectedDayWorker}
+        isOpen={Boolean(selectedDayWorker)}
+        onClose={() => setSelectedDayWorker(null)}
+        onLocateOnMap={(w) => {
+          setSelectedDayWorker(null)
+          if (mapRef.current && w.lat && w.lng) {
+            mapRef.current.flyTo([w.lat, w.lng], 18, { duration: 1.2 })
+            renderEmployeePinpoint(w)
+          }
+        }}
+      />
 
       {loadError && <div className="map-error">{loadError}</div>}
     </div>

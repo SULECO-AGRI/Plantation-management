@@ -40,12 +40,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     <header className="erp-header">
       <div className="erp-header__left">
         <Link to="/" className="erp-brand" title="Return to Landing Page">
-          <div className="erp-brand__logo-emblem">
-            <span className="erp-brand__tea-leaf">🍃</span>
-          </div>
           <div className="erp-brand__text">
             <strong>Plantation Management</strong>
-            <small>Weddamulla Estate · Nuwara Eliya</small>
+            <small>Weddamulla Estate</small>
           </div>
         </Link>
       </div>
@@ -57,8 +54,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           className={`erp-tab-btn ${activeTab === 'map' ? 'erp-tab-btn--active' : ''}`}
           onClick={() => onTabChange('map')}
         >
-          <Layers size={15} />
-          <span>GIS Interactive Map</span>
+          <Layers size={13} />
+          <span>GIS Map</span>
         </button>
 
         <button
@@ -66,8 +63,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           className={`erp-tab-btn ${activeTab === 'workforce' ? 'erp-tab-btn--active' : ''}`}
           onClick={() => onTabChange('workforce')}
         >
-          <Users size={15} />
-          <span>Workforce GPS</span>
+          <Users size={13} />
+          <span>Employees</span>
         </button>
 
         <button
@@ -75,8 +72,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           className={`erp-tab-btn ${activeTab === 'tasks' ? 'erp-tab-btn--active' : ''}`}
           onClick={() => onTabChange('tasks')}
         >
-          <CalendarCheck2 size={15} />
-          <span>Task Dispatch (Kanban)</span>
+          <CalendarCheck2 size={13} />
+          <span>Tasks</span>
         </button>
 
         <button
@@ -84,8 +81,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           className={`erp-tab-btn ${activeTab === 'harvest' ? 'erp-tab-btn--active' : ''}`}
           onClick={() => onTabChange('harvest')}
         >
-          <Scale size={15} />
-          <span>Harvest &amp; Yield Logger</span>
+          <Scale size={13} />
+          <span>Harvest</span>
         </button>
 
         <button
@@ -93,8 +90,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           className={`erp-tab-btn ${activeTab === 'incidents' ? 'erp-tab-btn--active' : ''}`}
           onClick={() => onTabChange('incidents')}
         >
-          <AlertTriangle size={15} />
-          <span>Incident Alerts</span>
+          <AlertTriangle size={13} />
+          <span>Alerts</span>
           {unresolvedIncidentsCount > 0 && (
             <span className="erp-tab-counter">{unresolvedIncidentsCount}</span>
           )}
@@ -111,8 +108,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             onClick={() => setIsCreateModalOpen(true)}
             title="Create and Dispatch Work Order"
           >
-            <Plus size={14} />
-            <span>New Task</span>
+            <Plus size={12} />
+            <span>Task</span>
           </button>
 
           <button
@@ -121,7 +118,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             onClick={() => setIsLogModalOpen(true)}
             title="Record Daily Harvest Weigh-In"
           >
-            <Scale size={14} />
+            <Scale size={12} />
             <span>Weigh-In</span>
           </button>
 
@@ -131,7 +128,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             onClick={() => setIsReportModalOpen(true)}
             title="Report Environmental or Field Hazard"
           >
-            <AlertTriangle size={14} />
+            <AlertTriangle size={12} />
             <span>Alert</span>
           </button>
         </div>

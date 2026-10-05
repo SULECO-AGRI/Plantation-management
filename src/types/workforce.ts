@@ -13,6 +13,9 @@ export type Worker = {
   currentTask: string
   taskId?: string
   todayPluckedKg: number
+  hoursWorkedToday?: number
+  checkInTime?: string
+  attended: boolean
   lastPingTime: string
   lat: number
   lng: number

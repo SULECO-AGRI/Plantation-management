@@ -1,5 +1,6 @@
 import { Crosshair, Search, X } from 'lucide-react'
 import type { SearchHit } from '../../types/gis'
+import type { Worker } from '../../types/workforce'
 
 type Props = {
   query: string
@@ -8,6 +9,9 @@ type Props = {
   searchHits: SearchHit[]
   onSelectHit: (hit: SearchHit) => void
   onResetView: () => void
+  locatedWorker?: Worker | null
+  onClearLocatedWorker?: () => void
+  onFocusLocatedWorker?: () => void
 }
 
 export function MapTopBar({
@@ -17,6 +21,9 @@ export function MapTopBar({
   searchHits,
   onSelectHit,
   onResetView,
+  locatedWorker,
+  onClearLocatedWorker,
+  onFocusLocatedWorker,
 }: Props) {
   return (
     <div className="map-topbar">
@@ -57,6 +64,28 @@ export function MapTopBar({
       <button className="estate-chip" type="button" onClick={onResetView}>
         <Crosshair size={15} /> Weddamulle Estate
       </button>
+
+      {locatedWorker && (
+        <div className="located-worker-chip">
+          <span className="located-worker-chip__dot" />
+          <span
+            className="located-worker-chip__name"
+            onClick={onFocusLocatedWorker}
+            style={{ cursor: onFocusLocatedWorker ? 'pointer' : 'default' }}
+            title="Re-focus employee pinpoint"
+          >
+            Pin: {locatedWorker.name}
+          </span>
+          <button
+            type="button"
+            className="located-worker-chip__close"
+            onClick={onClearLocatedWorker}
+            title="Clear pinpoint"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

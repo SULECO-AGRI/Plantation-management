@@ -14,7 +14,13 @@ export interface IWorkerService {
 
 class MockWorkerService implements IWorkerService {
   private getStore(): Worker[] {
-    return loadFromStorage<Worker[]>(WORKERS_STORAGE_KEY, MOCK_WORKERS)
+    const data = loadFromStorage<Worker[]>(WORKERS_STORAGE_KEY, MOCK_WORKERS)
+    // If stored items are missing attendance fields, hydrate from MOCK_WORKERS
+    if (!data || data.length < MOCK_WORKERS.length || data.some((w) => w.attended === undefined)) {
+      this.setStore(MOCK_WORKERS)
+      return MOCK_WORKERS
+    }
+    return data
   }
 
   private setStore(workers: Worker[]): void {

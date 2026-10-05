@@ -39,6 +39,7 @@ export function EstateMapPage() {
       lat: worker.lat,
       lng: worker.lng,
       title: `${worker.name} (${worker.id})`,
+      worker,
     })
     handleTabChange('map')
   }
@@ -55,7 +56,7 @@ export function EstateMapPage() {
   }
 
   return (
-    <main className="estate-page">
+    <main className={`estate-page ${activeTab !== 'map' ? 'estate-page--scrollable' : ''}`}>
       <AppHeader
         activeTab={activeTab}
         onTabChange={handleTabChange}
