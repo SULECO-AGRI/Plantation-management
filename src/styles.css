@@ -6326,6 +6326,8 @@ h1, h2, h3, h4, h5 {
   display: flex;
   flex-direction: column;
   animation: modal-scale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 @keyframes modal-scale {
@@ -6396,8 +6398,23 @@ h1, h2, h3, h4, h5 {
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 22px 24px;
   overflow-y: auto;
+}
+
+.modal-body,
+.modal-container,
+.login-modal-body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+}
+
+.modal-body::-webkit-scrollbar,
+.modal-container::-webkit-scrollbar,
+.login-modal-body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+  width: 0;
+  height: 0;
 }
 
 .modal-footer {
@@ -6405,8 +6422,8 @@ h1, h2, h3, h4, h5 {
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  padding-top: 18px;
-  margin-top: 18px;
+  padding-top: 16px;
+  margin-top: 16px;
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -8022,7 +8039,15 @@ h1, h2, h3, h4, h5 {
 .simple-task-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+}
+
+.simple-task-form .form-group {
+  margin-bottom: 0;
+}
+
+.simple-task-form .form-grid-2 {
+  gap: 12px;
 }
 
 .simple-radio-pills {
