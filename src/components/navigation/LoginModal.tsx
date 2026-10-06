@@ -35,48 +35,48 @@ type DemoAccount = {
 
 const DEMO_ACCOUNTS: DemoAccount[] = [
   {
-    role: 'estate_manager',
-    roleName: 'Estate Manager (Super Admin)',
-    username: 'manager',
+    role: 'super_admin',
+    roleName: 'Super Admin',
+    username: 'admin',
     password: 'estate123',
     targetTab: 'map',
     targetLabel: 'GIS Interactive Map & Overview',
     badgeColor: '#155e43',
     icon: '👑',
-    desc: 'Division zoning, high-level yield KPIs & financial approvals',
+    desc: 'Global control: dispatch tasks to Division Managers & Field Officers, view analytics',
+  },
+  {
+    role: 'division_manager',
+    roleName: 'Division Manager',
+    username: 'manager',
+    password: 'estate123',
+    targetTab: 'tasks',
+    targetLabel: 'Division Tasks & Harvest Operations',
+    badgeColor: '#0d9488',
+    icon: '📊',
+    desc: 'View Super Admin tasks, dispatch work orders to your Field Officers & oversee division',
   },
   {
     role: 'field_officer',
-    roleName: 'Field Officer (Supervisor)',
+    roleName: 'Field Officer',
     username: 'officer',
     password: 'estate123',
     targetTab: 'tasks',
-    targetLabel: 'Task Dispatch & Kanban Board',
+    targetLabel: 'Assigned Work Orders & Attendance',
     badgeColor: '#0369a1',
     icon: '📋',
-    desc: 'Work order dispatch, gang allocations & chemical approvals',
+    desc: 'View assigned tasks & update status, roll-call & harvest weigh-ins (cannot add tasks)',
   },
   {
-    role: 'kangany',
-    roleName: 'Division Kangany (Field Lead)',
-    username: 'kangany',
+    role: 'worker',
+    roleName: 'Employee',
+    username: 'worker',
     password: 'estate123',
-    targetTab: 'harvest',
-    targetLabel: 'Daily Harvest & Weigh-In Logger',
+    targetTab: 'workforce',
+    targetLabel: 'Workforce Portal & Attendance',
     badgeColor: '#7c3aed',
-    icon: '⚖️',
-    desc: 'Harvester gang roll call, digital tare deduction & leaf grading',
-  },
-  {
-    role: 'agronomist',
-    roleName: 'Chief Agronomist (Specialist)',
-    username: 'agronomist',
-    password: 'estate123',
-    targetTab: 'incidents',
-    targetLabel: 'Incident & Environmental Alerts',
-    badgeColor: '#059669',
-    icon: '🌿',
-    desc: 'Pest outbreaks, Blister Blight, soil health & hazard resolution',
+    icon: '🧑‍🌾',
+    desc: 'Harvester gang roll call, daily field tasks & personal yield tracking',
   },
 ]
 
@@ -186,7 +186,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="login-username" className="form-label">
-              Username or Staff Work Email
+              Username or Work Email
             </label>
             <div className="input-with-icon">
               <User size={16} className="input-icon" />
@@ -194,7 +194,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                 id="login-username"
                 type="text"
                 className="form-input"
-                placeholder="e.g. manager, officer, kangany, agronomist"
+                placeholder="e.g. admin, manager, officer, worker"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isSubmitting}

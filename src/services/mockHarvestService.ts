@@ -1,9 +1,9 @@
 import { INITIAL_TODAY_HARVEST_SUMMARY, MOCK_HARVEST_LOGS } from '../data/mockHarvest'
-import type { DivisionYieldComparison, HarvestLog, TodayHarvestSummary, WeighInSession } from '../types/harvest'
+import type { DivisionYieldComparison, FieldYieldComparison, HarvestLog, TodayHarvestSummary, WeighInSession } from '../types/harvest'
 import { delay, loadFromStorage, saveToStorage } from './apiClient'
 
-const HARVEST_STORAGE_KEY = 'plantation_harvest_logs'
-const SUMMARY_STORAGE_KEY = 'plantation_harvest_summary'
+const HARVEST_STORAGE_KEY = 'plantation_harvest_logs_v5'
+const SUMMARY_STORAGE_KEY = 'plantation_harvest_summary_v5'
 
 export type RecordWeighInDTO = {
   date?: string
@@ -19,9 +19,10 @@ export type RecordWeighInDTO = {
 }
 
 export interface IHarvestService {
-  getHarvestLogs(filters?: { division?: string; session?: WeighInSession; workerId?: string; date?: string }): Promise<HarvestLog[]>
+  getHarvestLogs(filters?: { division?: string; session?: WeighInSession; workerId?: string; date?: string; fieldBlock?: string }): Promise<HarvestLog[]>
   recordWeighIn(dto: RecordWeighInDTO): Promise<HarvestLog>
-  getTodayHarvestSummary(): Promise<TodayHarvestSummary>
+  batchRecordWeighIns(dtos: RecordWeighInDTO[]): Promise<HarvestLog[]>
+  getTodayHarvestSummary(division?: string): Promise<TodayHarvestSummary>
   getDivisionYieldComparison(): Promise<DivisionYieldComparison[]>
 }
 
@@ -34,13 +35,27 @@ class MockHarvestService implements IHarvestService {
     saveToStorage(HARVEST_STORAGE_KEY, logs)
   }
 
-  private calculateSummary(logs: HarvestLog[]): TodayHarvestSummary {
+  private calculateSummary(logs: HarvestLog[], divisionFilter?: string): TodayHarvestSummary {
     const today = new Date().toISOString().split('T')[0]
     // Filter today's logs or default to all current sample logs if dates are 2026-10-04
-    const todayLogs = logs.filter((l) => l.date === today || l.date === '2026-10-04')
+    let todayLogs = logs.filter((l) => l.date === today || l.date === '2026-10-04')
+
+    if (divisionFilter && divisionFilter !== 'All Divisions') {
+      todayLogs = todayLogs.filter((l) => l.division.toLowerCase() === divisionFilter.toLowerCase())
+    }
 
     if (todayLogs.length === 0) {
-      return INITIAL_TODAY_HARVEST_SUMMARY
+      return {
+        ...INITIAL_TODAY_HARVEST_SUMMARY,
+        totalEstateYieldTodayKg: 0,
+        averagePerHarvesterKg: 0,
+        totalHarvestersWeighed: 0,
+        morningSessionKg: 0,
+        afternoonSessionKg: 0,
+        fineLeafAvgPct: 0,
+        divisionYields: [],
+        fieldYields: [],
+      }
     }
 
     let morningTotal = 0
@@ -50,6 +65,7 @@ class MockHarvestService implements IHarvestService {
     const uniqueWorkers = new Set<string>()
 
     const divisionMap: Record<string, { total: number; workers: Set<string>; finePctSum: number; count: number }> = {}
+    const fieldMap: Record<string, { division: string; total: number; workers: Set<string>; finePctSum: number; count: number; morningKg: number; afternoonKg: number }> = {}
 
     todayLogs.forEach((log) => {
       grandTotal += log.netWeightKg
@@ -66,6 +82,25 @@ class MockHarvestService implements IHarvestService {
       divisionMap[log.division].workers.add(log.workerId)
       divisionMap[log.division].finePctSum += log.fineLeafPct
       divisionMap[log.division].count += 1
+
+      const fieldKey = log.fieldBlock || 'General'
+      if (!fieldMap[fieldKey]) {
+        fieldMap[fieldKey] = {
+          division: log.division,
+          total: 0,
+          workers: new Set(),
+          finePctSum: 0,
+          count: 0,
+          morningKg: 0,
+          afternoonKg: 0,
+        }
+      }
+      fieldMap[fieldKey].total += log.netWeightKg
+      fieldMap[fieldKey].workers.add(log.workerId)
+      fieldMap[fieldKey].finePctSum += log.fineLeafPct
+      fieldMap[fieldKey].count += 1
+      if (log.session === 'morning') fieldMap[fieldKey].morningKg += log.netWeightKg
+      else fieldMap[fieldKey].afternoonKg += log.netWeightKg
     })
 
     const harvesterCount = uniqueWorkers.size || 1
@@ -83,9 +118,22 @@ class MockHarvestService implements IHarvestService {
         targetProgressPct: Math.min(100, Math.round((data.total / 60) * 100)),
       }
     })
-
-    // Sort by total yield desc
     divisionYields.sort((a, b) => b.totalYieldKg - a.totalYieldKg)
+
+    const fieldYields: FieldYieldComparison[] = Object.entries(fieldMap).map(([field, data]) => {
+      const dWorkers = data.workers.size || 1
+      return {
+        field,
+        division: data.division,
+        totalYieldKg: Math.round(data.total * 10) / 10,
+        harvesterCount: dWorkers,
+        averagePerHarvesterKg: Math.round((data.total / dWorkers) * 10) / 10,
+        fineLeafAvgPct: Math.round((data.finePctSum / data.count) * 10) / 10,
+        morningKg: Math.round(data.morningKg * 10) / 10,
+        afternoonKg: Math.round(data.afternoonKg * 10) / 10,
+      }
+    })
+    fieldYields.sort((a, b) => b.totalYieldKg - a.totalYieldKg)
 
     return {
       totalEstateYieldTodayKg: Math.round(grandTotal * 10) / 10,
@@ -95,17 +143,27 @@ class MockHarvestService implements IHarvestService {
       afternoonSessionKg: Math.round(afternoonTotal * 10) / 10,
       fineLeafAvgPct: avgFineLeaf,
       divisionYields,
+      fieldYields,
     }
   }
 
-  async getHarvestLogs(filters?: { division?: string; session?: WeighInSession; workerId?: string; date?: string }): Promise<HarvestLog[]> {
+  async getTodayHarvestSummary(division?: string): Promise<TodayHarvestSummary> {
+    await delay(150)
+    const logs = this.getLogsStore()
+    return this.calculateSummary(logs, division)
+  }
+
+  async getHarvestLogs(filters?: { division?: string; session?: WeighInSession; workerId?: string; date?: string; fieldBlock?: string }): Promise<HarvestLog[]> {
     await delay(200)
     let list = this.getLogsStore()
 
     if (filters?.division && filters.division !== 'All Divisions') {
-      list = list.filter((l) => l.division === filters.division)
+      list = list.filter((l) => l.division.toLowerCase() === filters.division!.toLowerCase())
     }
-    if (filters?.session) {
+    if (filters?.fieldBlock && filters.fieldBlock !== 'all') {
+      list = list.filter((l) => l.fieldBlock === filters.fieldBlock)
+    }
+    if (filters?.session && (filters.session as string) !== 'all') {
       list = list.filter((l) => l.session === filters.session)
     }
     if (filters?.workerId) {
@@ -158,10 +216,45 @@ class MockHarvestService implements IHarvestService {
     return newLog
   }
 
-  async getTodayHarvestSummary(): Promise<TodayHarvestSummary> {
-    await delay(180)
-    const logs = this.getLogsStore()
-    return this.calculateSummary(logs)
+  async batchRecordWeighIns(dtos: RecordWeighInDTO[]): Promise<HarvestLog[]> {
+    await delay(250)
+    const list = this.getLogsStore()
+    const now = new Date()
+
+    const newLogs: HarvestLog[] = dtos.map((dto, idx) => {
+      const today = dto.date || now.toISOString().split('T')[0]
+      const timestamp = `${today} ${now.toTimeString().slice(0, 5)}`
+      const gross = Number(dto.grossWeightKg)
+      const tare = Number(dto.tareBagWeightKg)
+      const netWeight = Math.max(0, Math.round((gross - tare) * 10) / 10)
+      const finePct = Math.min(100, Math.max(0, Number(dto.fineLeafPct)))
+      const coarsePct = 100 - finePct
+
+      return {
+        id: `HARV-${Date.now()}-${idx}`,
+        date: today,
+        session: dto.session,
+        workerId: dto.workerId,
+        workerName: dto.workerName,
+        division: dto.division,
+        fieldBlock: dto.fieldBlock,
+        grossWeightKg: gross,
+        tareBagWeightKg: tare,
+        netWeightKg: netWeight,
+        fineLeafPct: finePct,
+        coarseLeafPct: coarsePct,
+        recordedBy: dto.recordedBy || 'Field Officer',
+        timestamp,
+      }
+    })
+
+    const updatedLogs = [...newLogs, ...list]
+    this.setLogsStore(updatedLogs)
+
+    const summary = this.calculateSummary(updatedLogs)
+    saveToStorage(SUMMARY_STORAGE_KEY, summary)
+
+    return newLogs
   }
 
   async getDivisionYieldComparison(): Promise<DivisionYieldComparison[]> {

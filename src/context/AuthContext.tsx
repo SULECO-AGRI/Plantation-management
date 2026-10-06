@@ -18,14 +18,14 @@ type AuthContextType = {
 
 export const getRoleDefaultTab = (role: UserRole): 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents' => {
   switch (role) {
-    case 'estate_manager':
+    case 'super_admin':
       return 'map'
+    case 'division_manager':
+      return 'harvest'
     case 'field_officer':
       return 'tasks'
-    case 'kangany':
-      return 'harvest'
-    case 'agronomist':
-      return 'incidents'
+    case 'worker':
+      return 'workforce'
     default:
       return 'map'
   }

@@ -16,12 +16,24 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
   const { workers, selectedWorker } = useWorkforce()
   const { currentUser } = useAuth()
 
-  const harvesters = workers.filter((w) => w.role === 'harvester')
+  const isDivisionManager = currentUser?.role === 'division_manager'
+  const managerDivision =
+    currentUser?.assignedDivision ||
+    (currentUser?.divisionScope !== 'All Divisions' ? currentUser?.divisionScope : 'Weddamulla') ||
+    'Weddamulla'
+
+  const harvesters = workers.filter((w) => {
+    if (w.role !== 'harvester') return false
+    if (isDivisionManager && w.division.toLowerCase() !== managerDivision.toLowerCase()) return false
+    return true
+  })
 
   const [session, setSession] = useState<WeighInSession>('morning')
   const [workerId, setWorkerId] = useState(harvesters[0]?.id || 'WKR-102')
   const [workerName, setWorkerName] = useState(harvesters[0]?.name || 'K. Meenakshi')
-  const [division, setDivision] = useState<'Weddamulla' | 'Ramboda' | 'Camnethan' | 'Lilliesland' | 'Wewandon'>('Weddamulla')
+  const [division, setDivision] = useState<'Weddamulla' | 'Ramboda' | 'Camnethan' | 'Lilliesland' | 'Wewandon'>(
+    (isDivisionManager ? managerDivision : 'Weddamulla') as any,
+  )
   const [fieldBlock, setFieldBlock] = useState('Block 4B')
   const [grossWeightKg, setGrossWeightKg] = useState<string>('15.8')
   const [tareBagWeightKg, setTareBagWeightKg] = useState<string>('1.8')

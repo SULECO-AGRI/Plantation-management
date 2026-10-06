@@ -20,7 +20,14 @@ class MockAuthService implements IAuthService {
 
   async getCurrentUser(): Promise<UserProfile> {
     await delay(150)
-    const storedRole = loadFromStorage<UserRole>(AUTH_STORAGE_KEY, 'estate_manager')
+    let storedRole = loadFromStorage<string>(AUTH_STORAGE_KEY, 'super_admin')
+    if (storedRole === 'estate_manager') {
+      storedRole = 'super_admin'
+      saveToStorage(AUTH_STORAGE_KEY, 'super_admin')
+    } else if (storedRole === 'kangany' || storedRole === 'agronomist') {
+      storedRole = 'field_officer'
+      saveToStorage(AUTH_STORAGE_KEY, 'field_officer')
+    }
     const found = this.users.find((u) => u.role === storedRole)
     return found || this.users[0]
   }
@@ -64,7 +71,7 @@ class MockAuthService implements IAuthService {
     })
 
     if (!matched) {
-      throw new Error(`No plantation staff profile found for "${username}". Try "manager", "officer", "kangany", or "agronomist".`)
+      throw new Error(`No user profile found for "${username}". Try "admin", "manager", "officer", or "worker".`)
     }
 
     // Accept user password or standard demo passwords

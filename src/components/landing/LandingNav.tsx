@@ -20,14 +20,14 @@ export function LandingNav() {
 
   const getRoleDestinationLabel = (role: UserRole) => {
     switch (role) {
-      case 'estate_manager':
+      case 'super_admin':
         return 'Estate Overview'
+      case 'division_manager':
+        return 'Harvest Analytics'
       case 'field_officer':
         return 'Task Dispatch'
-      case 'kangany':
-        return 'Harvest Logger'
-      case 'agronomist':
-        return 'Incident Alerts'
+      case 'worker':
+        return 'Workforce Portal'
       default:
         return 'Workspace'
     }
@@ -58,7 +58,7 @@ export function LandingNav() {
               {isAuthenticated && currentUser ? (
                 <div className="nav-user-cluster">
                   <Link
-                    to={`/map?tab=${userTargetTab}`}
+                    to="/map"
                     className="btn btn--nav"
                     title={`Open GIS Map (${getRoleDestinationLabel(currentUser.role)})`}
                   >
@@ -114,7 +114,7 @@ export function LandingNav() {
               {isAuthenticated && currentUser ? (
                 <div className="nav-mobile-user-box">
                   <Link
-                    to={`/map?tab=${userTargetTab}`}
+                    to="/map"
                     className="btn btn--nav-mobile"
                     onClick={closeMobileMenu}
                   >

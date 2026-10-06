@@ -17,7 +17,6 @@ import type {
 } from '../../../types/gis'
 import type { Worker } from '../../../types/workforce'
 import { useWorkforce } from '../../../context/WorkforceContext'
-import { useIncident } from '../../../context/IncidentContext'
 import { EmployeeDayDetailModal } from '../../workforce/EmployeeDayDetailModal'
 
 type Props = {
@@ -38,7 +37,6 @@ export function LayerController({
   onSelectEmployee,
 }: Props) {
   const { isGpsLayerVisible, setIsGpsLayerVisible, workers, setSelectedWorker } = useWorkforce()
-  const { isIncidentLayerVisible, setIsIncidentLayerVisible, incidents } = useIncident()
 
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isRosterOpen, setIsRosterOpen] = useState(false)
@@ -69,7 +67,7 @@ export function LayerController({
   const activeAnalysisCount = ANALYSIS_RASTER_LAYERS.filter((l) => rasterVisibility[l.id]).length
   const activeInfraCount = INFRASTRUCTURE_LAYERS.filter((l) => vectorVisibility[l.key]).length
   const activeEstateCount = ESTATE_LAYERS.filter((l) => vectorVisibility[l.key]).length
-  const activeTelemetryCount = (isGpsLayerVisible ? 1 : 0) + (isIncidentLayerVisible ? 1 : 0)
+  const activeTelemetryCount = isGpsLayerVisible ? 1 : 0
   const totalThematicActive = activeAnalysisCount + activeInfraCount + activeEstateCount + activeTelemetryCount
 
   const divisionLayer = ESTATE_LAYERS.find((l) => l.key === 'divisions')
@@ -387,33 +385,6 @@ export function LayerController({
                   ))}
                 </div>
               )}
-
-              {/* Incident Alerts Toggle */}
-              <button
-                type="button"
-                className={`layer-row ${isIncidentLayerVisible ? 'layer-row--active' : ''}`}
-                onClick={() => setIsIncidentLayerVisible(!isIncidentLayerVisible)}
-                aria-label="Toggle Incident Alerts layer"
-              >
-                <span
-                  className="layer-swatch"
-                  style={{
-                    borderColor: '#dc2626',
-                    background: '#ef4444',
-                    borderWidth: '1.5px',
-                  }}
-                />
-                <span className="layer-copy">
-                  <strong>Incident Alerts</strong>
-                  <small>Hazard &amp; pest pins ({incidents.filter((i) => i.status !== 'resolved').length} open)</small>
-                </span>
-                <span
-                  className={`layer-toggle-switch ${isIncidentLayerVisible ? 'layer-toggle-switch--active' : ''}`}
-                  aria-hidden="true"
-                >
-                  <span className="layer-toggle-switch__thumb" />
-                </span>
-              </button>
             </div>
           )}
         </div>

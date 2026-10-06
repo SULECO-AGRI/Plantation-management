@@ -1,8 +1,8 @@
 import { MOCK_TASKS } from '../data/mockTasks'
-import type { Task, TaskFilter, TaskPriority, TaskStatus, WorkType } from '../types/task'
+import type { Task, TaskAssigneeRole, TaskCreatorRole, TaskFilter, TaskPriority, TaskStatus, WorkType } from '../types/task'
 import { delay, loadFromStorage, saveToStorage } from './apiClient'
 
-const TASKS_STORAGE_KEY = 'plantation_tasks_data'
+const TASKS_STORAGE_KEY = 'plantation_tasks_data_v2'
 
 export type CreateTaskDTO = {
   workType: WorkType
@@ -16,6 +16,11 @@ export type CreateTaskDTO = {
   notes?: string
   assignedWorkerCount?: number
   createdBy?: string
+  creatorRole: TaskCreatorRole
+  assigneeRole: TaskAssigneeRole
+  assigneeId?: string
+  assigneeName: string
+  assigneePhone?: string
 }
 
 export interface ITaskService {
@@ -29,7 +34,19 @@ export interface ITaskService {
 
 class MockTaskService implements ITaskService {
   private getStore(): Task[] {
-    return loadFromStorage<Task[]>(TASKS_STORAGE_KEY, MOCK_TASKS)
+    const list = loadFromStorage<Task[]>(TASKS_STORAGE_KEY, MOCK_TASKS)
+    // Seamless migration for any missing role/assignee properties
+    return list.map((t) => {
+      if (!t.assigneeRole || !t.creatorRole || !t.assigneeName) {
+        return {
+          ...t,
+          creatorRole: t.creatorRole || 'super_admin',
+          assigneeRole: t.assigneeRole || 'division_manager',
+          assigneeName: t.assigneeName || 'D. Wickramasinghe (Division Manager)',
+        }
+      }
+      return t
+    })
   }
 
   private setStore(tasks: Task[]): void {
@@ -63,6 +80,12 @@ class MockTaskService implements ITaskService {
     if (filters?.date) {
       list = list.filter((t) => t.targetDate === filters.date)
     }
+    if (filters?.assigneeRole && filters.assigneeRole !== 'all') {
+      list = list.filter((t) => t.assigneeRole === filters.assigneeRole)
+    }
+    if (filters?.assigneeId) {
+      list = list.filter((t) => t.assigneeId === filters.assigneeId)
+    }
     if (filters?.search) {
       const q = filters.search.toLowerCase()
       list = list.filter(
@@ -70,7 +93,9 @@ class MockTaskService implements ITaskService {
           t.taskNumber.toLowerCase().includes(q) ||
           t.fieldBlockId.toLowerCase().includes(q) ||
           t.assignedGangKangany.toLowerCase().includes(q) ||
-          t.workTypeLabel.toLowerCase().includes(q),
+          t.workTypeLabel.toLowerCase().includes(q) ||
+          t.assigneeName.toLowerCase().includes(q) ||
+          t.createdBy.toLowerCase().includes(q),
       )
     }
 
@@ -108,6 +133,11 @@ class MockTaskService implements ITaskService {
       notes: dto.notes,
       createdAt: formattedNow,
       createdBy: dto.createdBy || 'Field Officer',
+      creatorRole: dto.creatorRole,
+      assigneeRole: dto.assigneeRole,
+      assigneeId: dto.assigneeId,
+      assigneeName: dto.assigneeName,
+      assigneePhone: dto.assigneePhone,
     }
 
     const updated = [newTask, ...list]

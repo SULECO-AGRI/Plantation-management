@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { mockWorkerService } from '../services/mockWorkerService'
+import { AttendanceUpdateItem, mockWorkerService } from '../services/mockWorkerService'
 import type { DivisionWorkforceSummary, Worker, WorkerRole, WorkerStatus } from '../types/workforce'
 
 type WorkforceContextType = {
@@ -15,6 +15,9 @@ type WorkforceContextType = {
   setFilterRole: (role: WorkerRole | 'all') => void
   filterStatus: WorkerStatus | 'all'
   setFilterStatus: (status: WorkerStatus | 'all') => void
+  markAttendance: (workerId: string, attended: boolean, checkInTime?: string, status?: WorkerStatus) => Promise<Worker>
+  batchUpdateAttendance: (updates: AttendanceUpdateItem[]) => Promise<Worker[]>
+  updateWorkerPluckedKg: (workerId: string, additionalKg: number) => Promise<Worker>
 }
 
 const WorkforceContext = createContext<WorkforceContextType | undefined>(undefined)
@@ -47,6 +50,29 @@ export const WorkforceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return mockWorkerService.getDivisionSupervision(divisionName)
   }
 
+  const markAttendance = async (
+    workerId: string,
+    attended: boolean,
+    checkInTime?: string,
+    status?: WorkerStatus
+  ): Promise<Worker> => {
+    const updated = await mockWorkerService.markAttendance(workerId, attended, checkInTime, status)
+    setWorkers((prev) => prev.map((w) => (w.id === workerId ? updated : w)))
+    return updated
+  }
+
+  const batchUpdateAttendance = async (updates: AttendanceUpdateItem[]): Promise<Worker[]> => {
+    const updatedList = await mockWorkerService.batchUpdateAttendance(updates)
+    setWorkers(updatedList)
+    return updatedList
+  }
+
+  const updateWorkerPluckedKg = async (workerId: string, additionalKg: number): Promise<Worker> => {
+    const updated = await mockWorkerService.updateWorkerPluckedKg(workerId, additionalKg)
+    setWorkers((prev) => prev.map((w) => (w.id === workerId ? updated : w)))
+    return updated
+  }
+
   return (
     <WorkforceContext.Provider
       value={{
@@ -62,6 +88,9 @@ export const WorkforceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setFilterRole,
         filterStatus,
         setFilterStatus,
+        markAttendance,
+        batchUpdateAttendance,
+        updateWorkerPluckedKg,
       }}
     >
       {children}

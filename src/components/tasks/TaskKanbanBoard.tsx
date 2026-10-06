@@ -1,16 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import {
-  AlertCircle,
-  CalendarCheck2,
-  CheckCircle2,
-  Clock,
-  Filter,
-  Layers,
-  Plus,
-  Search,
-  Sparkles,
-  Zap,
-} from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { TaskCard } from './TaskCard'
 import { CreateTaskModal } from './CreateTaskModal'
 import { useTask } from '../../context/TaskContext'
@@ -21,44 +10,90 @@ export const TaskKanbanBoard: React.FC = () => {
   const { tasks, updateTaskStatus, isCreateModalOpen, setIsCreateModalOpen } = useTask()
   const { currentUser, selectedDivisionFilter, setSelectedDivisionFilter } = useAuth()
 
+  const isSuperAdmin = currentUser?.role === 'super_admin'
+  const isDivisionManager = currentUser?.role === 'division_manager'
+  const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
+  const canCreateTask = isSuperAdmin || isDivisionManager
+  const userDivision = currentUser?.assignedDivision || currentUser?.divisionScope || 'Weddamulla'
+
+  // Filter tab
+  const [filterTab, setFilterTab] = useState<'all' | 'managers' | 'officers' | 'my_tasks'>(
+    isFieldOfficer ? 'my_tasks' : 'all'
+  )
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState<WorkType | 'all'>('all')
-  const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all')
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null)
 
+  // Filter tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      const matchSearch =
-        task.taskNumber.toLowerCase().includes(search.toLowerCase()) ||
-        task.workTypeLabel.toLowerCase().includes(search.toLowerCase()) ||
-        task.fieldBlockId.toLowerCase().includes(search.toLowerCase()) ||
-        task.assignedGangKangany.toLowerCase().includes(search.toLowerCase())
+      // 1. Division
+      if (isSuperAdmin) {
+        if (selectedDivisionFilter !== 'All Divisions' && task.division !== selectedDivisionFilter) {
+          return false
+        }
+      } else {
+        if (task.division !== userDivision) return false
+      }
 
-      const matchDiv =
-        selectedDivisionFilter === 'All Divisions' || task.division === selectedDivisionFilter
+      // 2. Role filter tab
+      if (isSuperAdmin) {
+        if (filterTab === 'managers' && task.assigneeRole !== 'division_manager') return false
+        if (filterTab === 'officers' && task.assigneeRole !== 'field_officer') return false
+      } else if (isDivisionManager) {
+        if (filterTab === 'managers') {
+          // Tasks assigned to this manager from Super Admin
+          if (task.assigneeRole !== 'division_manager') return false
+        } else if (filterTab === 'officers') {
+          // Tasks assigned to field officers
+          if (task.assigneeRole !== 'field_officer') return false
+        }
+      } else if (isFieldOfficer) {
+        if (filterTab === 'my_tasks') {
+          const matchName = currentUser?.name && task.assigneeName.toLowerCase().includes(currentUser.name.toLowerCase())
+          const matchBlock = currentUser?.assignedField && task.fieldBlockId === currentUser.assignedField
+          if (!matchName && !matchBlock && task.assigneeRole !== 'field_officer') return false
+        }
+      }
 
-      const matchType = filterType === 'all' || task.workType === filterType
-      const matchPriority = filterPriority === 'all' || task.priority === filterPriority
+      // 3. Search
+      if (search.trim()) {
+        const q = search.toLowerCase()
+        const match =
+          task.taskNumber.toLowerCase().includes(q) ||
+          task.workTypeLabel.toLowerCase().includes(q) ||
+          task.fieldBlockId.toLowerCase().includes(q) ||
+          task.assigneeName.toLowerCase().includes(q) ||
+          task.division.toLowerCase().includes(q)
+        if (!match) return false
+      }
 
-      return matchSearch && matchDiv && matchType && matchPriority
+      // 4. Work type
+      if (filterType !== 'all' && task.workType !== filterType) {
+        return false
+      }
+
+      return true
     })
-  }, [tasks, search, selectedDivisionFilter, filterType, filterPriority])
+  }, [
+    tasks,
+    isSuperAdmin,
+    isDivisionManager,
+    isFieldOfficer,
+    selectedDivisionFilter,
+    userDivision,
+    filterTab,
+    search,
+    filterType,
+    currentUser,
+  ])
 
-  const columns: Array<{ id: TaskStatus; label: string; icon: React.ReactNode; color: string }> = [
-    { id: 'scheduled', label: 'Scheduled', icon: <Clock size={16} />, color: '#64748b' },
-    { id: 'in_progress', label: 'In-Progress', icon: <Zap size={16} />, color: '#0284c7' },
-    { id: 'completed', label: 'Completed', icon: <CheckCircle2 size={16} />, color: '#059669' },
-    { id: 'delayed', label: 'Delayed', icon: <AlertCircle size={16} />, color: '#dc2626' },
+  const columns: Array<{ id: TaskStatus; label: string }> = [
+    { id: 'scheduled', label: 'Scheduled' },
+    { id: 'in_progress', label: 'In Progress' },
+    { id: 'completed', label: 'Completed' },
+    { id: 'delayed', label: 'Delayed' },
   ]
-
-  const handleDragOver = (e: React.DragEvent, colId: TaskStatus) => {
-    e.preventDefault()
-    setDragOverColumn(colId)
-  }
-
-  const handleDragLeave = () => {
-    setDragOverColumn(null)
-  }
 
   const handleDrop = async (e: React.DragEvent, targetStatus: TaskStatus) => {
     e.preventDefault()
@@ -70,61 +105,145 @@ export const TaskKanbanBoard: React.FC = () => {
   }
 
   return (
-    <div className="erp-page-container">
-      {/* Top Banner */}
-      <div className="erp-page-header">
+    <div className="simple-tasks-page">
+      {/* 1. Clean Header */}
+      <div className="simple-tasks-header">
         <div>
-          <div className="erp-page-badge">
-            <CalendarCheck2 size={13} />
-            <span>MODULE B · DISPATCH ENGINE</span>
+          <div className="simple-tasks-title-row">
+            <h1 className="simple-tasks-title">Tasks</h1>
+            <span className="simple-tasks-role-badge">
+              {isSuperAdmin
+                ? 'Super Admin'
+                : isDivisionManager
+                ? `${userDivision} Manager`
+                : `${userDivision} Field Officer`}
+            </span>
           </div>
-          <h1 className="erp-page-title">Task Allocation &amp; Dispatch Engine</h1>
-          <p className="erp-page-subtitle">
-            Manage daily field work orders, plucking rounds, fertilizer spraying, and maintenance crews.
+          <p className="simple-tasks-subtitle">
+            {isSuperAdmin
+              ? 'Assign tasks to Division Managers and Field Officers.'
+              : isDivisionManager
+              ? 'Assign tasks to your field officers and view assigned work.'
+              : 'View your assigned tasks and update work progress.'}
           </p>
         </div>
 
-        <div className="erp-page-actions">
+        {canCreateTask && (
           <button
             type="button"
-            className="btn btn--primary"
+            className="simple-btn-primary"
             onClick={() => setIsCreateModalOpen(true)}
           >
-            <Plus size={15} />
-            <span>Dispatch Work Order</span>
+            <Plus size={16} />
+            <span>Add Task</span>
           </button>
-        </div>
+        )}
       </div>
 
-      {/* Filter Bar */}
-      <div className="erp-content-card">
-        <div className="erp-content-card__header">
-          <div className="workforce-search-box">
-            <Search size={15} />
-            <input
-              type="text"
-              placeholder="Search tasks by WO number, crop block, gang, or type..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="workforce-search-input"
-            />
-            {search && (
+      {/* 2. Unified Filter Bar */}
+      <div className="simple-filter-bar">
+        {/* Search */}
+        <div className="simple-search-box">
+          <Search size={14} className="simple-search-icon" />
+          <input
+            type="text"
+            placeholder="Search tasks..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="simple-search-input"
+          />
+          {search && (
+            <button
+              type="button"
+              className="simple-search-clear"
+              onClick={() => setSearch('')}
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Filter Pills */}
+        <div className="simple-pills-group">
+          {isSuperAdmin && (
+            <>
               <button
                 type="button"
-                className="clear-search-btn"
-                onClick={() => setSearch('')}
+                className={`simple-pill ${filterTab === 'all' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('all')}
               >
-                ×
+                All
               </button>
-            )}
-          </div>
+              <button
+                type="button"
+                className={`simple-pill ${filterTab === 'managers' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('managers')}
+              >
+                To Managers
+              </button>
+              <button
+                type="button"
+                className={`simple-pill ${filterTab === 'officers' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('officers')}
+              >
+                To Field Officers
+              </button>
+            </>
+          )}
 
-          <div className="workforce-dropdown-filters">
+          {isDivisionManager && (
+            <>
+              <button
+                type="button"
+                className={`simple-pill ${filterTab === 'all' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('all')}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`simple-pill ${filterTab === 'managers' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('managers')}
+              >
+                My Tasks
+              </button>
+              <button
+                type="button"
+                className={`simple-pill ${filterTab === 'officers' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('officers')}
+              >
+                Field Officers
+              </button>
+            </>
+          )}
+
+          {isFieldOfficer && (
+            <>
+              <button
+                type="button"
+                className={`simple-pill ${filterTab === 'my_tasks' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('my_tasks')}
+              >
+                My Tasks
+              </button>
+              <button
+                type="button"
+                className={`simple-pill ${filterTab === 'all' ? 'simple-pill--active' : ''}`}
+                onClick={() => setFilterTab('all')}
+              >
+                All Division
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Dropdowns */}
+        <div className="simple-selects-group">
+          {isSuperAdmin && (
             <select
               value={selectedDivisionFilter}
               onChange={(e) => setSelectedDivisionFilter(e.target.value)}
-              className="filter-select"
-              disabled={currentUser?.divisionScope !== 'All Divisions'}
+              className="simple-select"
             >
               <option value="All Divisions">All Divisions</option>
               <option value="Weddamulla">Weddamulla</option>
@@ -133,85 +252,77 @@ export const TaskKanbanBoard: React.FC = () => {
               <option value="Lilliesland">Lilliesland</option>
               <option value="Wewandon">Wewandon</option>
             </select>
+          )}
 
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as WorkType | 'all')}
-              className="filter-select"
-            >
-              <option value="all">All Work Types</option>
-              <option value="tea_plucking">Tea Plucking</option>
-              <option value="fertilizer_spraying">Fertilizer Spraying</option>
-              <option value="pruning">Bush Pruning</option>
-              <option value="weeding">Terrace Weeding</option>
-              <option value="drainage_cleansing">Drainage Cleansing</option>
-            </select>
-
-            <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as TaskPriority | 'all')}
-              className="filter-select"
-            >
-              <option value="all">All Priorities</option>
-              <option value="urgent">Urgent</option>
-              <option value="normal">Normal</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Kanban Columns Grid */}
-        <div className="kanban-grid">
-          {columns.map((col) => {
-            const colTasks = filteredTasks.filter((t) => t.status === col.id)
-            const isTarget = dragOverColumn === col.id
-
-            return (
-              <div
-                key={col.id}
-                className={`kanban-col ${isTarget ? 'kanban-col--drag-over' : ''}`}
-                onDragOver={(e) => handleDragOver(e, col.id)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, col.id)}
-              >
-                <div className="kanban-col__header">
-                  <div className="kanban-col__title-box">
-                    <span
-                      className="kanban-col__dot"
-                      style={{ backgroundColor: col.color }}
-                    />
-                    <h3>{col.label}</h3>
-                  </div>
-                  <span className="kanban-col__count">{colTasks.length}</span>
-                </div>
-
-                <div className="kanban-col__cards">
-                  {colTasks.length === 0 ? (
-                    <div className="kanban-col__empty">
-                      <span>No tasks in this stage</span>
-                    </div>
-                  ) : (
-                    colTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onStatusChange={updateTaskStatus}
-                      />
-                    ))
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as WorkType | 'all')}
+            className="simple-select"
+          >
+            <option value="all">All Types</option>
+            <option value="tea_plucking">Tea Plucking</option>
+            <option value="fertilizer_spraying">Spraying</option>
+            <option value="pruning">Pruning</option>
+            <option value="weeding">Weeding</option>
+            <option value="drainage_cleansing">Drainage</option>
+          </select>
         </div>
       </div>
 
+      {/* 3. Clean Kanban Board */}
+      <div className="simple-kanban-grid">
+        {columns.map((col) => {
+          const colTasks = filteredTasks.filter((t) => t.status === col.id)
+          const isTarget = dragOverColumn === col.id
+
+          return (
+            <div
+              key={col.id}
+              className={`simple-kanban-col ${isTarget ? 'simple-kanban-col--over' : ''}`}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setDragOverColumn(col.id)
+              }}
+              onDragLeave={() => setDragOverColumn(null)}
+              onDrop={(e) => handleDrop(e, col.id)}
+            >
+              <div className="simple-kanban-col__header">
+                <span className="simple-kanban-col__title">{col.label}</span>
+                <span className="simple-kanban-col__count">{colTasks.length}</span>
+              </div>
+
+              <div className="simple-kanban-col__cards">
+                {colTasks.length === 0 ? (
+                  <div className="simple-kanban-col__empty">No tasks</div>
+                ) : (
+                  colTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onStatusChange={updateTaskStatus}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
       {/* Creation Modal */}
-      <CreateTaskModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        initialDivision={selectedDivisionFilter !== 'All Divisions' ? selectedDivisionFilter : undefined}
-      />
+      {canCreateTask && (
+        <CreateTaskModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          initialDivision={
+            isDivisionManager
+              ? userDivision
+              : selectedDivisionFilter !== 'All Divisions'
+              ? selectedDivisionFilter
+              : undefined
+          }
+        />
+      )}
     </div>
   )
 }

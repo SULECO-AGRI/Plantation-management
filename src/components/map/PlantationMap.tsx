@@ -43,11 +43,10 @@ import type { Worker } from '../../types/workforce'
 import { MapTopBar } from './MapTopBar'
 import { MapDrawToolbar } from './draw/MapDrawToolbar'
 import { useWorkforce } from '../../context/WorkforceContext'
-import { useIncident } from '../../context/IncidentContext'
 import { useHarvest } from '../../context/HarvestContext'
 
 export type LocateTarget = {
-  type: 'worker' | 'incident'
+  type: 'worker'
   id: string
   lat: number
   lng: number
@@ -58,6 +57,7 @@ export type LocateTarget = {
 type PlantationMapProps = {
   locateTarget?: LocateTarget | null
   onClearLocateTarget?: () => void
+  isActive?: boolean
 }
 
 type LoadedVectorLayer = {
@@ -140,20 +140,18 @@ function getVectorFeatureStyle(
   }
 }
 
-export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationMapProps = {}) {
+export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = true }: PlantationMapProps = {}) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
 
-  // Workforce & Incident Contexts
+  // Workforce & Harvest Contexts
   const { workers, isGpsLayerVisible, setIsGpsLayerVisible, setSelectedWorker } = useWorkforce()
-  const { incidents, isIncidentLayerVisible, setIsIncidentLayerVisible, setSelectedIncident, setDropLocation, setIsReportModalOpen } = useIncident()
   const { setIsLogModalOpen } = useHarvest()
 
   const [selectedDayWorker, setSelectedDayWorker] = useState<Worker | null>(null)
   const [activeLocatedWorker, setActiveLocatedWorker] = useState<Worker | null>(null)
 
   const workforceMarkersGroupRef = useRef<L.LayerGroup | null>(null)
-  const incidentMarkersGroupRef = useRef<L.LayerGroup | null>(null)
   const pinpointMarkerGroupRef = useRef<L.LayerGroup | null>(null)
 
   // Base map layers
@@ -345,6 +343,21 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
     const container = hostRef.current
     if (!container) return
 
+    let isMounted = true
+
+    // Safeguard: Clean up any lingering Leaflet instance or ID on this DOM node
+    if ((container as any)._leaflet_id) {
+      delete (container as any)._leaflet_id
+    }
+    if (mapRef.current) {
+      try {
+        mapRef.current.remove()
+      } catch (err) {
+        console.warn('Error removing previous map instance:', err)
+      }
+      mapRef.current = null
+    }
+
     const map = L.map(container, {
       zoomControl: false,
       attributionControl: true,
@@ -407,10 +420,6 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
     map.createPane('workforce_markers')
     map.getPane('workforce_markers')!.style.zIndex = '520'
 
-    // Incident Hazard Markers Pane
-    map.createPane('incident_markers')
-    map.getPane('incident_markers')!.style.zIndex = '530'
-
     // Dedicated Pinpoint Marker Pane (high priority, above normal telemetry)
     map.createPane('pinpoint_marker')
     map.getPane('pinpoint_marker')!.style.zIndex = '560'
@@ -426,17 +435,9 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
 
     // Markers Groups
     const workforceGroup = L.layerGroup().addTo(map)
-    const incidentGroup = L.layerGroup().addTo(map)
     const pinpointGroup = L.layerGroup().addTo(map)
     workforceMarkersGroupRef.current = workforceGroup
-    incidentMarkersGroupRef.current = incidentGroup
     pinpointMarkerGroupRef.current = pinpointGroup
-
-    // Map right click to report incident at exact coordinate
-    map.on('contextmenu', (e: L.LeafletMouseEvent) => {
-      setDropLocation({ lat: e.latlng.lat, lng: e.latlng.lng })
-      setIsReportModalOpen(true)
-    })
 
     setMapInstance(map)
 
@@ -695,6 +696,8 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
             },
           })
 
+          if (!isMounted || mapRef.current !== map) return null
+
           if (vectorVisibilityRef.current[config.key]) {
             layer.addTo(map)
           }
@@ -702,12 +705,15 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
           loadedVectorLayersRef.current[config.key] = { config, data, layer }
           return { config, data, layer }
         } catch (err) {
+          if (controller.signal.aborted) return null
           console.warn(`Vector layer ${config.key} failed to load:`, err)
           return null
         }
       }),
     )
       .then((loadedResults) => {
+        if (!isMounted || mapRef.current !== map) return
+
         const bounds = L.latLngBounds([])
         const searchableFeatures: Array<{ layerKey: LayerKey; feature: EstateFeature }> = []
 
@@ -734,19 +740,39 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
           map.setView([7.0545, 80.7115], 14.8)
         }
         setAllSearchableFeatures(searchableFeatures)
+
+        // Ensure Leaflet calculates viewport dimensions after vector layers load
+        requestAnimationFrame(() => {
+          if (isMounted && mapRef.current) {
+            mapRef.current.invalidateSize()
+          }
+        })
       })
       .catch((error: unknown) => {
+        if (!isMounted) return
         if (error instanceof DOMException && error.name === 'AbortError') return
         setLoadError(error instanceof Error ? error.message : 'Failed to load estate GIS layers.')
       })
 
+    // Immediate layout size recalculation
+    requestAnimationFrame(() => {
+      if (isMounted && mapRef.current) {
+        mapRef.current.invalidateSize()
+      }
+    })
+
     return () => {
+      isMounted = false
       controller.abort()
       window.clearTimeout(imageryHealthTimer)
       map.off('click', handleMapClick)
       map.off('zoom', updateZoomLabels)
       map.off('zoomend', updateZoomLabels)
-      map.remove()
+      try {
+        map.remove()
+      } catch (err) {
+        console.warn('Error removing map instance:', err)
+      }
       mapRef.current = null
       drawnItemsRef.current = null
       setDrawnItemsGroup(null)
@@ -756,8 +782,67 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
       rasterTileLayersRef.current = {}
       loadedVectorLayersRef.current = {}
       activeSelectedPathRef.current = null
+      if (container && (container as any)._leaflet_id) {
+        delete (container as any)._leaflet_id
+      }
     }
   }, [])
+
+  // Handle Container Resize and Visibility (fixes 0x0 Leaflet container size bug)
+  useEffect(() => {
+    const container = hostRef.current
+    if (!container) return
+
+    const handleResize = () => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize()
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    let resizeObserver: ResizeObserver | null = null
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        handleResize()
+      })
+      resizeObserver.observe(container)
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (resizeObserver) {
+        resizeObserver.disconnect()
+      }
+    }
+  }, [])
+
+  // Invalidate map size when tab becomes active or visible
+  useEffect(() => {
+    if (!isActive) return
+    const map = mapRef.current
+    if (!map) return
+
+    map.invalidateSize()
+
+    const rafId = requestAnimationFrame(() => {
+      mapRef.current?.invalidateSize()
+    })
+
+    const t1 = setTimeout(() => {
+      mapRef.current?.invalidateSize()
+    }, 100)
+
+    const t2 = setTimeout(() => {
+      mapRef.current?.invalidateSize()
+    }, 300)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [isActive])
 
   // Toggle Google Satellite Base Map
   const handleToggleSatellite = () => {
@@ -944,7 +1029,6 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
 
     // 4. Reset Telemetry Layers to default (off)
     setIsGpsLayerVisible(false)
-    setIsIncidentLayerVisible(false)
 
     // 5. Reset View & Selection
     map.setView([7.0545, 80.7115], 14.8)
@@ -1285,77 +1369,6 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
     })
   }, [workers, isGpsLayerVisible, setSelectedWorker])
 
-  // Effect: Render Incident Hazard Markers on Leaflet Map
-  useEffect(() => {
-    const group = incidentMarkersGroupRef.current
-    if (!group) return
-
-    group.clearLayers()
-    if (!isIncidentLayerVisible) return
-
-    incidents.forEach((inc) => {
-      let sevColor = '#dc2626'
-      if (inc.severity === 'moderate') sevColor = '#d97706'
-      else if (inc.severity === 'advisory') sevColor = '#2563eb'
-
-      const isResolved = inc.status === 'resolved'
-      if (isResolved) sevColor = '#059669'
-
-      const icon = L.divIcon({
-        className: 'custom-incident-pin-wrapper',
-        html: `
-          <div class="custom-incident-pin ${isResolved ? 'custom-incident-pin--resolved' : ''}" style="--sev-color: ${sevColor};">
-            ${!isResolved ? '<span class="custom-incident-pin__pulse"></span>' : ''}
-            <span class="custom-incident-pin__icon">⚠️</span>
-          </div>
-        `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-        popupAnchor: [0, -18],
-      })
-
-      const marker = L.marker([inc.lat, inc.lng], {
-        icon,
-        pane: 'incident_markers',
-      })
-
-      const popupHtml = `
-        <div class="incident-popup-card">
-          <div class="incident-popup-header" style="border-left: 4px solid ${sevColor}">
-            <div>
-              <div class="incident-popup-badges">
-                <span class="incident-popup-sev" style="background: ${sevColor}22; color: ${sevColor}">${inc.severity.toUpperCase()}</span>
-                <span class="incident-popup-code">${inc.incidentNumber}</span>
-              </div>
-              <h4 class="incident-popup-title">${inc.title}</h4>
-            </div>
-          </div>
-          <div class="incident-popup-body">
-            <div class="incident-popup-cat">${inc.typeLabel} · ${inc.division} ${inc.fieldBlock ? `(${inc.fieldBlock})` : ''}</div>
-            <p class="incident-popup-desc">${inc.description}</p>
-            <div class="incident-popup-status">
-              <span>Status:</span> <strong>${inc.status.toUpperCase()}</strong>
-            </div>
-            <div class="incident-popup-meta">
-              <small>Reported by ${inc.reportedBy} at ${inc.reportedAt}</small>
-            </div>
-          </div>
-        </div>
-      `
-
-      marker.bindPopup(popupHtml, {
-        className: 'estate-leaflet-popup',
-        maxWidth: 300,
-      })
-
-      marker.on('click', () => {
-        setSelectedIncident(inc)
-      })
-
-      group.addLayer(marker)
-    })
-  }, [incidents, isIncidentLayerVisible, setSelectedIncident])
-
   // Effect: Smooth flyTo and render pinpoint when locating a target from external tabs
   useEffect(() => {
     if (locateTarget && mapRef.current) {
@@ -1365,15 +1378,10 @@ export function PlantationMap({ locateTarget, onClearLocateTarget }: PlantationM
         if (targetWorker) {
           renderEmployeePinpoint(targetWorker)
         }
-      } else if (locateTarget.type === 'incident') {
-        const targetInc = incidents.find((inc) => inc.id === locateTarget.id)
-        if (targetInc) {
-          setSelectedIncident(targetInc)
-        }
       }
       if (onClearLocateTarget) onClearLocateTarget()
     }
-  }, [locateTarget, workers, incidents, onClearLocateTarget, setSelectedIncident])
+  }, [locateTarget, workers, onClearLocateTarget])
 
   return (
     <div className="plantation-map-shell">

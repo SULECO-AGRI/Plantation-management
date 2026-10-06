@@ -1,22 +1,18 @@
 import React from 'react'
 import {
-  AlertTriangle,
   CalendarCheck2,
   CheckCircle2,
+  ClipboardCheck,
   Layers,
   MapPin,
-  Plus,
   Scale,
   Users,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { useHarvest } from '../../context/HarvestContext'
-import { useIncident } from '../../context/IncidentContext'
-import { useTask } from '../../context/TaskContext'
 import { RoleSwitcher } from './RoleSwitcher'
 
-export type PortalTab = 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents'
+export type PortalTab = 'map' | 'workforce' | 'tasks' | 'harvest' | 'attendance' | 'daily_harvest'
 
 type AppHeaderProps = {
   activeTab: PortalTab
@@ -30,11 +26,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenWorkforceModal,
 }) => {
   const { currentUser } = useAuth()
-  const { setIsCreateModalOpen } = useTask()
-  const { setIsLogModalOpen } = useHarvest()
-  const { setIsReportModalOpen, incidents } = useIncident()
 
-  const unresolvedIncidentsCount = incidents.filter((i) => i.status !== 'resolved').length
+  const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
 
   return (
     <header className="erp-header">
@@ -85,54 +78,33 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <span>Harvest</span>
         </button>
 
-        <button
-          type="button"
-          className={`erp-tab-btn ${activeTab === 'incidents' ? 'erp-tab-btn--active' : ''}`}
-          onClick={() => onTabChange('incidents')}
-        >
-          <AlertTriangle size={13} />
-          <span>Alerts</span>
-          {unresolvedIncidentsCount > 0 && (
-            <span className="erp-tab-counter">{unresolvedIncidentsCount}</span>
-          )}
-        </button>
+        {isFieldOfficer && (
+          <>
+            <button
+              type="button"
+              className={`erp-tab-btn ${activeTab === 'attendance' ? 'erp-tab-btn--active' : ''}`}
+              onClick={() => onTabChange('attendance')}
+              title="Employee Attendance Roll-Call"
+            >
+              <ClipboardCheck size={13} />
+              <span>Attendance</span>
+            </button>
+
+            <button
+              type="button"
+              className={`erp-tab-btn ${activeTab === 'daily_harvest' ? 'erp-tab-btn--active' : ''}`}
+              onClick={() => onTabChange('daily_harvest')}
+              title="Daily Harvest Weigh-In"
+            >
+              <Scale size={13} />
+              <span>Daily Harvest</span>
+            </button>
+          </>
+        )}
       </nav>
 
       {/* Header Right Actions */}
       <div className="erp-header__right">
-        {/* Quick Action Button for Modals */}
-        <div className="erp-quick-actions">
-          <button
-            type="button"
-            className="erp-action-btn erp-action-btn--task"
-            onClick={() => setIsCreateModalOpen(true)}
-            title="Create and Dispatch Work Order"
-          >
-            <Plus size={12} />
-            <span>Task</span>
-          </button>
-
-          <button
-            type="button"
-            className="erp-action-btn erp-action-btn--weigh"
-            onClick={() => setIsLogModalOpen(true)}
-            title="Record Daily Harvest Weigh-In"
-          >
-            <Scale size={12} />
-            <span>Weigh-In</span>
-          </button>
-
-          <button
-            type="button"
-            className="erp-action-btn erp-action-btn--incident"
-            onClick={() => setIsReportModalOpen(true)}
-            title="Report Environmental or Field Hazard"
-          >
-            <AlertTriangle size={12} />
-            <span>Alert</span>
-          </button>
-        </div>
-
         {/* Role Switcher Dropdown */}
         <RoleSwitcher />
       </div>

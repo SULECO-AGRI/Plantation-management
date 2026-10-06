@@ -4,12 +4,23 @@ import { delay, loadFromStorage, saveToStorage } from './apiClient'
 
 const WORKERS_STORAGE_KEY = 'plantation_workforce_data'
 
+export type AttendanceUpdateItem = {
+  workerId: string
+  attended: boolean
+  status?: WorkerStatus
+  checkInTime?: string
+  hoursWorkedToday?: number
+}
+
 export interface IWorkerService {
   getWorkers(filters?: { division?: string; role?: WorkerRole; status?: WorkerStatus }): Promise<Worker[]>
   getWorkerById(id: string): Promise<Worker | null>
   getWorkersByDivision(division: string): Promise<Worker[]>
   getDivisionSupervision(divisionName: string): Promise<DivisionWorkforceSummary>
   updateWorkerLocation(id: string, lat: number, lng: number): Promise<Worker>
+  markAttendance(workerId: string, attended: boolean, checkInTime?: string, status?: WorkerStatus): Promise<Worker>
+  batchUpdateAttendance(updates: AttendanceUpdateItem[]): Promise<Worker[]>
+  updateWorkerPluckedKg(workerId: string, additionalKg: number): Promise<Worker>
 }
 
 class MockWorkerService implements IWorkerService {
@@ -121,6 +132,64 @@ class MockWorkerService implements IWorkerService {
       lat,
       lng,
       lastPingTime: 'Just now',
+    }
+    list[index] = updated
+    this.setStore(list)
+    return updated
+  }
+
+  async markAttendance(workerId: string, attended: boolean, checkInTime?: string, status?: WorkerStatus): Promise<Worker> {
+    await delay(100)
+    const list = this.getStore()
+    const index = list.findIndex((w) => w.id === workerId)
+    if (index === -1) throw new Error(`Worker ${workerId} not found`)
+
+    const updated: Worker = {
+      ...list[index],
+      attended,
+      checkInTime: attended ? (checkInTime || list[index].checkInTime || '07:00 AM') : undefined,
+      status: status || (attended ? 'active' : 'offline'),
+      hoursWorkedToday: attended ? (list[index].hoursWorkedToday || 8) : 0,
+    }
+    list[index] = updated
+    this.setStore(list)
+    return updated
+  }
+
+  async batchUpdateAttendance(updates: AttendanceUpdateItem[]): Promise<Worker[]> {
+    await delay(150)
+    const list = this.getStore()
+    const updateMap = new Map(updates.map((u) => [u.workerId, u]))
+
+    const updatedList = list.map((w) => {
+      const u = updateMap.get(w.id)
+      if (!u) return w
+      return {
+        ...w,
+        attended: u.attended,
+        checkInTime: u.attended ? (u.checkInTime || w.checkInTime || '07:00 AM') : undefined,
+        status: u.status || (u.attended ? 'active' : 'offline'),
+        hoursWorkedToday: u.attended ? (u.hoursWorkedToday !== undefined ? u.hoursWorkedToday : (w.hoursWorkedToday || 8)) : 0,
+      }
+    })
+
+    this.setStore(updatedList)
+    return updatedList
+  }
+
+  async updateWorkerPluckedKg(workerId: string, additionalKg: number): Promise<Worker> {
+    await delay(80)
+    const list = this.getStore()
+    const index = list.findIndex((w) => w.id === workerId)
+    if (index === -1) throw new Error(`Worker ${workerId} not found`)
+
+    const currentPlucked = Number(list[index].todayPluckedKg) || 0
+    const newTotal = Math.round((currentPlucked + additionalKg) * 10) / 10
+    const updated: Worker = {
+      ...list[index],
+      todayPluckedKg: newTotal,
+      attended: true,
+      status: 'active',
     }
     list[index] = updated
     this.setStore(list)

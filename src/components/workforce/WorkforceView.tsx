@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Search,
   Users,
 } from 'lucide-react'
 import { Badge } from '../common/Badge'
 import { useWorkforce } from '../../context/WorkforceContext'
+import { useAuth } from '../../context/AuthContext'
 import type { Worker, WorkerRole } from '../../types/workforce'
 import { EmployeeDayDetailModal } from './EmployeeDayDetailModal'
 
@@ -14,17 +15,82 @@ type WorkforceViewProps = {
 
 export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) => {
   const { workers } = useWorkforce()
+  const { currentUser } = useAuth()
+
+  const isDivisionManager = currentUser?.role === 'division_manager'
+  const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
+  const officerField = currentUser?.assignedField || 'Block 4B'
+  const officerDivision =
+    currentUser?.assignedDivision ||
+    (currentUser?.divisionScope !== 'All Divisions' ? currentUser?.divisionScope : 'Weddamulla') ||
+    'Weddamulla'
+  const managerDivision = officerDivision
+
+  // Monitored field blocks available in the officer's division
+  const availableOfficerFields = useMemo(() => {
+    const fieldsSet = new Set<string>()
+    workers.forEach((w) => {
+      if (
+        w.division.toLowerCase() === officerDivision.toLowerCase() &&
+        w.fieldBlock &&
+        w.fieldBlock !== 'Estate HQ' &&
+        w.fieldBlock !== 'Division Office' &&
+        w.role !== 'super_admin' &&
+        w.role !== 'division_manager'
+      ) {
+        fieldsSet.add(w.fieldBlock)
+      }
+    })
+    const list = Array.from(fieldsSet).sort()
+    return list.length > 0 ? list : ['Block 4B', 'Block 4A', 'Block 2A', 'Block 3C', 'Block 3A']
+  }, [workers, officerDivision])
+
   const [search, setSearch] = useState('')
-  const [selectedDivision, setSelectedDivision] = useState('all')
+  const [selectedField, setSelectedField] = useState<string>(
+    isFieldOfficer ? officerField : 'all'
+  )
+  const [selectedDivision, setSelectedDivision] = useState(
+    isDivisionManager ? managerDivision : 'all'
+  )
   const [selectedRole, setSelectedRole] = useState<WorkerRole | 'all'>('all')
   const [selectedAttendance, setSelectedAttendance] = useState<'all' | 'present' | 'absent'>('all')
   const [detailWorker, setDetailWorker] = useState<Worker | null>(null)
 
+  // Sync selected field when role or assignedField changes
+  useEffect(() => {
+    if (isFieldOfficer) {
+      setSelectedField(currentUser?.assignedField || 'Block 4B')
+    } else {
+      setSelectedField('all')
+    }
+  }, [isFieldOfficer, currentUser?.assignedField])
+
+  // Scope base workers:
+  // - Field Officer: scoped to their division; filters by the selected field dropdown (or all monitored fields)
+  // - Division Manager: limited to their assigned division
+  // - Others (Super Admin): all workers across the estate
+  const scopedWorkers = useMemo(() => {
+    if (isFieldOfficer) {
+      return workers.filter((w) => {
+        if (w.role === 'super_admin' || w.role === 'division_manager') return false
+        if (w.division.toLowerCase() !== officerDivision.toLowerCase()) return false
+        if (selectedField !== 'all') {
+          return w.fieldBlock.trim().toLowerCase() === selectedField.trim().toLowerCase()
+        }
+        return true
+      })
+    }
+    if (isDivisionManager) {
+      return workers.filter((w) => w.division === managerDivision)
+    }
+    return workers
+  }, [workers, isFieldOfficer, officerDivision, selectedField, isDivisionManager, managerDivision])
+
   const stats = useMemo(() => {
-    const total = workers.length
-    const present = workers.filter((w) => w.attended).length
+    const total = scopedWorkers.length
+    const present = scopedWorkers.filter((w) => w.attended).length
     const absent = total - present
-    const totalLeafToday = workers
+    const totalLeafToday = scopedWorkers
       .filter((w) => w.attended)
       .reduce((acc, w) => acc + (w.todayPluckedKg || 0), 0)
 
@@ -34,18 +100,26 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
       absent,
       totalLeafToday: Math.round(totalLeafToday * 10) / 10,
     }
-  }, [workers])
+  }, [scopedWorkers])
 
   const filtered = useMemo(() => {
-    return workers.filter((w) => {
+    return scopedWorkers.filter((w) => {
       const matchSearch =
         w.name.toLowerCase().includes(search.toLowerCase()) ||
         w.id.toLowerCase().includes(search.toLowerCase()) ||
         w.currentTask.toLowerCase().includes(search.toLowerCase()) ||
         w.fieldBlock.toLowerCase().includes(search.toLowerCase())
 
-      const matchDiv = selectedDivision === 'all' || w.division === selectedDivision
-      const matchRole = selectedRole === 'all' || w.role === selectedRole
+      const matchDiv = isFieldOfficer || isDivisionManager
+        ? true
+        : selectedDivision === 'all' || w.division === selectedDivision
+
+      const matchRole =
+        selectedRole === 'all' ||
+        w.role === selectedRole ||
+        (selectedRole === 'field_officer' && (w.role as string) === 'kangany') ||
+        (selectedRole === 'worker' && ['harvester', 'sprayer', 'sundry'].includes(w.role as string))
+
       const matchAttendance =
         selectedAttendance === 'all' ||
         (selectedAttendance === 'present' && w.attended) ||
@@ -53,18 +127,44 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
 
       return matchSearch && matchDiv && matchRole && matchAttendance
     })
-  }, [workers, search, selectedDivision, selectedRole, selectedAttendance])
+  }, [scopedWorkers, search, isFieldOfficer, isDivisionManager, selectedDivision, selectedRole, selectedAttendance])
 
   const getRoleBadgeVariant = (role: WorkerRole) => {
     switch (role) {
+      case 'super_admin':
+        return 'emerald'
+      case 'division_manager':
+        return 'blue'
+      case 'field_officer':
       case 'kangany':
         return 'purple'
+      case 'worker':
       case 'harvester':
         return 'amber'
       case 'sprayer':
         return 'blue'
       case 'sundry':
+      default:
         return 'slate'
+    }
+  }
+
+  const getRoleBadgeLabel = (role: WorkerRole) => {
+    switch (role) {
+      case 'super_admin':
+        return 'SUPER ADMIN'
+      case 'division_manager':
+        return 'DIVISION MANAGER'
+      case 'field_officer':
+      case 'kangany':
+        return 'FIELD OFFICER'
+      case 'worker':
+      case 'harvester':
+      case 'sprayer':
+      case 'sundry':
+        return 'EMPLOYEE'
+      default:
+        return 'EMPLOYEE'
     }
   }
 
@@ -73,9 +173,26 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
       {/* Top Banner */}
       <div className="erp-page-header">
         <div>
-          <h1 className="erp-page-title">Employees Working Today</h1>
+          <h1 className="erp-page-title">
+            Employees Working Today{' '}
+            {isFieldOfficer ? (
+              <span style={{ color: 'var(--emerald-600)' }}>
+                ({selectedField === 'all' ? `All Fields - ${officerDivision}` : selectedField})
+              </span>
+            ) : isDivisionManager ? (
+              `(${managerDivision} Division)`
+            ) : (
+              ''
+            )}
+          </h1>
           <p className="erp-page-subtitle">
-            Daily muster roll, attendance records, and leaf harvest yields across all divisions.
+            {isFieldOfficer
+              ? selectedField === 'all'
+                ? `Daily muster roll, attendance records, and leaf harvest yields across all monitored fields in ${officerDivision} Division.`
+                : `Daily muster roll, attendance records, and leaf harvest yields for field block ${selectedField} (${officerDivision} Division).`
+              : isDivisionManager
+              ? `Daily muster roll, attendance records, and leaf harvest yields for ${managerDivision} Division.`
+              : 'Daily muster roll, attendance records, and leaf harvest yields across all divisions.'}
           </p>
         </div>
       </div>
@@ -84,10 +201,18 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Total Staff</span>
+            <span className="kpi-card__label">Total Employees</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">{stats.total}</strong>
-              <span className="kpi-card__sub">Across 5 Divisions</span>
+              <span className="kpi-card__sub">
+                {isFieldOfficer
+                  ? selectedField === 'all'
+                    ? `${officerDivision} Division`
+                    : `Field ${selectedField}`
+                  : isDivisionManager
+                  ? `${managerDivision} Division`
+                  : 'Across 5 Divisions'}
+              </span>
             </div>
           </div>
         </div>
@@ -157,18 +282,49 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
               <option value="absent">Absent</option>
             </select>
 
-            <select
-              value={selectedDivision}
-              onChange={(e) => setSelectedDivision(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Divisions</option>
-              <option value="Weddamulla">Weddamulla</option>
-              <option value="Ramboda">Ramboda</option>
-              <option value="Camnethan">Camnethan</option>
-              <option value="Lilliesland">Lilliesland</option>
-              <option value="Wewandon">Wewandon</option>
-            </select>
+            {isFieldOfficer ? (
+              <select
+                value={selectedField}
+                onChange={(e) => setSelectedField(e.target.value)}
+                className="filter-select"
+                title="Filter employees by field block"
+                style={{
+                  fontWeight: 600,
+                  color: 'var(--forest-900)',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="all">All Fields ({officerDivision})</option>
+                {availableOfficerFields.map((f) => (
+                  <option key={f} value={f}>
+                    {f} {f === currentUser?.assignedField ? '(In Charge)' : ''}
+                  </option>
+                ))}
+              </select>
+            ) : isDivisionManager ? (
+              <select
+                value={managerDivision}
+                disabled
+                className="filter-select"
+                title={`Division Manager view restricted to ${managerDivision} Division`}
+                style={{ opacity: 0.9, backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
+              >
+                <option value={managerDivision}>{managerDivision} Division (Assigned)</option>
+              </select>
+            ) : (
+              <select
+                value={selectedDivision}
+                onChange={(e) => setSelectedDivision(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Divisions</option>
+                <option value="Weddamulla">Weddamulla</option>
+                <option value="Ramboda">Ramboda</option>
+                <option value="Camnethan">Camnethan</option>
+                <option value="Lilliesland">Lilliesland</option>
+                <option value="Wewandon">Wewandon</option>
+              </select>
+            )}
 
             <select
               value={selectedRole}
@@ -176,10 +332,10 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
               className="filter-select"
             >
               <option value="all">All Roles</option>
-              <option value="harvester">Tea Harvester</option>
-              <option value="kangany">Kangany (Lead)</option>
-              <option value="sprayer">Chemical Sprayer</option>
-              <option value="sundry">Sundry / Maintenance</option>
+              {!isFieldOfficer && <option value="super_admin">Super Admin</option>}
+              {!isFieldOfficer && <option value="division_manager">Division Manager</option>}
+              <option value="field_officer">Field Officer</option>
+              <option value="worker">Employee</option>
             </select>
           </div>
         </div>
@@ -223,7 +379,7 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                   </td>
                   <td>
                     <Badge variant={getRoleBadgeVariant(worker.role)}>
-                      {worker.role.toUpperCase()}
+                      {getRoleBadgeLabel(worker.role)}
                     </Badge>
                   </td>
                   <td>
@@ -243,7 +399,7 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                   </td>
                   <td>
                     <div className="worker-weight-cell">
-                      {worker.role === 'harvester' && worker.attended ? (
+                      {worker.todayPluckedKg > 0 && worker.attended ? (
                         <>
                           <strong className="text-emerald">{worker.todayPluckedKg.toFixed(1)}</strong>
                           <small> kg</small>
@@ -277,7 +433,9 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
 
           {filtered.length === 0 && (
             <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
-              No employees found matching the selected filters.
+              {isFieldOfficer
+                ? `No employees found in ${selectedField === 'all' ? officerDivision : selectedField} matching the selected filters.`
+                : 'No employees found matching the selected filters.'}
             </div>
           )}
         </div>

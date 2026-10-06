@@ -1,4 +1,4 @@
-export type UserRole = 'estate_manager' | 'field_officer' | 'kangany' | 'agronomist'
+export type UserRole = 'super_admin' | 'division_manager' | 'field_officer' | 'worker'
 
 export type Permission =
   | 'view_all_divisions'
@@ -23,10 +23,11 @@ export type UserProfile = {
   avatar: string
   divisionScope: 'All Divisions' | 'Weddamulla' | 'Ramboda' | 'Camnethan' | 'Lilliesland' | 'Wewandon'
   assignedDivision?: string
+  assignedField?: string
   phone: string
   email: string
   permissions: Permission[]
   description: string
   password?: string
-  defaultTab?: 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents'
+  defaultTab?: 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents' | 'attendance' | 'daily_harvest'
 }

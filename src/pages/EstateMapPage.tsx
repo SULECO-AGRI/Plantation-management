@@ -5,27 +5,48 @@ import { PlantationMap, LocateTarget } from '../components/map/PlantationMap'
 import { WorkforceView } from '../components/workforce/WorkforceView'
 import { TaskKanbanBoard } from '../components/tasks/TaskKanbanBoard'
 import { HarvestYieldDashboard } from '../components/harvest/HarvestYieldDashboard'
-import { IncidentAlertsTable } from '../components/incidents/IncidentAlertsTable'
 import { WorkforceDirectoryModal } from '../components/workforce/WorkforceDirectoryModal'
+import { AttendanceMarkingView } from '../components/workforce/AttendanceMarkingView'
+import { DailyHarvestEntryView } from '../components/harvest/DailyHarvestEntryView'
+import { useAuth } from '../context/AuthContext'
 import type { Worker } from '../types/workforce'
-import type { Incident } from '../types/incident'
 
-const VALID_TABS: PortalTab[] = ['map', 'workforce', 'tasks', 'harvest', 'incidents']
+const VALID_TABS: PortalTab[] = ['map', 'workforce', 'tasks', 'harvest', 'attendance', 'daily_harvest']
+const OFFICER_ONLY_TABS: PortalTab[] = ['attendance', 'daily_harvest']
 
 export function EstateMapPage() {
+  const { currentUser } = useAuth()
+  const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
+
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab') as PortalTab | null
-  const initialTab: PortalTab = (tabParam && VALID_TABS.includes(tabParam)) ? tabParam : 'map'
 
-  const [activeTab, setActiveTab] = useState<PortalTab>(initialTab)
+  // Ensure initial tab adheres to field officer role permission
+  const safeTabParam =
+    tabParam && VALID_TABS.includes(tabParam)
+      ? (!isFieldOfficer && OFFICER_ONLY_TABS.includes(tabParam) ? 'map' : tabParam)
+      : 'map'
+
+  const [activeTab, setActiveTab] = useState<PortalTab>(safeTabParam)
   const [locateTarget, setLocateTarget] = useState<LocateTarget | null>(null)
   const [isWorkforceModalOpen, setIsWorkforceModalOpen] = useState(false)
 
+  // Active Role Guard: Fallback to map if non-field-officer attempts to open officer tabs
+  useEffect(() => {
+    if (!isFieldOfficer && OFFICER_ONLY_TABS.includes(activeTab)) {
+      handleTabChange('map')
+    }
+  }, [isFieldOfficer, activeTab])
+
   useEffect(() => {
     if (tabParam && VALID_TABS.includes(tabParam)) {
-      setActiveTab(tabParam)
+      if (!isFieldOfficer && OFFICER_ONLY_TABS.includes(tabParam)) {
+        handleTabChange('map')
+      } else {
+        setActiveTab(tabParam)
+      }
     }
-  }, [tabParam])
+  }, [tabParam, isFieldOfficer])
 
   const handleTabChange = (tab: PortalTab) => {
     setActiveTab(tab)
@@ -44,17 +65,6 @@ export function EstateMapPage() {
     handleTabChange('map')
   }
 
-  const handleLocateIncident = (incident: Incident) => {
-    setLocateTarget({
-      type: 'incident',
-      id: incident.id,
-      lat: incident.lat,
-      lng: incident.lng,
-      title: `${incident.incidentNumber} - ${incident.title}`,
-    })
-    handleTabChange('map')
-  }
-
   return (
     <main className={`estate-page ${activeTab !== 'map' ? 'estate-page--scrollable' : ''}`}>
       <AppHeader
@@ -65,10 +75,11 @@ export function EstateMapPage() {
 
       {/* Map View: Kept mounted to maintain WebGL/Leaflet layers, drawing state & performance */}
       <div
-        className="estate-map-stage"
-        style={{ display: activeTab === 'map' ? 'block' : 'none' }}
+        className={`estate-map-stage ${activeTab !== 'map' ? 'estate-map-stage--hidden' : ''}`}
+        style={{ display: activeTab === 'map' ? 'flex' : 'none' }}
       >
         <PlantationMap
+          isActive={activeTab === 'map'}
           locateTarget={locateTarget}
           onClearLocateTarget={() => setLocateTarget(null)}
         />
@@ -95,10 +106,17 @@ export function EstateMapPage() {
         </div>
       )}
 
-      {/* Incident & Alerts Table View */}
-      {activeTab === 'incidents' && (
+      {/* Field Officer: Attendance Roll-Call View */}
+      {activeTab === 'attendance' && isFieldOfficer && (
         <div className="estate-view-stage">
-          <IncidentAlertsTable onLocateOnMap={handleLocateIncident} />
+          <AttendanceMarkingView />
+        </div>
+      )}
+
+      {/* Field Officer: Daily Harvest Weigh-In View */}
+      {activeTab === 'daily_harvest' && isFieldOfficer && (
+        <div className="estate-view-stage">
+          <DailyHarvestEntryView />
         </div>
       )}
 

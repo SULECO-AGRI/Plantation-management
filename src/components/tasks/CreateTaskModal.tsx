@@ -1,9 +1,16 @@
-import React, { useState } from 'react'
-import { Calendar, CheckCircle, Clock, MapPin, Plus, ShieldAlert, Sparkles, Users } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { Modal } from '../common/Modal'
 import { useTask } from '../../context/TaskContext'
 import { useAuth } from '../../context/AuthContext'
-import type { TaskPriority, WorkType } from '../../types/task'
+import type { TaskAssigneeRole, TaskPriority, WorkType } from '../../types/task'
+import {
+  EstateDivision,
+  findOfficialById,
+  getDivisionManagerForDivision,
+  getDivisionManagers,
+  getFieldOfficers,
+} from '../../data/mockOfficials'
 
 type CreateTaskModalProps = {
   isOpen: boolean
@@ -19,75 +26,88 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const { createTask } = useTask()
   const { currentUser } = useAuth()
 
-  const [workType, setWorkType] = useState<WorkType>('tea_plucking')
-  const [division, setDivision] = useState<'Weddamulla' | 'Ramboda' | 'Camnethan' | 'Lilliesland' | 'Wewandon'>(
-    (initialDivision as any) || 'Weddamulla',
+  const isSuperAdmin = currentUser?.role === 'super_admin'
+  const isDivisionManager = currentUser?.role === 'division_manager'
+  const userDivision = (currentUser?.assignedDivision || currentUser?.divisionScope || 'Weddamulla') as EstateDivision
+
+  const defaultDivision: EstateDivision = isDivisionManager
+    ? userDivision
+    : (initialDivision as EstateDivision) || 'Weddamulla'
+
+  const [division, setDivision] = useState<EstateDivision>(defaultDivision)
+  const [assigneeRole, setAssigneeRole] = useState<TaskAssigneeRole>(
+    isSuperAdmin ? 'division_manager' : 'field_officer'
   )
+  const [assigneeId, setAssigneeId] = useState<string>('')
+  const [workType, setWorkType] = useState<WorkType>('tea_plucking')
   const [fieldBlockId, setFieldBlockId] = useState('Block 4B')
-  const [assignedGangKangany, setAssignedGangKangany] = useState('S. Raman (Weddamulla Gang #1)')
-  const [kanganyPhone, setKanganyPhone] = useState('+94 77 341 8970')
   const [priority, setPriority] = useState<TaskPriority>('normal')
   const [targetDate, setTargetDate] = useState(new Date().toISOString().split('T')[0])
-  const [targetOutput, setTargetOutput] = useState('450 kg Fine Green Leaf')
-  const [assignedWorkerCount, setAssignedWorkerCount] = useState(16)
+  const [targetOutput, setTargetOutput] = useState('450 kg Leaf')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [successMsg, setSuccessMsg] = useState('')
 
-  // Gang presets per division
-  const handleDivisionChange = (div: 'Weddamulla' | 'Ramboda' | 'Camnethan' | 'Lilliesland' | 'Wewandon') => {
-    setDivision(div)
-    switch (div) {
-      case 'Weddamulla':
-        setAssignedGangKangany('S. Raman (Weddamulla Gang #1)')
-        setKanganyPhone('+94 77 341 8970')
-        setFieldBlockId('Block 4B')
-        break
-      case 'Ramboda':
-        setAssignedGangKangany('T. Krishnan (Ramboda Gang #3)')
-        setKanganyPhone('+94 77 650 1199')
-        setFieldBlockId('Block 11A')
-        break
-      case 'Camnethan':
-        setAssignedGangKangany('K. Rajaratnam (Camnethan Gang #2)')
-        setKanganyPhone('+94 77 412 8871')
-        setFieldBlockId('Block 7B')
-        break
-      case 'Lilliesland':
-        setAssignedGangKangany('V. Murugan (Lilliesland Gang #1)')
-        setKanganyPhone('+94 77 789 2314')
-        setFieldBlockId('Block 3A')
-        break
-      case 'Wewandon':
-        setAssignedGangKangany('P. Balasubramaniam (Wewandon Gang #1)')
-        setKanganyPhone('+94 77 901 3452')
-        setFieldBlockId('Block 1A')
-        break
+  useEffect(() => {
+    if (isDivisionManager) {
+      setDivision(userDivision)
+      setAssigneeRole('field_officer')
+    } else if (initialDivision && initialDivision !== 'All Divisions') {
+      setDivision(initialDivision as EstateDivision)
     }
-  }
+  }, [isOpen, isDivisionManager, userDivision, initialDivision])
+
+  const availableOfficials = useMemo(() => {
+    if (assigneeRole === 'division_manager') {
+      const dm = getDivisionManagerForDivision(division)
+      return dm ? [dm] : getDivisionManagers()
+    } else {
+      return getFieldOfficers(division)
+    }
+  }, [division, assigneeRole])
+
+  useEffect(() => {
+    if (availableOfficials.length > 0) {
+      setAssigneeId(availableOfficials[0].id)
+      if (availableOfficials[0].assignedField) {
+        setFieldBlockId(availableOfficials[0].assignedField)
+      }
+    }
+  }, [availableOfficials])
+
+  const selectedOfficial = useMemo(() => {
+    return findOfficialById(assigneeId) || availableOfficials[0]
+  }, [assigneeId, availableOfficials])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedOfficial) return
+
     setIsSubmitting(true)
     try {
+      const creatorRole = isSuperAdmin ? 'super_admin' : 'division_manager'
+      const createdBy = `${currentUser?.name || 'Administrator'} (${currentUser?.roleTitle || (isSuperAdmin ? 'Super Admin' : 'Division Manager')})`
+      const assigneeName = `${selectedOfficial.name} (${selectedOfficial.role === 'division_manager' ? 'Division Manager' : 'Field Officer'})`
+
       await createTask({
         workType,
         division,
         fieldBlockId,
-        assignedGangKangany,
-        kanganyPhone,
+        assignedGangKangany: selectedOfficial.defaultGang || `${selectedOfficial.name} Crew`,
+        kanganyPhone: selectedOfficial.phone,
         priority,
         targetDate,
         targetOutput,
-        assignedWorkerCount: Number(assignedWorkerCount) || 10,
+        assignedWorkerCount: 10,
         notes,
-        createdBy: `${currentUser?.name || 'Field Officer'} (${currentUser?.roleTitle || 'Supervisor'})`,
+        createdBy,
+        creatorRole,
+        assigneeRole,
+        assigneeId: selectedOfficial.id,
+        assigneeName,
+        assigneePhone: selectedOfficial.phone,
       })
-      setSuccessMsg('Work order successfully dispatched to division field supervisor!')
-      setTimeout(() => {
-        setSuccessMsg('')
-        onClose()
-      }, 1000)
+
+      onClose()
     } catch (err) {
       console.error('Failed to create task:', err)
     } finally {
@@ -99,125 +119,145 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Create &amp; Dispatch Field Work Order"
-      subtitle="Allocate agricultural tasks, target yield outputs, and field gangs"
+      title="New Task"
+      subtitle={
+        isSuperAdmin
+          ? 'Assign task to a Division Manager or Field Officer'
+          : `Assign task to a ${division} Field Officer`
+      }
       icon={<Plus size={18} />}
-      maxWidth="lg"
+      maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className="task-form">
-        {successMsg && (
-          <div className="form-alert form-alert--success">
-            <CheckCircle size={16} />
-            <span>{successMsg}</span>
+      <form onSubmit={handleSubmit} className="simple-task-form">
+        {/* Assignee Selection */}
+        {isSuperAdmin && (
+          <div className="form-group">
+            <label className="form-label">Assign To</label>
+            <div className="simple-radio-pills">
+              <button
+                type="button"
+                className={`simple-radio-pill ${assigneeRole === 'division_manager' ? 'simple-radio-pill--active' : ''}`}
+                onClick={() => setAssigneeRole('division_manager')}
+              >
+                Division Manager
+              </button>
+              <button
+                type="button"
+                className={`simple-radio-pill ${assigneeRole === 'field_officer' ? 'simple-radio-pill--active' : ''}`}
+                onClick={() => setAssigneeRole('field_officer')}
+              >
+                Field Officer
+              </button>
+            </div>
           </div>
         )}
 
         <div className="form-grid-2">
-          {/* Work Type */}
+          {/* Division */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-work-type">Work Order Type *</label>
-            <select
-              id="task-work-type"
-              value={workType}
-              onChange={(e) => setWorkType(e.target.value as WorkType)}
-              className="form-input"
-              required
-            >
-              <option value="tea_plucking">🍃 Tea Plucking (Fine Grade)</option>
-              <option value="fertilizer_spraying">🧪 Fertilizer &amp; Micronutrient Spraying</option>
-              <option value="pruning">✂️ Selective Bush Pruning</option>
-              <option value="weeding">🌿 Terrace Manual / Bush Weeding</option>
-              <option value="drainage_cleansing">💧 Contour Drainage &amp; Silt Cleansing</option>
-            </select>
+            <label className="form-label" htmlFor="simple-division">Division</label>
+            {isSuperAdmin ? (
+              <select
+                id="simple-division"
+                value={division}
+                onChange={(e) => setDivision(e.target.value as EstateDivision)}
+                className="form-input"
+              >
+                <option value="Weddamulla">Weddamulla</option>
+                <option value="Ramboda">Ramboda</option>
+                <option value="Camnethan">Camnethan</option>
+                <option value="Lilliesland">Lilliesland</option>
+                <option value="Wewandon">Wewandon</option>
+              </select>
+            ) : (
+              <input
+                id="simple-division"
+                type="text"
+                value={division}
+                disabled
+                className="form-input"
+              />
+            )}
           </div>
 
-          {/* Target Division */}
+          {/* Person */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-division">Target Estate Division *</label>
+            <label className="form-label" htmlFor="simple-officer">
+              {assigneeRole === 'division_manager' ? 'Manager' : 'Field Officer'}
+            </label>
             <select
-              id="task-division"
-              value={division}
-              onChange={(e) => handleDivisionChange(e.target.value as any)}
+              id="simple-officer"
+              value={assigneeId}
+              onChange={(e) => {
+                setAssigneeId(e.target.value)
+                const off = findOfficialById(e.target.value)
+                if (off?.assignedField) setFieldBlockId(off.assignedField)
+              }}
               className="form-input"
               required
             >
-              <option value="Weddamulla">Weddamulla Division</option>
-              <option value="Ramboda">Ramboda Division</option>
-              <option value="Camnethan">Camnethan Division</option>
-              <option value="Lilliesland">Lilliesland Division</option>
-              <option value="Wewandon">Wewandon Division</option>
+              {availableOfficials.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name} {o.assignedField ? `(${o.assignedField})` : ''}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="form-grid-2">
-          {/* Field Block ID */}
+          {/* Work Type */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-block">Specific Field Block ID *</label>
+            <label className="form-label" htmlFor="simple-worktype">Work Type</label>
+            <select
+              id="simple-worktype"
+              value={workType}
+              onChange={(e) => setWorkType(e.target.value as WorkType)}
+              className="form-input"
+            >
+              <option value="tea_plucking">Tea Plucking</option>
+              <option value="fertilizer_spraying">Fertilizer Spraying</option>
+              <option value="pruning">Bush Pruning</option>
+              <option value="weeding">Weeding</option>
+              <option value="drainage_cleansing">Drainage Cleaning</option>
+            </select>
+          </div>
+
+          {/* Block */}
+          <div className="form-group">
+            <label className="form-label" htmlFor="simple-block">Block</label>
             <input
-              id="task-block"
+              id="simple-block"
               type="text"
-              placeholder="e.g. Block 4B, Block 11A, Plot 7"
+              placeholder="e.g. Block 4B"
               value={fieldBlockId}
               onChange={(e) => setFieldBlockId(e.target.value)}
               className="form-input"
               required
             />
           </div>
-
-          {/* Priority */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="task-priority">Dispatch Priority *</label>
-            <select
-              id="task-priority"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="form-input"
-              required
-            >
-              <option value="urgent">🔴 Urgent (Immediate Action)</option>
-              <option value="normal">🟡 Normal Priority</option>
-              <option value="low">🟢 Low / Routine Maintenance</option>
-            </select>
-          </div>
         </div>
 
-        <div className="form-grid-2">
-          {/* Assigned Gang / Kangany */}
+        <div className="form-grid-3">
+          {/* Target Output */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-kangany">Assigned Gang / Field Lead (Kangany) *</label>
+            <label className="form-label" htmlFor="simple-output">Target</label>
             <input
-              id="task-kangany"
+              id="simple-output"
               type="text"
-              value={assignedGangKangany}
-              onChange={(e) => setAssignedGangKangany(e.target.value)}
+              placeholder="e.g. 450 kg"
+              value={targetOutput}
+              onChange={(e) => setTargetOutput(e.target.value)}
               className="form-input"
               required
             />
           </div>
 
-          {/* Assigned Workers Count */}
+          {/* Due Date */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-workers-count">Crew Headcount (Workers)</label>
+            <label className="form-label" htmlFor="simple-date">Due Date</label>
             <input
-              id="task-workers-count"
-              type="number"
-              min="1"
-              max="100"
-              value={assignedWorkerCount}
-              onChange={(e) => setAssignedWorkerCount(Number(e.target.value))}
-              className="form-input"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="form-grid-2">
-          {/* Target Date */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="task-date">Scheduled Target Date *</label>
-            <input
-              id="task-date"
+              id="simple-date"
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
@@ -226,41 +266,41 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             />
           </div>
 
-          {/* Target Output */}
+          {/* Priority */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-output">Target Output Metric *</label>
-            <input
-              id="task-output"
-              type="text"
-              placeholder="e.g. 450 kg leaf, 12 ha sprayed, 1,200m drain"
-              value={targetOutput}
-              onChange={(e) => setTargetOutput(e.target.value)}
+            <label className="form-label" htmlFor="simple-priority">Priority</label>
+            <select
+              id="simple-priority"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as TaskPriority)}
               className="form-input"
-              required
-            />
+            >
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+              <option value="low">Low</option>
+            </select>
           </div>
         </div>
 
-        {/* Operational Instructions / Notes */}
+        {/* Notes */}
         <div className="form-group">
-          <label className="form-label" htmlFor="task-notes">Field Instructions &amp; Safety Directives</label>
+          <label className="form-label" htmlFor="simple-notes">Instructions (Optional)</label>
           <textarea
-            id="task-notes"
-            rows={3}
-            placeholder="Special agronomic guidelines (e.g. plucking round cycle, PPE for chemical application, weather precautions)..."
+            id="simple-notes"
+            rows={2}
+            placeholder="Field notes or specific directives..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="form-input form-textarea"
           />
         </div>
 
-        {/* Footer Actions */}
         <div className="modal-footer">
           <button type="button" className="btn btn--secondary" onClick={onClose}>
             Cancel
           </button>
           <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
-            {isSubmitting ? 'Dispatching...' : 'Dispatch Work Order'}
+            {isSubmitting ? 'Adding...' : 'Create Task'}
           </button>
         </div>
       </form>

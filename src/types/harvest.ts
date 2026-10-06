@@ -26,6 +26,17 @@ export type DivisionYieldComparison = {
   targetProgressPct: number
 }
 
+export type FieldYieldComparison = {
+  field: string
+  division: string
+  totalYieldKg: number
+  harvesterCount: number
+  averagePerHarvesterKg: number
+  fineLeafAvgPct: number
+  morningKg: number
+  afternoonKg: number
+}
+
 export type TodayHarvestSummary = {
   totalEstateYieldTodayKg: number
   averagePerHarvesterKg: number
@@ -34,4 +45,5 @@ export type TodayHarvestSummary = {
   afternoonSessionKg: number
   fineLeafAvgPct: number
   divisionYields: DivisionYieldComparison[]
+  fieldYields?: FieldYieldComparison[]
 }

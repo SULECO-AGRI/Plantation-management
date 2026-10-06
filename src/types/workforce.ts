@@ -1,4 +1,12 @@
-export type WorkerRole = 'kangany' | 'harvester' | 'sprayer' | 'sundry'
+export type WorkerRole =
+  | 'super_admin'
+  | 'division_manager'
+  | 'field_officer'
+  | 'worker'
+  | 'kangany'
+  | 'harvester'
+  | 'sprayer'
+  | 'sundry'
 
 export type WorkerStatus = 'active' | 'break' | 'offline'
 
