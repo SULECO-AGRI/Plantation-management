@@ -8,10 +8,12 @@ import { HarvestYieldDashboard } from '../components/harvest/HarvestYieldDashboa
 import { WorkforceDirectoryModal } from '../components/workforce/WorkforceDirectoryModal'
 import { AttendanceMarkingView } from '../components/workforce/AttendanceMarkingView'
 import { DailyHarvestEntryView } from '../components/harvest/DailyHarvestEntryView'
+import { InventoryView } from '../components/inventory/InventoryView'
+import { DailySalaryPayView } from '../components/salary/DailySalaryPayView'
 import { useAuth } from '../context/AuthContext'
 import type { Worker } from '../types/workforce'
 
-const VALID_TABS: PortalTab[] = ['map', 'workforce', 'tasks', 'harvest', 'attendance', 'daily_harvest']
+const VALID_TABS: PortalTab[] = ['map', 'workforce', 'tasks', 'harvest', 'attendance', 'daily_harvest', 'inventory', 'daily_salary']
 const OFFICER_ONLY_TABS: PortalTab[] = ['attendance', 'daily_harvest']
 
 export function EstateMapPage() {
@@ -117,6 +119,20 @@ export function EstateMapPage() {
       {activeTab === 'daily_harvest' && isFieldOfficer && (
         <div className="estate-view-stage">
           <DailyHarvestEntryView />
+        </div>
+      )}
+
+      {/* Inventory Management View */}
+      {activeTab === 'inventory' && (
+        <div className="estate-view-stage">
+          <InventoryView />
+        </div>
+      )}
+
+      {/* Daily Salary Payment View */}
+      {activeTab === 'daily_salary' && (
+        <div className="estate-view-stage">
+          <DailySalaryPayView />
         </div>
       )}
 

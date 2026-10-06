@@ -5,80 +5,18 @@ import {
   Eye,
   EyeOff,
   KeyRound,
-  Lock,
-  ShieldCheck,
-  Sparkles,
   User,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Modal } from '../common/Modal'
 import { useAuth } from '../../context/AuthContext'
-import type { UserProfile, UserRole } from '../../types/auth'
+import type { UserProfile } from '../../types/auth'
 
 type LoginModalProps = {
   isOpen: boolean
   onClose: () => void
   onSuccess?: (user: UserProfile) => void
 }
-
-type DemoAccount = {
-  role: UserRole
-  roleName: string
-  username: string
-  password: string
-  targetTab: 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents'
-  targetLabel: string
-  badgeColor: string
-  icon: string
-  desc: string
-}
-
-const DEMO_ACCOUNTS: DemoAccount[] = [
-  {
-    role: 'super_admin',
-    roleName: 'Super Admin',
-    username: 'admin',
-    password: 'estate123',
-    targetTab: 'map',
-    targetLabel: 'GIS Interactive Map & Overview',
-    badgeColor: '#155e43',
-    icon: '👑',
-    desc: 'Global control: dispatch tasks to Division Managers & Field Officers, view analytics',
-  },
-  {
-    role: 'division_manager',
-    roleName: 'Division Manager',
-    username: 'manager',
-    password: 'estate123',
-    targetTab: 'tasks',
-    targetLabel: 'Division Tasks & Harvest Operations',
-    badgeColor: '#0d9488',
-    icon: '📊',
-    desc: 'View Super Admin tasks, dispatch work orders to your Field Officers & oversee division',
-  },
-  {
-    role: 'field_officer',
-    roleName: 'Field Officer',
-    username: 'officer',
-    password: 'estate123',
-    targetTab: 'tasks',
-    targetLabel: 'Assigned Work Orders & Attendance',
-    badgeColor: '#0369a1',
-    icon: '📋',
-    desc: 'View assigned tasks & update status, roll-call & harvest weigh-ins (cannot add tasks)',
-  },
-  {
-    role: 'worker',
-    roleName: 'Employee',
-    username: 'worker',
-    password: 'estate123',
-    targetTab: 'workforce',
-    targetLabel: 'Workforce Portal & Attendance',
-    badgeColor: '#7c3aed',
-    icon: '🧑‍🌾',
-    desc: 'Harvester gang roll call, daily field tasks & personal yield tracking',
-  },
-]
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { login, getRoleDefaultTab } = useAuth()
@@ -101,7 +39,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
       return
     }
     if (!password.trim()) {
-      setErrorMessage('Please enter your access password.')
+      setErrorMessage('Please enter your password.')
       return
     }
 
@@ -109,41 +47,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
       setIsSubmitting(true)
       const user = await login(username, password)
       const targetTab = user.defaultTab || getRoleDefaultTab(user.role)
-      const targetAccount = DEMO_ACCOUNTS.find((a) => a.role === user.role)
-      const destinationTitle = targetAccount ? targetAccount.targetLabel : `${targetTab.toUpperCase()} Portal`
 
-      setRedirectNotice(`Authenticated as ${user.name} (${user.roleTitle}). Redirecting to ${destinationTitle}...`)
+      setRedirectNotice(`Signed in as ${user.name}. Redirecting...`)
 
       setTimeout(() => {
         onClose()
         if (onSuccess) onSuccess(user)
         navigate(`/map?tab=${targetTab}`)
-      }, 700)
+      }, 500)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Authentication failed. Please verify your credentials.'
-      setErrorMessage(msg)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleQuickLogin = async (acc: DemoAccount) => {
-    setUsername(acc.username)
-    setPassword(acc.password)
-    setErrorMessage(null)
-
-    try {
-      setIsSubmitting(true)
-      const user = await login(acc.username, acc.password)
-      setRedirectNotice(`Logged in as ${acc.roleName}. Redirecting to ${acc.targetLabel}...`)
-
-      setTimeout(() => {
-        onClose()
-        if (onSuccess) onSuccess(user)
-        navigate(`/map?tab=${acc.targetTab}`)
-      }, 600)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Demo login failed.'
+      const msg = err instanceof Error ? err.message : 'Invalid username or password.'
       setErrorMessage(msg)
     } finally {
       setIsSubmitting(false)
@@ -154,10 +67,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Plantation Operations Portal Login"
-      subtitle="Sign in to access your role-tailored agricultural tools"
-      icon={<Lock size={20} className="text-emerald" />}
-      maxWidth="md"
+      title="Sign In"
+      subtitle="Enter your username and password to continue"
+      maxWidth="sm"
     >
       <div className="login-modal-body">
         {/* Redirecting Notice Toast */}
@@ -165,7 +77,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
           <div className="login-alert login-alert--success">
             <CheckCircle2 size={18} />
             <div>
-              <strong>Access Granted!</strong>
+              <strong>Access Granted</strong>
               <p>{redirectNotice}</p>
             </div>
           </div>
@@ -186,7 +98,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="login-username" className="form-label">
-              Username or Work Email
+              Username or Email
             </label>
             <div className="input-with-icon">
               <User size={16} className="input-icon" />
@@ -194,7 +106,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                 id="login-username"
                 type="text"
                 className="form-input"
-                placeholder="e.g. admin, manager, officer, worker"
+                placeholder="Enter username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isSubmitting}
@@ -206,9 +118,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
           <div className="form-group">
             <div className="form-label-row">
               <label htmlFor="login-password" className="form-label">
-                Access Password
+                Password
               </label>
-              <span className="demo-pass-hint">Demo: <code>estate123</code></span>
             </div>
             <div className="input-with-icon">
               <KeyRound size={16} className="input-icon" />
@@ -240,7 +151,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
               />
-              <span>Remember session on this device</span>
+              <span>Remember me</span>
             </label>
           </div>
 
@@ -249,57 +160,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
             className="btn btn--primary login-submit-btn"
             disabled={isSubmitting}
           >
-            {isSubmitting ? (
-              <>
-                <span className="spinner-border spinner-border-sm" />
-                <span>Signing In...</span>
-              </>
-            ) : (
-              <span>Sign In</span>
-            )}
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        {/* Divider */}
-        <div className="login-divider">
-          <span>Or Choose a Role to Test One-Click Login</span>
-        </div>
-
-        {/* Quick Demo Role Cards */}
-        <div className="demo-accounts-grid">
-          {DEMO_ACCOUNTS.map((acc) => (
-            <button
-              key={acc.role}
-              type="button"
-              className="demo-account-card"
-              onClick={() => handleQuickLogin(acc)}
-              disabled={isSubmitting}
-              title={`Log in as ${acc.roleName}`}
-            >
-              <div className="demo-account-card__top">
-                <span className="demo-account-card__icon">{acc.icon}</span>
-                <span className="demo-account-card__role" style={{ color: acc.badgeColor }}>
-                  {acc.roleName}
-                </span>
-              </div>
-              <p className="demo-account-card__desc">{acc.desc}</p>
-              <div className="demo-account-card__footer">
-                <span className="demo-account-card__dest">
-                  <Sparkles size={12} />
-                  <span>Redirects to: <strong>{acc.targetLabel}</strong></span>
-                </span>
-                <span className="demo-account-card__creds">
-                  User: <code>{acc.username}</code>
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <div className="login-modal-security-note">
-          <ShieldCheck size={14} />
-          <span>Role-Based Access Control active. Your authenticated role restricts visible division records and authorization actions.</span>
-        </div>
       </div>
     </Modal>
   )

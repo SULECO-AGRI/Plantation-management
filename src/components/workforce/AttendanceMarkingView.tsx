@@ -311,9 +311,6 @@ export const AttendanceMarkingView: React.FC = () => {
       {/* KPI Cards Row (Specific to this Field) */}
       <div className="kpi-grid">
         <div className="kpi-card">
-          <div className="kpi-card__icon kpi-card__icon--blue">
-            <Users size={22} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">{selectedField} Workforce</span>
             <div className="kpi-card__val-row">
@@ -324,9 +321,6 @@ export const AttendanceMarkingView: React.FC = () => {
         </div>
 
         <div className="kpi-card kpi-card--highlight">
-          <div className="kpi-card__icon kpi-card__icon--emerald">
-            <UserCheck size={22} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">Present in {selectedField}</span>
             <div className="kpi-card__val-row">
@@ -342,12 +336,6 @@ export const AttendanceMarkingView: React.FC = () => {
         </div>
 
         <div className="kpi-card">
-          <div
-            className="kpi-card__icon"
-            style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
-          >
-            <UserX size={22} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">Absent from {selectedField}</span>
             <div className="kpi-card__val-row">
@@ -363,9 +351,6 @@ export const AttendanceMarkingView: React.FC = () => {
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-card__icon kpi-card__icon--amber">
-            <Clock size={22} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">Field Gate Time</span>
             <div className="kpi-card__val-row">

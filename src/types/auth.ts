@@ -29,5 +29,5 @@ export type UserProfile = {
   permissions: Permission[]
   description: string
   password?: string
-  defaultTab?: 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents' | 'attendance' | 'daily_harvest'
+  defaultTab?: 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents' | 'attendance' | 'daily_harvest' | 'inventory' | 'daily_salary'
 }

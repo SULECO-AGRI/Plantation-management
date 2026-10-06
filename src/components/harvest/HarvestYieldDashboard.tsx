@@ -1,12 +1,8 @@
 import React, { useMemo } from 'react'
 import {
-  Award,
   BarChart3,
   Calendar,
   Layers,
-  Scale,
-  TrendingUp,
-  Users,
 } from 'lucide-react'
 import { Badge } from '../common/Badge'
 import { WeighInModal } from './WeighInModal'
@@ -233,9 +229,6 @@ export const HarvestYieldDashboard: React.FC = () => {
       {/* Real-Time Aggregation Cards */}
       <div className="kpi-grid">
         <div className="kpi-card kpi-card--highlight">
-          <div className="kpi-card__icon kpi-card__icon--emerald">
-            <Scale size={24} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">
               {isDivisionManager ? (
@@ -263,9 +256,6 @@ export const HarvestYieldDashboard: React.FC = () => {
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-card__icon kpi-card__icon--blue">
-            <TrendingUp size={24} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">
               {isDivisionManager
@@ -289,9 +279,6 @@ export const HarvestYieldDashboard: React.FC = () => {
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-card__icon kpi-card__icon--amber">
-            <Users size={24} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">
               {isDivisionManager
@@ -315,9 +302,6 @@ export const HarvestYieldDashboard: React.FC = () => {
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-card__icon kpi-card__icon--purple">
-            <Award size={24} />
-          </div>
           <div className="kpi-card__content">
             <span className="kpi-card__label">Leaf Quality Standard</span>
             <div className="kpi-card__val-row">

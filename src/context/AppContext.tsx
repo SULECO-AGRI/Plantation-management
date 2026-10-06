@@ -4,6 +4,8 @@ import { WorkforceProvider } from './WorkforceContext'
 import { TaskProvider } from './TaskContext'
 import { HarvestProvider } from './HarvestContext'
 import { IncidentProvider } from './IncidentContext'
+import { InventoryProvider } from './InventoryContext'
+import { SalaryProvider } from './SalaryContext'
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -12,7 +14,11 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         <TaskProvider>
           <HarvestProvider>
             <IncidentProvider>
-              {children}
+              <InventoryProvider>
+                <SalaryProvider>
+                  {children}
+                </SalaryProvider>
+              </InventoryProvider>
             </IncidentProvider>
           </HarvestProvider>
         </TaskProvider>
