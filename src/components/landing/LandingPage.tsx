@@ -2,7 +2,7 @@ import { LandingHero } from './LandingHero'
 import { LandingAbout } from './LandingAbout'
 import { LandingOfferings } from './LandingOfferings'
 import { LandingEnterprises } from './LandingEnterprises'
-import { LandingFAQ } from './LandingFAQ'
+import { LandingVision } from './LandingVision'
 import { LandingCTA } from './LandingCTA'
 import { LandingFooter } from './LandingFooter'
 
@@ -13,7 +13,7 @@ export function LandingPage() {
       <LandingAbout />
       <LandingOfferings />
       <LandingEnterprises />
-      <LandingFAQ />
+      <LandingVision />
       <LandingCTA />
       <LandingFooter />
     </div>

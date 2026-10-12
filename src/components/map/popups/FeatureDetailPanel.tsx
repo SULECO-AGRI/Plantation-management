@@ -375,7 +375,11 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
         {/* =========================================================================
             OPERATIONS & TASK DISTRIBUTION ANALYTICS (Matches Image 3)
            ========================================================================= */}
-        <div className="plot-distribution-section" style={{ marginTop: '2px', marginBottom: '14px' }}>
+        <div
+          className="plot-distribution-section plot-animated-panel"
+          key={`dist-${featureTitleText}`}
+          style={{ marginTop: '2px', marginBottom: '14px' }}
+        >
           <div className="plot-section-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Task Distribution &amp; Operations</span>
             <span style={{ textTransform: 'none', color: '#10b981', fontWeight: 700 }}>
@@ -384,7 +388,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
           </div>
 
           <div className="plot-distribution-grid">
-            {/* Left: Donut Chart */}
+            {/* Left: Donut Chart with animated SVG circles */}
             <div className="plot-donut-container">
               <div className="plot-donut-svg-wrap">
                 <svg width="90" height="90" viewBox="0 0 90 90" className="plot-donut-svg">
@@ -396,49 +400,52 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
                     stroke="#e2e8f0"
                     strokeWidth="10"
                   />
-                  {doneCount > 0 && (
-                    <circle
-                      cx="45"
-                      cy="45"
-                      r={radius}
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="10"
-                      strokeDasharray={`${doneDash} ${circumference}`}
-                      strokeDashoffset={doneOffset}
-                      strokeLinecap="butt"
-                    />
-                  )}
-                  {pendingCount > 0 && (
-                    <circle
-                      cx="45"
-                      cy="45"
-                      r={radius}
-                      fill="none"
-                      stroke="#1e293b"
-                      strokeWidth="10"
-                      strokeDasharray={`${pendingDash} ${circumference}`}
-                      strokeDashoffset={pendingOffset}
-                      strokeLinecap="butt"
-                    />
-                  )}
-                  {overdueCount > 0 && (
-                    <circle
-                      cx="45"
-                      cy="45"
-                      r={radius}
-                      fill="none"
-                      stroke="#ef4444"
-                      strokeWidth="10"
-                      strokeDasharray={`${overdueDash} ${circumference}`}
-                      strokeDashoffset={overdueOffset}
-                      strokeLinecap="butt"
-                    />
-                  )}
+                  {/* Done (Green) */}
+                  <circle
+                    cx="45"
+                    cy="45"
+                    r={radius}
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="10"
+                    strokeDasharray={`${doneDash} ${circumference}`}
+                    strokeDashoffset={doneOffset}
+                    strokeLinecap="butt"
+                    className="plot-donut-circle"
+                    style={{ opacity: stats.doneCount > 0 ? 1 : 0 }}
+                  />
+                  {/* Pending (Dark Slate) */}
+                  <circle
+                    cx="45"
+                    cy="45"
+                    r={radius}
+                    fill="none"
+                    stroke="#1e293b"
+                    strokeWidth="10"
+                    strokeDasharray={`${pendingDash} ${circumference}`}
+                    strokeDashoffset={pendingOffset}
+                    strokeLinecap="butt"
+                    className="plot-donut-circle"
+                    style={{ opacity: stats.pendingCount > 0 ? 1 : 0 }}
+                  />
+                  {/* Overdue (Red) */}
+                  <circle
+                    cx="45"
+                    cy="45"
+                    r={radius}
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth="10"
+                    strokeDasharray={`${overdueDash} ${circumference}`}
+                    strokeDashoffset={overdueOffset}
+                    strokeLinecap="butt"
+                    className="plot-donut-circle"
+                    style={{ opacity: stats.overdueCount > 0 ? 1 : 0 }}
+                  />
                 </svg>
 
                 <div className="plot-donut-center">
-                  <span className="plot-donut-center-num">{totalTasks}</span>
+                  <span className="plot-donut-center-num">{animatedTasks}</span>
                   <span className="plot-donut-center-label">Tasks</span>
                 </div>
               </div>
@@ -459,14 +466,14 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             {/* Right: Stacked KPI Boxes */}
             <div className="plot-stats-column">
               <div className="plot-stat-card plot-stat-card--green">
-                <span className="plot-stat-num plot-stat-num--green">{completionRate}%</span>
+                <span className="plot-stat-num plot-stat-num--green">{animatedCompletionRate}%</span>
                 <span className="plot-stat-label">Completion Rate</span>
               </div>
 
               <div className="plot-stat-card plot-stat-card--red">
                 <div className="plot-stat-alert-row">
                   <AlertTriangle size={14} className="plot-alert-icon" />
-                  <span className="plot-stat-num plot-stat-num--red">{overdueCount}</span>
+                  <span className="plot-stat-num plot-stat-num--red">{animatedOverdue}</span>
                 </div>
                 <span className="plot-stat-label">Overdue Tasks</span>
               </div>
@@ -475,14 +482,18 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
         </div>
 
         {/* 2x2 Dark Forest Green KPI Tiles Grid */}
-        <div className="plot-kpi-grid" style={{ marginBottom: '14px' }}>
+        <div
+          className="plot-kpi-grid plot-animated-panel"
+          key={`kpi-${featureTitleText}`}
+          style={{ marginBottom: '14px' }}
+        >
           <div className="plot-kpi-tile">
             <div className="plot-kpi-icon-wrap">
               <Sprout size={14} />
             </div>
             <div className="plot-kpi-content">
               <span className="plot-kpi-title">{isDivision ? 'Crops' : 'Crop Cultivar'}</span>
-              <span className="plot-kpi-value">{isDivision ? '5 Blocks' : (String(validFeature.properties?.CROP || 'VP Clonal'))}</span>
+              <span className="plot-kpi-value">{stats.cultivar}</span>
             </div>
           </div>
 
@@ -492,7 +503,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             </div>
             <div className="plot-kpi-content">
               <span className="plot-kpi-title">Active Tasks</span>
-              <span className="plot-kpi-value">{totalTasks} Orders</span>
+              <span className="plot-kpi-value">{animatedTasks} Orders</span>
             </div>
           </div>
 
@@ -502,7 +513,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             </div>
             <div className="plot-kpi-content">
               <span className="plot-kpi-title">Field Labor</span>
-              <span className="plot-kpi-value">{supervision?.totalWorkers ?? 18} Active</span>
+              <span className="plot-kpi-value">{animatedLabor} Active</span>
             </div>
           </div>
 
@@ -512,7 +523,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             </div>
             <div className="plot-kpi-content">
               <span className="plot-kpi-title">Est. Harvest</span>
-              <span className="plot-kpi-value">{Math.round(numAcres * 420)} Kg</span>
+              <span className="plot-kpi-value">{formatNumber(animatedHarvest, 0)} Kg</span>
             </div>
           </div>
         </div>

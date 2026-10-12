@@ -11,19 +11,13 @@ export function LandingHero() {
         {/* Main Hero Header */}
         <div className="hero-header">
           <h1 className="hero-title">
-            Transforming Plantation Operations
-            <br />
-            Through{' '}
-            <span className="hero-highlight-word">
-              Smart
-            </span>{' '}
-            Digital Mapping
+            Your entire estate, at your fingertips.
           </h1>
 
           <div className="hero-subtitle-wrap">
             <p className="hero-subtitle">
-              Spatial intelligence, division zoning, and field level harvest logistics
-              across 5 divisions and 218 verified agricultural polygons in Nuwara Eliya.
+              A live digital twin of your plantation: inspect field plots, schedule crop tasks,
+              and track harvest yields in real time, all organized in one clear view.
             </p>
             <Link to="/map" className="hero-circle-btn" aria-label="Explore GIS map">
               <ArrowUpRight size={20} />
