@@ -1,4 +1,4 @@
-# Weddamulle Plantation Management
+# Weddamulle - Spatio Agri PM
 
 A brand-new lightweight React + Leaflet plantation GIS viewer built from the supplied urban-platform source logic, the uploaded Weddamulle GeoJSON archive, and the supplied Weddemulle VisiGeo source.
 

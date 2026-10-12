@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { RoleSwitcher } from './RoleSwitcher'
+import { CropLensBrand } from './CropLensBrand'
 
 export type PortalTab =
   | 'map'
@@ -42,11 +43,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="erp-header">
       <div className="erp-header__left">
-        <Link to="/" className="erp-brand" title="Return to Landing Page">
-          <div className="erp-brand__text">
-            <strong>Plantation Management</strong>
-            <small>Weddamulla Estate</small>
-          </div>
+        <Link to="/" className="erp-brand" title="Spatio Agri - Plantation Management">
+          <CropLensBrand />
         </Link>
       </div>
 

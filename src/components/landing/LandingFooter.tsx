@@ -1,5 +1,6 @@
 import { Globe, Mail, MapPin, Phone } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { CropLensBrand } from '../navigation/CropLensBrand'
 
 export function LandingFooter() {
   return (
@@ -9,10 +10,8 @@ export function LandingFooter() {
         <div className="footer-grid">
           {/* Brand & Address */}
           <div className="footer-col footer-col--brand">
-            <Link to="/" className="footer-brand">
-              <span className="footer-brand__text">
-                <strong>Plantation Management</strong>
-              </span>
+            <Link to="/" className="footer-brand" title="Spatio Agri - Plantation Management">
+              <CropLensBrand theme="light" />
             </Link>
 
             <p className="footer-desc">
@@ -78,7 +77,7 @@ export function LandingFooter() {
             <a href="#privacy">Privacy Policy</a>
           </div>
           <p className="footer-bottom__copy">
-            &copy; 2026 Plantation Management. All rights reserved.
+            &copy; 2026 Spatio Agri PM. All rights reserved.
           </p>
         </div>
       </div>

@@ -4626,6 +4626,103 @@ h1, h2, h3, h4, h5 {
   line-height: 1.2;
 }
 
+/* CropLens Brand Identity */
+.croplens-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  user-select: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.croplens-brand:hover {
+  opacity: 0.92;
+}
+
+.croplens-brand__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.croplens-brand__title {
+  font-family: var(--font-heading, 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.croplens-brand__word-primary {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.croplens-brand__word-accent {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.croplens-brand__subtitle {
+  font-family: var(--font-heading, 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-top: 3px;
+  line-height: 1.1;
+}
+
+/* New Fresh Agronomic Green Palette */
+.croplens-brand--dark .croplens-brand__word-primary {
+  color: #14532d; /* Deep evergreen leaf */
+}
+
+.croplens-brand--dark .croplens-brand__word-accent {
+  color: #16a34a; /* Vibrant fresh plantation green */
+}
+
+.croplens-brand--dark .croplens-brand__subtitle {
+  color: #15803d; /* Mid leaf green */
+  opacity: 0.95;
+}
+
+/* Light Theme (For dark backgrounds/footers) */
+.croplens-brand--light .croplens-brand__word-primary {
+  color: #ffffff;
+}
+
+.croplens-brand--light .croplens-brand__word-accent {
+  color: #4ade80; /* Bright mint-leaf green */
+}
+
+.croplens-brand--light .croplens-brand__subtitle {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Sizes */
+.croplens-brand--sm .croplens-brand__title {
+  font-size: 17px;
+  gap: 3px;
+}
+.croplens-brand--sm .croplens-brand__subtitle {
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.croplens-brand--lg .croplens-brand__title {
+  font-size: 26px;
+  gap: 6px;
+}
+.croplens-brand--lg .croplens-brand__subtitle {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
 /* ERP Nav Tabs */
 .erp-nav-tabs {
   display: flex;

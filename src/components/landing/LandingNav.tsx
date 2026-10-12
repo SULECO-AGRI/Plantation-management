@@ -3,6 +3,7 @@ import { ArrowRight, LogIn, LogOut, Menu, Sparkles, User, X } from 'lucide-react
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { LoginModal } from '../navigation/LoginModal'
+import { CropLensBrand } from '../navigation/CropLensBrand'
 import type { UserRole } from '../../types/auth'
 
 export function LandingNav() {
@@ -40,10 +41,8 @@ export function LandingNav() {
       <header className="site-header">
         <div className="site-header__container">
           <nav className="site-nav" aria-label="Main Navigation">
-            <Link to="/" className="nav-brand" onClick={closeMobileMenu}>
-              <span className="nav-brand__text">
-                <strong>Plantation Management</strong>
-              </span>
+            <Link to="/" className="nav-brand" onClick={closeMobileMenu} title="Spatio Agri - Plantation Management">
+              <CropLensBrand />
             </Link>
 
             <div className="nav-menu">
@@ -81,7 +80,7 @@ export function LandingNav() {
                   type="button"
                   className="btn btn--nav"
                   onClick={() => setIsLoginModalOpen(true)}
-                  title="Sign In to Plantation Management Portal"
+                  title="Sign In to Spatio Agri PM Portal"
                 >
                   Login
                 </button>

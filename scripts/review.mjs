@@ -83,7 +83,7 @@ const missingDataUrls = dataUrlMatches.filter((name) => !fs.existsSync(path.join
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const scriptCheck = ['dev', 'build', 'preview', 'review'].every((name) => Boolean(packageJson.scripts?.[name]))
 
-console.log('\nWeddamulle Plantation Management - /review equivalent')
+console.log('\nWeddamulle Spatio Agri PM - /review equivalent')
 console.log('-----------------------------------------------------')
 console.log(`Removed platform-code scan: ${forbiddenFindings.length === 0 ? 'PASS (0 findings)' : 'FAIL'}`)
 if (forbiddenFindings.length) forbiddenFindings.forEach((finding) => console.log(`  - ${finding}`))
