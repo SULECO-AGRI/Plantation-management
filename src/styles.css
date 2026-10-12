@@ -1716,6 +1716,618 @@ h1, h2, h3, h4, h5 {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ==========================================================================
+   PLOT OVERVIEW & DATA VISUALIZATION PANEL (LEFT MAP RAIL)
+   ========================================================================== */
+.plot-overview-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+.plot-overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+.plot-overview-header__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plot-overview-badge-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #10b981;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+
+.plot-overview-title-text {
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.plot-overview-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.plot-action-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plot-action-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.plot-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #d1fae5;
+  background: #ecfdf5;
+  color: #059669;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plot-back-btn:hover {
+  background: #d1fae5;
+  color: #047857;
+}
+
+/* Tabs: Analytics vs Layers */
+.plot-overview-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+.plot-tab-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plot-tab-pill:hover {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.plot-tab-pill--active {
+  background: #ffffff;
+  color: #047857;
+  font-weight: 700;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Scrollable Content Body */
+.plot-overview-scroll-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Selector Dropdown */
+.plot-selector-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.plot-selector-dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 11px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plot-selector-dropdown-btn:hover {
+  background: #e2e8f0;
+}
+
+.plot-selector-chevron {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.plot-selector-chevron--open {
+  transform: rotate(180deg);
+}
+
+.plot-selector-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  z-index: 100;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.plot-selector-item {
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.plot-selector-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.plot-selector-item--active {
+  background: #ecfdf5;
+  color: #047857;
+  font-weight: 700;
+}
+
+/* Task Distribution Section */
+.plot-distribution-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.plot-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.plot-distribution-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Donut Chart Container */
+.plot-donut-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.plot-donut-svg-wrap {
+  position: relative;
+  width: 94px;
+  height: 94px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plot-donut-svg {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.plot-donut-circle {
+  transition: stroke-dasharray 0.75s cubic-bezier(0.34, 1.25, 0.64, 1),
+              stroke-dashoffset 0.75s cubic-bezier(0.34, 1.25, 0.64, 1),
+              opacity 0.25s ease;
+}
+
+@keyframes plotDataPop {
+  0% {
+    opacity: 0.5;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.plot-animated-panel {
+  animation: plotDataPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.plot-donut-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.plot-donut-center-num {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.plot-donut-center-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.plot-donut-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.plot-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-dot--done {
+  background: #10b981;
+}
+
+.legend-dot--pending {
+  background: #1e293b;
+}
+
+.legend-dot--overdue {
+  background: #ef4444;
+}
+
+/* Stacked Stat Column */
+.plot-stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plot-stat-card {
+  padding: 7px 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.plot-stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.plot-stat-card--green {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.plot-stat-num--green {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+  color: #047857;
+  line-height: 1.1;
+  transition: color 0.3s ease;
+}
+
+.plot-stat-card--red {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.plot-stat-alert-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.plot-alert-icon {
+  color: #dc2626;
+}
+
+.plot-stat-num--red {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+  color: #dc2626;
+  line-height: 1.1;
+  transition: color 0.3s ease;
+}
+
+.plot-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+/* 2x2 Dark Forest Green KPI Tiles */
+.plot-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.plot-kpi-tile {
+  background: #064e3b;
+  border-radius: 9px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(6, 78, 59, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.plot-kpi-tile:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 5px 12px rgba(6, 78, 59, 0.25);
+}
+
+.plot-kpi-icon-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.plot-kpi-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.plot-kpi-title {
+  font-size: 9px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.1;
+}
+
+.plot-kpi-value {
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+/* Blocks / Plots List */
+.plot-list-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.plot-list-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.plot-blocks-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 175px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.plot-block-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plot-block-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateX(2px);
+}
+
+.plot-block-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.plot-block-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.plot-block-title-row {
+  display: flex;
+  align-items: center;
+}
+
+.plot-block-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plot-block-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 1px;
+}
+
+.plot-block-sub {
+  font-size: 9.5px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plot-badge {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.plot-badge--critical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.plot-badge--success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.plot-badge--pending {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.plot-block-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.plot-progress-fraction {
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.plot-progress-bar-track {
+  width: 32px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.plot-progress-bar-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 2px;
+}
+
+.plot-progress-bar-fill--done {
+  background: #10b981;
+}
+
+.plot-progress-bar-fill--critical {
+  background: #ef4444;
+}
+
 .map-card__header {
   padding: 12px 14px 10px;
   display: flex;

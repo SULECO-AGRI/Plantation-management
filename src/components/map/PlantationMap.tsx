@@ -1257,6 +1257,18 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
     setQuery('')
   }
 
+  const handleSelectPlot = (plotId: string) => {
+    const clean = plotId.toLowerCase().replace(/^(block|field)\s*/i, '').trim()
+    const hit = searchHits.find((h) => {
+      const label = h.label.toLowerCase()
+      const sub = h.subtitle.toLowerCase()
+      return label.includes(clean) || sub.includes(clean) || label.includes(plotId.toLowerCase())
+    })
+    if (hit) {
+      focusSearchHit(hit)
+    }
+  }
+
   // Effect: Render Workforce Markers on Leaflet Map
   useEffect(() => {
     const group = workforceMarkersGroupRef.current
@@ -1407,6 +1419,7 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
           onToggleVector={handleToggleVector}
           onResetLayersToDefault={handleResetLayersToDefault}
           onSelectEmployee={setSelectedDayWorker}
+          onSelectPlot={handleSelectPlot}
         />
       </div>
 
@@ -1424,7 +1437,9 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
         onToggleRgb={() => handleToggleRaster('visigeo')}
       />
 
-      <FeatureDetailPanel selection={selection} onClose={handleCloseSelection} />
+      {selection && (
+        <FeatureDetailPanel selection={selection} onClose={handleCloseSelection} />
+      )}
 
       <EmployeeDayDetailModal
         worker={selectedDayWorker}

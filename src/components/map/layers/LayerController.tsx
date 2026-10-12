@@ -26,6 +26,7 @@ type Props = {
   onToggleVector: (key: LayerKey) => void
   onResetLayersToDefault: () => void
   onSelectEmployee?: (worker: Worker) => void
+  onSelectPlot?: (plotId: string) => void
 }
 
 export function LayerController({
@@ -35,6 +36,7 @@ export function LayerController({
   onToggleVector,
   onResetLayersToDefault,
   onSelectEmployee,
+  onSelectPlot,
 }: Props) {
   const { isGpsLayerVisible, setIsGpsLayerVisible, workers, setSelectedWorker } = useWorkforce()
 
