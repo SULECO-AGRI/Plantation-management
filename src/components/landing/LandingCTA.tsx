@@ -1,4 +1,4 @@
-import { ArrowRight, Compass, Sprout } from 'lucide-react'
+import { ArrowRight, Compass } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function LandingCTA() {
@@ -6,24 +6,19 @@ export function LandingCTA() {
     <section className="section section--cta">
       <div className="section-container">
         <div className="cta-banner">
-          <div className="cta-banner__icon">
-            <Sprout size={32} />
-          </div>
-
           <h2 className="cta-banner__title">
-            Become a Part of Our Growing <br />
-            Plantation Network!
+            Ready to Manage Your <br />
+            Plantation Digitally?
           </h2>
 
           <p className="cta-banner__desc">
-            Experience next-generation Ceylon estate management with high-resolution orthophoto imagery,
-            dual-mode division &amp; field inspection, and precision spatial analytics.
+            Explore live division maps, field boundaries, and daily operations in one easy-to-use platform.
           </p>
 
           <div className="cta-banner__actions">
             <Link to="/map" className="btn btn--dark btn--lg">
               <Compass size={18} />
-              <span>Launch Interactive GIS Map</span>
+              <span>Launch Interactive Map</span>
               <ArrowRight size={16} />
             </Link>
           </div>
