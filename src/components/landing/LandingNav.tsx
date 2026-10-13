@@ -49,7 +49,6 @@ export function LandingNav() {
               <a href="#about" className="nav-link">About Us</a>
               <a href="#offerings" className="nav-link">Our Services</a>
               <a href="#operations" className="nav-link">Operations</a>
-              <a href="#vision" className="nav-link">Our Vision</a>
             </div>
 
             <div className="nav-actions">
@@ -106,7 +105,6 @@ export function LandingNav() {
               <a href="#about" className="nav-mobile-link" onClick={closeMobileMenu}>About Us</a>
               <a href="#offerings" className="nav-mobile-link" onClick={closeMobileMenu}>Our Services</a>
               <a href="#operations" className="nav-mobile-link" onClick={closeMobileMenu}>Operations</a>
-              <a href="#vision" className="nav-mobile-link" onClick={closeMobileMenu}>Our Vision</a>
             </div>
 
             <div className="nav-mobile-action">

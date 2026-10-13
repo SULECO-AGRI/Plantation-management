@@ -1,22 +1,55 @@
-import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function LandingOfferings() {
   const offerings = [
     {
       num: '01',
-      title: 'Digital Field & Boundary Mapping',
-      desc: 'Clear digital maps of all 218 field plots, showing exact field boundaries, hill slopes, and division zones on your screen.',
+      title: 'Visual Dashboard',
+      tag: 'Real-Time KPIs',
+      desc: 'Real-time operational command center with live division metrics, plucking trends, weather index, and plantation KPIs at a single glance.',
+      link: '/map',
     },
     {
       num: '02',
-      title: 'Soil & Fertilizer Planning',
-      desc: 'Simple fertilizer schedules and soil care routines to keep tea plants well-fed and growing healthy green leaves.',
+      title: 'Plot Mapping',
+      tag: 'GIS & Boundaries',
+      desc: 'Sub-meter vector GIS boundaries for all 218 field plots, division zoning, contour topography layers, and interactive parcel inspection.',
+      link: '/map?tab=map',
     },
     {
       num: '03',
-      title: 'Harvest & Crop Health Tracking',
-      desc: 'Track daily leaf harvest weights by division, watch seasonal crop trends, and protect bushes from plant disease.',
+      title: 'Task Management',
+      tag: 'Field Dispatch',
+      desc: 'Dispatch and schedule tea plucking, fertilizer spraying, weeding, and pruning work orders with live Kanban progress tracking.',
+      link: '/map?tab=tasks',
+    },
+    {
+      num: '04',
+      title: 'Employee Management',
+      tag: 'Workforce & Muster',
+      desc: 'Digital daily muster roll, gang supervisor assignments, field crew deployment, and real-time worker directory without paper books.',
+      link: '/map?tab=workforce',
+    },
+    {
+      num: '05',
+      title: 'Salary Management',
+      tag: 'Payroll & Wages',
+      desc: 'Automated wage calculation with base pay, piece-rate green leaf incentives, overtime hours, and field allowances generated transparently.',
+      link: '/map?tab=daily_salary',
+    },
+    {
+      num: '06',
+      title: 'Harvest Management',
+      tag: 'Yield Logistics',
+      desc: 'Digital scale weigh-in recording, fine leaf grade compliance, daily yield summaries per block, and verified dispatch slips for factory processing.',
+      link: '/map?tab=harvest',
+    },
+    {
+      num: '07',
+      title: 'Inventory Management',
+      tag: 'Store & Agrochemicals',
+      desc: 'Track agricultural fertilizer reserves, foliar chemicals, plucking baskets, estate equipment maintenance, and division store stock balances.',
+      link: '/map?tab=inventory',
     },
   ]
 
@@ -25,9 +58,13 @@ export function LandingOfferings() {
       <div className="section-container">
         {/* Eyebrow & Title */}
         <div className="section-header-center">
+          <span className="section-eyebrow">Enterprise Platform</span>
           <h2 className="section-title section-title--center">
             What We Offer
           </h2>
+          <p className="offerings-header-desc">
+            A comprehensive digital plantation ecosystem built for modern tea estates — connecting spatial GIS mapping, field operations, workforce management, and harvest logistics.
+          </p>
         </div>
 
         {/* Top 3-Col Bento Row */}
@@ -74,40 +111,29 @@ export function LandingOfferings() {
           </div>
         </div>
 
-        {/* Bottom 2-Col Row */}
-        <div className="offerings-bottom-grid">
-          {/* Left Forest Card */}
-          <div className="offerings-cta-card">
-            <div className="offerings-cta-card__top">
-              <span className="offerings-cta-tag">Interactive Map</span>
-              <Link to="/map" className="circle-arrow-link" aria-label="Explore estate fields">
-                <ArrowUpRight size={18} />
-              </Link>
-            </div>
-            <h3>Explore Estate Fields &amp; Crops</h3>
-            <p>
-              See how we map fields, care for tea bushes, and protect natural forest cover across all 5 divisions.
-            </p>
-            <Link to="/map" className="btn btn--white btn--sm">
-              <span>Explore Interactive Map</span>
-              <ArrowUpRight size={14} />
-            </Link>
-          </div>
-
-          {/* Right Numbered Feature Rows */}
-          <div className="offerings-list">
-            {offerings.map((item) => (
-              <div key={item.num} className="offering-item">
-                <div className="offering-item__num">{item.num}</div>
-                <div className="offering-item__content">
-                  <h4>{item.title}</h4>
-                  <p>{item.desc}</p>
-                </div>
+        {/* 7-Card Clean Offerings Grid */}
+        <div className="offerings-grid">
+          {offerings.map((item) => (
+            <Link
+              key={item.num}
+              to={item.link}
+              className="offering-card"
+            >
+              <div className="offering-card__top">
+                <span className="offering-card__num">{item.num}</span>
+                <span className="offering-card__tag">{item.tag}</span>
               </div>
-            ))}
-          </div>
+
+              <div className="offering-card__body">
+                <h3 className="offering-card__title">{item.title}</h3>
+                <p className="offering-card__desc">{item.desc}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
   )
 }
+
+

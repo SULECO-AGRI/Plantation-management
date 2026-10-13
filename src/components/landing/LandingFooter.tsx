@@ -38,7 +38,6 @@ export function LandingFooter() {
               <li><a href="#about">About Us</a></li>
               <li><a href="#offerings">Our Services</a></li>
               <li><a href="#operations">Operations</a></li>
-              <li><a href="#vision">Our Vision &amp; Modules</a></li>
               <li><Link to="/map">Launch GIS Map</Link></li>
             </ul>
           </div>
