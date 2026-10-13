@@ -1,22 +1,22 @@
-import { ArrowUpRight, CheckCircle2, MapPin, ShieldCheck, Sprout } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function LandingOfferings() {
   const offerings = [
     {
-      num: '1',
-      title: 'GIS Spatial Mapping & Boundary Surveying',
-      desc: 'Sub-meter polygon demarcation across 218 field plots with elevation contour tracking, land-use zoning, and real-time inspector overlays.',
+      num: '01',
+      title: 'Digital Field & Boundary Mapping',
+      desc: 'Clear digital maps of all 218 field plots, showing exact field boundaries, hill slopes, and division zones on your screen.',
     },
     {
-      num: '2',
-      title: 'Fertilizers & Soil Nutrient Management',
-      desc: 'Precision micro-nutrient dosage schedules formulated for high-altitude acidic soils and balanced organic biomass enrichment.',
+      num: '02',
+      title: 'Soil & Fertilizer Planning',
+      desc: 'Simple fertilizer schedules and soil care routines to keep tea plants well-fed and growing healthy green leaves.',
     },
     {
-      num: '3',
-      title: 'Yield Analytics & Integrated Crop Protection',
-      desc: 'Division-by-division leaf intake monitoring, weather index correlation, and biological canopy disease prevention.',
+      num: '03',
+      title: 'Harvest & Crop Health Tracking',
+      desc: 'Track daily leaf harvest weights by division, watch seasonal crop trends, and protect bushes from plant disease.',
     },
   ]
 
@@ -26,7 +26,7 @@ export function LandingOfferings() {
         {/* Eyebrow & Title */}
         <div className="section-header-center">
           <h2 className="section-title section-title--center">
-            Agricultural Offerings
+            What We Offer
           </h2>
         </div>
 
@@ -44,24 +44,21 @@ export function LandingOfferings() {
           {/* Center text & badges */}
           <div className="offerings-center-card">
             <p>
-              Discover a wide range of high-quality tools and precision spatial solutions designed
-              to optimize your plantation yield, soil health, and workforce allocation across high-altitude
-              Ceylon tea terrain.
+              Everything you need to manage your land, keep soil healthy, and track your daily tea harvest
+              using simple digital tools.
             </p>
 
             <div className="offerings-badges-grid">
               <div className="offering-badge">
-                <ShieldCheck size={18} />
                 <div>
                   <strong>25+ Years</strong>
-                  <small>Estate Heritage</small>
+                  <small>Estate Experience</small>
                 </div>
               </div>
               <div className="offering-badge">
-                <CheckCircle2 size={18} />
                 <div>
                   <strong>100%</strong>
-                  <small>Export Quality</small>
+                  <small>Pure Ceylon Tea</small>
                 </div>
               </div>
             </div>
@@ -82,21 +79,18 @@ export function LandingOfferings() {
           {/* Left Forest Card */}
           <div className="offerings-cta-card">
             <div className="offerings-cta-card__top">
-              <div className="icon-pill">
-                <Sprout size={18} />
-              </div>
-              <Link to="/map" className="circle-arrow-link" aria-label="Explore estate products">
+              <span className="offerings-cta-tag">Interactive Map</span>
+              <Link to="/map" className="circle-arrow-link" aria-label="Explore estate fields">
                 <ArrowUpRight size={18} />
               </Link>
             </div>
-            <h3>Explore Our Farm Products</h3>
+            <h3>Explore Estate Fields &amp; Crops</h3>
             <p>
-              Premium orthodox single-origin black tea, vegetative soil buffer crops, and certified
-              sustainable timber reserves.
+              See how we map fields, care for tea bushes, and protect natural forest cover across all 5 divisions.
             </p>
             <Link to="/map" className="btn btn--white btn--sm">
-              <MapPin size={14} />
               <span>Explore Interactive Map</span>
+              <ArrowUpRight size={14} />
             </Link>
           </div>
 
