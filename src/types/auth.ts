@@ -1,4 +1,15 @@
-export type UserRole = 'super_admin' | 'division_manager' | 'field_officer' | 'worker'
+export type StandardRole = 'Admin' | 'Manager' | 'Officer'
+export type LegacyRole = 'super_admin' | 'division_manager' | 'field_officer' | 'worker'
+export type UserRole = StandardRole | LegacyRole
+
+export function normalizeRole(role: UserRole | string | undefined | null): StandardRole | 'Worker' {
+  if (!role) return 'Officer'
+  const r = role.toLowerCase().trim()
+  if (r === 'admin' || r === 'super_admin' || r === 'estate_manager') return 'Admin'
+  if (r === 'manager' || r === 'division_manager') return 'Manager'
+  if (r === 'officer' || r === 'field_officer' || r === 'kangany' || r === 'agronomist') return 'Officer'
+  return 'Worker'
+}
 
 export type Permission =
   | 'view_all_divisions'
@@ -13,6 +24,8 @@ export type Permission =
   | 'resolve_incident'
   | 'export_reports'
 
+export type PlantationId = 'Watawala' | 'Agalawatte'
+
 export type UserProfile = {
   id: string
   username: string
@@ -21,7 +34,8 @@ export type UserProfile = {
   roleTitle: string
   badgeColor: string
   avatar: string
-  divisionScope: 'All Divisions' | 'Weddamulla' | 'Ramboda' | 'Camnethan' | 'Lilliesland' | 'Wewandon'
+  plantationScope?: 'Watawala' | 'Agalawatte' | 'All' | string
+  divisionScope?: 'All Divisions' | 'Weddamulla' | 'Ramboda' | 'Camnethan' | 'Lilliesland' | 'Wewandon' | string
   assignedDivision?: string
   assignedField?: string
   phone: string
@@ -31,3 +45,12 @@ export type UserProfile = {
   password?: string
   defaultTab?: 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents' | 'attendance' | 'daily_harvest' | 'inventory' | 'daily_salary'
 }
+
+export type LoginCredentials = {
+  username: string
+  password?: string
+  role?: StandardRole | UserRole
+  plantationScope?: PlantationId | string
+  rememberMe?: boolean
+}
+

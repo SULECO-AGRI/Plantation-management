@@ -12,6 +12,9 @@ type Props = {
   locatedWorker?: Worker | null
   onClearLocatedWorker?: () => void
   onFocusLocatedWorker?: () => void
+  estateLabel?: string
+  placeholder?: string
+  style?: React.CSSProperties
 }
 
 export function MapTopBar({
@@ -24,15 +27,18 @@ export function MapTopBar({
   locatedWorker,
   onClearLocatedWorker,
   onFocusLocatedWorker,
+  estateLabel = 'Weddamulle Estate',
+  placeholder = 'Search division, field number or attribute',
+  style,
 }: Props) {
   return (
-    <div className="map-topbar">
+    <div className="map-topbar" style={style}>
       <div className="map-search-wrap">
         <Search size={17} />
         <input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Search division, field number or attribute"
+          placeholder={placeholder}
           aria-label="Search estate features"
         />
         {query && (
@@ -55,14 +61,14 @@ export function MapTopBar({
                 </button>
               ))
             ) : (
-              <p>No matching uploaded estate feature.</p>
+              <p>No matching features found.</p>
             )}
           </div>
         )}
       </div>
 
       <button className="estate-chip" type="button" onClick={onResetView}>
-        <Crosshair size={15} /> Weddamulle Estate
+        <Crosshair size={15} /> {estateLabel}
       </button>
 
       {locatedWorker && (

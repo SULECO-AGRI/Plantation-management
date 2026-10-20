@@ -1,13 +1,22 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { mockAuthService } from '../services/mockAuthService'
-import type { Permission, UserProfile, UserRole } from '../types/auth'
+import {
+  normalizeRole,
+  type Permission,
+  type StandardRole,
+  type UserProfile,
+  type UserRole,
+} from '../types/auth'
 
 type AuthContextType = {
   currentUser: UserProfile | null
+  role: StandardRole | 'Worker'
+  plantationScope: string
+  setPlantationScope: (plantation: string) => void
   users: UserProfile[]
   isLoading: boolean
   isAuthenticated: boolean
-  login: (username: string, password: string) => Promise<UserProfile>
+  login: (username: string, password?: string) => Promise<UserProfile>
   logout: () => Promise<void>
   switchRole: (role: UserRole) => Promise<void>
   hasPermission: (permission: Permission) => boolean
@@ -17,14 +26,15 @@ type AuthContextType = {
 }
 
 export const getRoleDefaultTab = (role: UserRole): 'map' | 'workforce' | 'tasks' | 'harvest' | 'incidents' => {
-  switch (role) {
-    case 'super_admin':
+  const norm = normalizeRole(role)
+  switch (norm) {
+    case 'Admin':
       return 'map'
-    case 'division_manager':
+    case 'Manager':
       return 'harvest'
-    case 'field_officer':
+    case 'Officer':
       return 'tasks'
-    case 'worker':
+    case 'Worker':
       return 'workforce'
     default:
       return 'map'
@@ -35,6 +45,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null)
+  const [plantationScope, setPlantationScopeState] = useState<string>('Watawala')
   const [users, setUsers] = useState<UserProfile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -50,11 +61,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           mockAuthService.checkIsAuthenticated(),
         ])
         if (mounted) {
-          setCurrentUser(active)
+          const userToSet = authStatus && active ? active : null
+          const scope = userToSet?.plantationScope || mockAuthService.getPlantationScope() || 'Watawala'
+          setCurrentUser(userToSet)
+          setPlantationScopeState(scope)
           setUsers(allUsers)
-          setIsAuthenticated(authStatus)
-          if (active.divisionScope !== 'All Divisions') {
-            setSelectedDivisionFilter(active.divisionScope)
+          setIsAuthenticated(authStatus && !!userToSet)
+          if (userToSet?.divisionScope && userToSet.divisionScope !== 'All Divisions') {
+            setSelectedDivisionFilter(userToSet.divisionScope)
           }
         }
       } catch (err) {
@@ -69,13 +83,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [])
 
-  const login = async (username: string, password: string): Promise<UserProfile> => {
+  const setPlantationScope = (plantation: string) => {
+    setPlantationScopeState(plantation)
+    mockAuthService.setPlantationScope(plantation)
+    if (currentUser) {
+      const updated = { ...currentUser, plantationScope: plantation }
+      setCurrentUser(updated)
+    }
+  }
+
+  const login = async (username: string, password?: string): Promise<UserProfile> => {
     try {
       setIsLoading(true)
       const user = await mockAuthService.login(username, password)
       setCurrentUser(user)
       setIsAuthenticated(true)
-      if (user.divisionScope !== 'All Divisions') {
+      const scope = user.plantationScope || 'Watawala'
+      setPlantationScopeState(scope)
+
+      if (user.divisionScope && user.divisionScope !== 'All Divisions') {
         setSelectedDivisionFilter(user.divisionScope)
       } else {
         setSelectedDivisionFilter('All Divisions')
@@ -91,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true)
       await mockAuthService.logout()
       setIsAuthenticated(false)
+      setCurrentUser(null)
     } finally {
       setIsLoading(false)
     }
@@ -101,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true)
       const updatedUser = await mockAuthService.switchRole(role)
       setCurrentUser(updatedUser)
-      if (updatedUser.divisionScope !== 'All Divisions') {
+      if (updatedUser.divisionScope && updatedUser.divisionScope !== 'All Divisions') {
         setSelectedDivisionFilter(updatedUser.divisionScope)
       } else {
         setSelectedDivisionFilter('All Divisions')
@@ -118,10 +145,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return mockAuthService.hasPermission(currentUser, permission)
   }
 
+  const role = normalizeRole(currentUser?.role)
+
   return (
     <AuthContext.Provider
       value={{
         currentUser,
+        role,
+        plantationScope,
+        setPlantationScope,
         users,
         isLoading,
         isAuthenticated,

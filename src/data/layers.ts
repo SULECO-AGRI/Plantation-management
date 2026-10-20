@@ -238,6 +238,12 @@ export const LANDUSE_THEME_COLORS: Record<string, string> = {
 }
 
 /**
+ * Base directory path for plantation GIS GeoJSON datasets.
+ * Pointing to the active Agalawatte data directory.
+ */
+export const PLANTATION_DATA_DIR = '/data/Agalawatte'
+
+/**
  * Infrastructure & Hydrology Vector Layers
  */
 export const INFRASTRUCTURE_LAYERS: EstateLayerConfig[] = [
@@ -246,7 +252,7 @@ export const INFRASTRUCTURE_LAYERS: EstateLayerConfig[] = [
     label: 'Estate Boundary',
     shortLabel: 'Boundary',
     kind: 'boundary',
-    url: '/data/boundary.geojson',
+    url: `${PLANTATION_DATA_DIR}/boundary.geojson`,
     color: CARTOGRAPHIC_COLORS.estateBoundary.hex,
     fillColor: CARTOGRAPHIC_COLORS.estateBoundary.hex,
     fillOpacity: 0.04,
@@ -260,7 +266,7 @@ export const INFRASTRUCTURE_LAYERS: EstateLayerConfig[] = [
     label: 'Estate Buildings',
     shortLabel: 'Buildings',
     kind: 'infrastructure',
-    url: '/data/Buildings.geojson',
+    url: `${PLANTATION_DATA_DIR}/Buildings.geojson`,
     color: CARTOGRAPHIC_COLORS.buildings.hex,
     fillColor: CARTOGRAPHIC_COLORS.buildings.hex,
     fillOpacity: 0.85,
@@ -274,7 +280,7 @@ export const INFRASTRUCTURE_LAYERS: EstateLayerConfig[] = [
     label: 'Estate Road Network',
     shortLabel: 'Roads',
     kind: 'infrastructure',
-    url: '/data/Roads.geojson',
+    url: `${PLANTATION_DATA_DIR}/Roads.geojson`,
     color: CARTOGRAPHIC_COLORS.roadsPrimary.hex,
     fillColor: '#FAF4EE',
     weight: 1.4,
@@ -287,7 +293,7 @@ export const INFRASTRUCTURE_LAYERS: EstateLayerConfig[] = [
     label: 'Streams & Hydrology',
     shortLabel: 'Streams',
     kind: 'infrastructure',
-    url: '/data/Streams.geojson',
+    url: `${PLANTATION_DATA_DIR}/Streams.geojson`,
     color: CARTOGRAPHIC_COLORS.streams.hex,
     fillColor: '#E8F2FA',
     weight: 1.2,
@@ -306,7 +312,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     label: 'Weddamulla Divisions',
     shortLabel: 'Divisions',
     kind: 'division',
-    url: '/data/Division.geojson',
+    url: `${PLANTATION_DATA_DIR}/Division.geojson`,
     color: CARTOGRAPHIC_COLORS.divisionBoundary.hex,
     fillColor: CARTOGRAPHIC_COLORS.divisionFill.hex,
     fillOpacity: 0.50,
@@ -320,7 +326,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     label: 'Weddamulla Fields',
     shortLabel: 'Weddamulla',
     kind: 'field',
-    url: '/data/Weddamulla_Fields.geojson',
+    url: `${PLANTATION_DATA_DIR}/Weddamulla_Fields.geojson`,
     color: '#2A2A2A',
     fillColor: CARTOGRAPHIC_COLORS.divisions.weddamulla.hex,
     fillOpacity: 0.65,
@@ -334,7 +340,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     label: 'Ramboda Fields',
     shortLabel: 'Ramboda',
     kind: 'field',
-    url: '/data/Ramboda_Fields.geojson',
+    url: `${PLANTATION_DATA_DIR}/Ramboda_Fields.geojson`,
     color: '#2A2A2A',
     fillColor: CARTOGRAPHIC_COLORS.divisions.ramboda.hex,
     fillOpacity: 0.65,
@@ -348,7 +354,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     label: 'Camnethan Fields',
     shortLabel: 'Camnethan',
     kind: 'field',
-    url: '/data/Camnethan_Fields.geojson',
+    url: `${PLANTATION_DATA_DIR}/Camnethan_Fields.geojson`,
     color: '#2A2A2A',
     fillColor: CARTOGRAPHIC_COLORS.divisions.camnethan.hex,
     fillOpacity: 0.65,
@@ -362,7 +368,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     label: 'Lilliesland Fields',
     shortLabel: 'Lilliesland',
     kind: 'field',
-    url: '/data/Lilliesland_Fields.geojson',
+    url: `${PLANTATION_DATA_DIR}/Lilliesland_Fields.geojson`,
     color: '#2A2A2A',
     fillColor: CARTOGRAPHIC_COLORS.divisions.lilliesland.hex,
     fillOpacity: 0.65,
@@ -376,7 +382,7 @@ export const ESTATE_LAYERS: EstateLayerConfig[] = [
     label: 'Wewandon Fields',
     shortLabel: 'Wewandon',
     kind: 'field',
-    url: '/data/Wewandon_Fileds.geojson',
+    url: `${PLANTATION_DATA_DIR}/Wewandon_Fileds.geojson`,
     color: '#2A2A2A',
     fillColor: CARTOGRAPHIC_COLORS.divisions.wewandon.hex,
     fillOpacity: 0.65,

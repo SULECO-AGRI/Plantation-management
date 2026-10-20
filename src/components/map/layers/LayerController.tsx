@@ -17,6 +17,7 @@ import type {
 } from '../../../types/gis'
 import type { Worker } from '../../../types/workforce'
 import { useWorkforce } from '../../../context/WorkforceContext'
+import { useAuth } from '../../../context/AuthContext'
 import { EmployeeDayDetailModal } from '../../workforce/EmployeeDayDetailModal'
 
 type Props = {
@@ -66,8 +67,19 @@ export function LayerController({
     }
   }
 
+  const { role } = useAuth()
+  const activeRole = role || 'Officer'
+  const showTerrain = activeRole === 'Admin' || activeRole === 'Manager'
+  const showTelemetry = activeRole === 'Admin' || activeRole === 'Officer'
+
+  const allowedInfraLayers = INFRASTRUCTURE_LAYERS.filter((l) => {
+    if (activeRole === 'Admin') return true
+    if (activeRole === 'Manager') return l.key !== 'boundary'
+    return l.key === 'roads' || l.key === 'streams'
+  })
+
   const activeAnalysisCount = ANALYSIS_RASTER_LAYERS.filter((l) => rasterVisibility[l.id]).length
-  const activeInfraCount = INFRASTRUCTURE_LAYERS.filter((l) => vectorVisibility[l.key]).length
+  const activeInfraCount = allowedInfraLayers.filter((l) => vectorVisibility[l.key]).length
   const activeEstateCount = ESTATE_LAYERS.filter((l) => vectorVisibility[l.key]).length
   const activeTelemetryCount = isGpsLayerVisible ? 1 : 0
   const totalThematicActive = activeAnalysisCount + activeInfraCount + activeEstateCount + activeTelemetryCount
@@ -106,6 +118,20 @@ export function LayerController({
             <Layers size={15} />
             <span>Layers</span>
             <span className="layer-count-chip">{totalThematicActive} active</span>
+            <span
+              style={{
+                fontSize: '10.5px',
+                background: '#e5f4ec',
+                color: '#1f6b52',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.3px',
+              }}
+            >
+              {activeRole}
+            </span>
           </h2>
         </div>
         <div className="layer-controller-header__actions">
@@ -155,7 +181,7 @@ export function LayerController({
 
           {openSections.infrastructure && (
             <div className="layer-category__content">
-              {INFRASTRUCTURE_LAYERS.map((layer) => {
+              {allowedInfraLayers.map((layer) => {
                 const isVisible = vectorVisibility[layer.key]
                 const isOutlined = layer.key === 'roads' || layer.key === 'streams'
                 return (
@@ -285,7 +311,8 @@ export function LayerController({
         {/* =========================================================================
             CATEGORY: Operational Telemetry (Workforce GPS & Hazard Overlays)
            ========================================================================= */}
-        <div className="layer-category">
+        {showTelemetry && (
+          <div className="layer-category">
           <button
             type="button"
             className="layer-category__header"
@@ -390,59 +417,62 @@ export function LayerController({
             </div>
           )}
         </div>
+      )}
 
         {/* =========================================================================
             CATEGORY 3: Remote Sensing / Terrain Analysis (Rasters)
            ========================================================================= */}
-        <div className="layer-category">
-          <button
-            type="button"
-            className="layer-category__header"
-            onClick={() => toggleSection('terrain')}
-            aria-expanded={openSections.terrain}
-          >
-            <span className="category-title">Remote Sensing &amp; Terrain</span>
-            <span className="category-meta">
-              {activeAnalysisCount > 0 && (
-                <span className="category-active-tag">{activeAnalysisCount}</span>
-              )}
-              <ChevronDown
-                size={13}
-                className={`category-chevron ${openSections.terrain ? 'category-chevron--open' : ''}`}
-              />
-            </span>
-          </button>
+        {showTerrain && (
+          <div className="layer-category">
+            <button
+              type="button"
+              className="layer-category__header"
+              onClick={() => toggleSection('terrain')}
+              aria-expanded={openSections.terrain}
+            >
+              <span className="category-title">Remote Sensing &amp; Terrain</span>
+              <span className="category-meta">
+                {activeAnalysisCount > 0 && (
+                  <span className="category-active-tag">{activeAnalysisCount}</span>
+                )}
+                <ChevronDown
+                  size={13}
+                  className={`category-chevron ${openSections.terrain ? 'category-chevron--open' : ''}`}
+                />
+              </span>
+            </button>
 
-          {openSections.terrain && (
-            <div className="layer-category__content">
-              {ANALYSIS_RASTER_LAYERS.map((layer) => {
-                const isVisible = rasterVisibility[layer.id]
+            {openSections.terrain && (
+              <div className="layer-category__content">
+                {ANALYSIS_RASTER_LAYERS.map((layer) => {
+                  const isVisible = rasterVisibility[layer.id]
 
-                return (
-                  <button
-                    key={layer.id}
-                    type="button"
-                    className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
-                    onClick={() => onToggleRaster(layer.id)}
-                    aria-label={`Toggle ${layer.label}`}
-                  >
-                    <span className="layer-copy">
-                      <strong>{layer.shortLabel}</strong>
-                      <small>{layer.description}</small>
-                    </span>
-
-                    <span
-                      className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
-                      aria-hidden="true"
+                  return (
+                    <button
+                      key={layer.id}
+                      type="button"
+                      className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
+                      onClick={() => onToggleRaster(layer.id)}
+                      aria-label={`Toggle ${layer.label}`}
                     >
-                      <span className="layer-toggle-switch__thumb" />
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
+                      <span className="layer-copy">
+                        <strong>{layer.shortLabel}</strong>
+                        <small>{layer.description}</small>
+                      </span>
+
+                      <span
+                        className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <span className="layer-toggle-switch__thumb" />
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {fallbackModalWorker && (

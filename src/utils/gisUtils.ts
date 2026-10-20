@@ -10,10 +10,26 @@ import type {
 } from '../types/gis'
 
 /**
- * Fetch and parse a GeoJSON file from the given URL.
+ * Fetch and parse a GeoJSON file from the given URL with directory fallback support.
  */
 export async function fetchGeoJson(url: string, signal?: AbortSignal): Promise<EstateFeatureCollection> {
-  const response = await fetch(url, { signal })
+  let response = await fetch(url, { signal })
+  // Fallback if path was moved into /data/Agalawatte/
+  if (!response.ok && url.startsWith('/data/') && !url.startsWith('/data/Agalawatte/')) {
+    const fallbackUrl = url.replace('/data/', '/data/Agalawatte/')
+    const fallbackRes = await fetch(fallbackUrl, { signal })
+    if (fallbackRes.ok) {
+      response = fallbackRes
+    }
+  } else if (!response.ok && url.startsWith('/data/Agalawatte/')) {
+    // Fallback if path was moved back to root /data/
+    const fallbackUrl = url.replace('/data/Agalawatte/', '/data/')
+    const fallbackRes = await fetch(fallbackUrl, { signal })
+    if (fallbackRes.ok) {
+      response = fallbackRes
+    }
+  }
+
   if (!response.ok) {
     throw new Error(`Failed to load ${url} (${response.status})`)
   }

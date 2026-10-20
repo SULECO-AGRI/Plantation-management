@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AppHeader, PortalTab } from '../components/navigation/AppHeader'
 import { PlantationMap, LocateTarget } from '../components/map/PlantationMap'
+import { WatawalaMap } from '../components/map/WatawalaMap'
 import { WorkforceView } from '../components/workforce/WorkforceView'
 import { TaskKanbanBoard } from '../components/tasks/TaskKanbanBoard'
 import { HarvestYieldDashboard } from '../components/harvest/HarvestYieldDashboard'
@@ -13,15 +14,65 @@ import { DailySalaryPayView } from '../components/salary/DailySalaryPayView'
 import { useAuth } from '../context/AuthContext'
 import type { Worker } from '../types/workforce'
 
-const VALID_TABS: PortalTab[] = ['map', 'workforce', 'tasks', 'harvest', 'attendance', 'daily_harvest', 'inventory', 'daily_salary']
+const VALID_TABS: PortalTab[] = [
+  'map',
+  'workforce',
+  'tasks',
+  'harvest',
+  'attendance',
+  'daily_harvest',
+  'inventory',
+  'daily_salary',
+]
 const OFFICER_ONLY_TABS: PortalTab[] = ['attendance', 'daily_harvest']
 
-export function EstateMapPage() {
-  const { currentUser } = useAuth()
-  const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
+type EstateMapPageProps = {
+  defaultPlantation?: 'Watawala' | 'Agalawatte'
+}
+
+export function EstateMapPage({ defaultPlantation }: EstateMapPageProps) {
+  const { currentUser, role, plantationScope, setPlantationScope } = useAuth()
+  const isFieldOfficer =
+    role === 'Officer' ||
+    currentUser?.role === 'field_officer' ||
+    (currentUser?.role as string) === 'kangany'
 
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab') as PortalTab | null
+  const plantationParam = searchParams.get('plantation')
+
+  // Resolve active plantation context based strictly on authenticated credentials:
+  // admin_wat, manager_wat, officer_wat -> Watawala
+  // admin, manager, officer -> Agalawatte
+  const userScope = currentUser?.plantationScope || plantationScope
+  const activePlantation: 'Watawala' | 'Agalawatte' =
+    userScope?.toLowerCase() === 'watawala'
+      ? 'Watawala'
+      : userScope?.toLowerCase() === 'agalawatte'
+      ? 'Agalawatte'
+      : plantationParam?.toLowerCase() === 'watawala'
+      ? 'Watawala'
+      : plantationParam?.toLowerCase() === 'agalawatte'
+      ? 'Agalawatte'
+      : defaultPlantation || 'Watawala'
+
+  const isWatawala = activePlantation === 'Watawala'
+
+  // Sync plantation scope to AuthContext if different
+  useEffect(() => {
+    if (activePlantation && activePlantation !== plantationScope) {
+      setPlantationScope(activePlantation)
+    }
+  }, [activePlantation, plantationScope, setPlantationScope])
+
+  // Synchronize URL query parameter to match active plantation
+  useEffect(() => {
+    const expectedParam = activePlantation.toLowerCase()
+    if (plantationParam?.toLowerCase() !== expectedParam) {
+      const currentParams = Object.fromEntries(searchParams.entries())
+      setSearchParams({ ...currentParams, plantation: expectedParam }, { replace: true })
+    }
+  }, [activePlantation, plantationParam, searchParams, setSearchParams])
 
   // Ensure initial tab adheres to field officer role permission
   const safeTabParam =
@@ -52,7 +103,8 @@ export function EstateMapPage() {
 
   const handleTabChange = (tab: PortalTab) => {
     setActiveTab(tab)
-    setSearchParams({ tab }, { replace: true })
+    const currentParams = Object.fromEntries(searchParams.entries())
+    setSearchParams({ ...currentParams, tab }, { replace: true })
   }
 
   const handleLocateWorker = (worker: Worker) => {
@@ -75,16 +127,21 @@ export function EstateMapPage() {
         onOpenWorkforceModal={() => setIsWorkforceModalOpen(true)}
       />
 
-      {/* Map View: Kept mounted to maintain WebGL/Leaflet layers, drawing state & performance */}
+      {/* Map View Stage: Kept mounted to maintain WebGL/Leaflet layers, drawing state & performance.
+          Automatically displays WatawalaMap or PlantationMap based on user credentials/authorization */}
       <div
         className={`estate-map-stage ${activeTab !== 'map' ? 'estate-map-stage--hidden' : ''}`}
         style={{ display: activeTab === 'map' ? 'flex' : 'none' }}
       >
-        <PlantationMap
-          isActive={activeTab === 'map'}
-          locateTarget={locateTarget}
-          onClearLocateTarget={() => setLocateTarget(null)}
-        />
+        {isWatawala ? (
+          <WatawalaMap isActive={activeTab === 'map'} />
+        ) : (
+          <PlantationMap
+            isActive={activeTab === 'map'}
+            locateTarget={locateTarget}
+            onClearLocateTarget={() => setLocateTarget(null)}
+          />
+        )}
       </div>
 
       {/* Workforce GPS View */}

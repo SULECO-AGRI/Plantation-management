@@ -1433,6 +1433,10 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
       <BaseMapSwitcher
         isSatelliteActive={baseMap === 'googleSatellite'}
         onToggleSatellite={handleToggleSatellite}
+        onSelectBaseMap={(bm) => {
+          if (bm === 'satellite' && baseMap !== 'googleSatellite') handleToggleSatellite()
+          if (bm === 'osm' && baseMap === 'googleSatellite') handleToggleSatellite()
+        }}
         isRgbActive={Boolean(rasterVisibility.visigeo)}
         onToggleRgb={() => handleToggleRaster('visigeo')}
       />

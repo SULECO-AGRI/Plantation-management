@@ -35,6 +35,8 @@ export function LandingNav() {
   }
 
   const userTargetTab = currentUser ? (currentUser.defaultTab || getRoleDefaultTab(currentUser.role)) : 'map'
+  const userPlantationParam = (currentUser?.plantationScope || '').toLowerCase() === 'watawala' ? 'watawala' : 'agalawatte'
+  const userMapUrl = `/map?plantation=${userPlantationParam}`
 
   return (
     <>
@@ -56,7 +58,7 @@ export function LandingNav() {
               {isAuthenticated && currentUser ? (
                 <div className="nav-user-cluster">
                   <Link
-                    to="/map"
+                    to={userMapUrl}
                     className="btn btn--nav"
                     title={`Open GIS Map (${getRoleDestinationLabel(currentUser.role)})`}
                   >
@@ -111,7 +113,7 @@ export function LandingNav() {
               {isAuthenticated && currentUser ? (
                 <div className="nav-mobile-user-box">
                   <Link
-                    to="/map"
+                    to={userMapUrl}
                     className="btn btn--nav-mobile"
                     onClick={closeMobileMenu}
                   >
