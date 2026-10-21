@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
-import { Check, Globe, Map as MapIcon } from 'lucide-react'
+import { Check, ChevronUp, Globe, Map as MapIcon, Minus } from 'lucide-react'
 
 type Props = {
   isSatelliteActive: boolean
@@ -17,6 +17,7 @@ export function BaseMapSwitcher({
   isRgbActive,
   onToggleRgb,
 }: Props) {
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   // Prevent Leaflet map clicks/scrolls from bubbling to the map canvas underneath
@@ -24,7 +25,7 @@ export function BaseMapSwitcher({
     if (!containerRef.current) return
     L.DomEvent.disableClickPropagation(containerRef.current)
     L.DomEvent.disableScrollPropagation(containerRef.current)
-  }, [])
+  }, [isCollapsed])
 
   const handleSelectOsm = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -52,6 +53,27 @@ export function BaseMapSwitcher({
     onToggleRgb()
   }
 
+  if (isCollapsed) {
+    return (
+      <aside
+        ref={containerRef}
+        className="modern-basemap-pill"
+        onClick={() => setIsCollapsed(false)}
+        aria-label="Expand Base Map & Imagery Selector"
+        title="Expand Base Map & Imagery"
+      >
+        <span className="modern-basemap-pill__icon">
+          {isSatelliteActive ? <Globe size={15} /> : <MapIcon size={15} />}
+        </span>
+        <span className="modern-basemap-pill__text">
+          <strong>{isSatelliteActive ? 'Satellite' : 'Street Map'}</strong>
+          {isRgbActive && <span className="modern-basemap-badge">RGB HD</span>}
+        </span>
+        <ChevronUp size={14} className="modern-basemap-pill__chevron" />
+      </aside>
+    )
+  }
+
   return (
     <aside
       ref={containerRef}
@@ -63,7 +85,21 @@ export function BaseMapSwitcher({
     >
       {/* Category: Base Map */}
       <div className="modern-basemap-section">
-        <span className="modern-basemap-header">Base Map</span>
+        <div className="modern-basemap-header-row">
+          <span className="modern-basemap-header">Base Map</span>
+          <button
+            type="button"
+            className="modern-basemap-minimize-btn"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsCollapsed(true)
+            }}
+            aria-label="Collapse Base Map panel"
+            title="Collapse Base Map"
+          >
+            <Minus size={13} />
+          </button>
+        </div>
 
         {/* OpenStreetMap Option */}
         <button
