@@ -24,16 +24,54 @@ import {
   getAreaSummary,
   getDivisionBreakdown,
   humanizePropertyKey,
+  numeric,
+  text,
 } from '../../../utils/gisUtils'
 import type { SelectedEstateFeature } from '../../../types/gis'
 import { useWorkforce } from '../../../context/WorkforceContext'
 import { useTask } from '../../../context/TaskContext'
+import { useTranslation } from '../../../context/LanguageContext'
 import type { DivisionWorkforceSummary } from '../../../types/workforce'
 import type { Task } from '../../../types/task'
 
 type Props = {
   selection: SelectedEstateFeature | null
   onClose: () => void
+}
+
+const DIVISION_SINHALA: Record<string, string> = {
+  weddamulla: 'වෙද්දමුල්ල',
+  ramboda: 'රම්බොඩ',
+  camnethan: 'කැම්නෙතන්',
+  lilliesland: 'ලිලීස්ලන්ඩ්',
+  wewandon: 'වැවන්ඩන්',
+}
+
+function getLocalizedPropKey(key: string, locale: string): string {
+  if (locale !== 'si') return humanizePropertyKey(key)
+  const lower = key.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const map: Record<string, string> = {
+    objectid: 'වස්තු හැඳුනුම් අංකය (Object ID)',
+    shapelength: 'පරිමිතිය (Shape Length)',
+    shapearea: 'භූමි වර්ගඵලය (Shape Area)',
+    division: 'කොට්ඨාසය (Division)',
+    divname: 'කොට්ඨාසයේ නම (Division Name)',
+    name: 'නම (Name)',
+    fieldno: 'ක්ෂේත්‍ර අංකය (Field No)',
+    field: 'ක්ෂේත්‍ර අංකය (Field)',
+    area: 'වර්ගඵලය (Area)',
+    totalarea: 'මුළු වර්ගඵලය (Total Area)',
+    teaac: 'තේ වගා වර්ගඵලය (Tea Area)',
+    vegac: 'එළවළු වගා වර්ගඵලය (Veg Area)',
+    grassac: 'තණකොළ / පඳුරු වර්ගඵලය (Grass Area)',
+    highvegac: 'ඝන වනාන්තර ප්‍රදේශය (Forest Area)',
+    devac: 'සංවර්ධිත ප්‍රදේශය (Developed Area)',
+    divpct: 'වතු ප්‍රතිශතය (Division %)',
+    crop: 'බෝග වර්ගය (Crop)',
+    cultivar: 'බෝග ප්‍රභේදය (Cultivar)',
+    type: 'වර්ගය (Type)',
+  }
+  return map[lower] || humanizePropertyKey(key)
 }
 
 /**
@@ -80,6 +118,7 @@ function useAnimatedNumber(target: number, duration = 650): number {
 
 export function FeatureDetailPanel({ selection, onClose }: Props) {
   // All hooks MUST be called unconditionally at top of component
+  const { t, locale } = useTranslation()
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
     workforce: true,
     agronomy: true,
@@ -308,6 +347,46 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
       .trim()
     : ''
 
+  const localizedLayerLabel = useMemo(() => {
+    if (!cleanLayerLabel) return ''
+    if (locale === 'si') {
+      const key = cleanLayerLabel.toLowerCase()
+      return DIVISION_SINHALA[key] || cleanLayerLabel
+    }
+    return cleanLayerLabel
+  }, [cleanLayerLabel, locale])
+
+  const displayTitle = useMemo(() => {
+    if (locale !== 'si') {
+      return featureTitle(validFeature, validKind)
+    }
+    if (validKind === 'division') {
+      const rawName = String(validFeature.properties?.Name || validFeature.properties?.Division || '').trim()
+      const clean = rawName.toLowerCase().replace(/\b(divisions|division)\b/gi, '').trim()
+      const siName = DIVISION_SINHALA[clean] || rawName || 'වෙද්දමුල්ල'
+      return `${siName} ${t('featureDetail.divisionSuffix')}`
+    }
+    const fNo = validFeature.properties?.Field_No || validFeature.properties?.OBJECTID || ''
+    return `${t('featureDetail.fieldPrefix')} ${fNo || ''}`.trim()
+  }, [validFeature, validKind, locale, t])
+
+  const displaySubtitle = useMemo(() => {
+    if (locale !== 'si') {
+      return featureSubtitle(validFeature, validKind)
+    }
+    if (validKind === 'field') {
+      const div = text(validFeature.properties?.Division)
+      if (div) {
+        const clean = div.toLowerCase()
+        const siName = DIVISION_SINHALA[clean] || div
+        return `${siName} ${t('featureDetail.divisionSuffix')}`
+      }
+      return t('featureDetail.estateField')
+    }
+    const acres = numeric(validFeature.properties?.Area)
+    return acres ? `${formatNumber(acres)} ${t('featureDetail.acres')}` : t('featureDetail.estateDivision')
+  }, [validFeature, validKind, locale, t])
+
   const entries = Object.entries(validFeature.properties || {}).filter(
     ([, value]) => value !== null && value !== undefined && value !== '',
   )
@@ -324,26 +403,26 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
   const overdueOffset = -(doneDash + pendingDash)
 
   return (
-    <aside className="feature-panel" aria-label="Selected feature details">
+    <aside className="feature-panel" aria-label={t('featureDetail.closeDetails')}>
       <div className={`feature-panel__top ${isDivision ? 'feature-panel__top--division' : 'feature-panel__top--field'}`}>
         <div>
           <div className="feature-panel__badges">
             <span className="entity-kind-badge">
               {isDivision ? <Layers size={11} /> : <Sprout size={11} />}
-              {isDivision ? 'DIVISION' : 'FIELD'}
+              {isDivision ? t('featureDetail.division') : t('featureDetail.field')}
             </span>
-            {cleanLayerLabel ? (
-              <span className="eyebrow eyebrow--light">{cleanLayerLabel}</span>
+            {localizedLayerLabel ? (
+              <span className="eyebrow eyebrow--light">{localizedLayerLabel}</span>
             ) : null}
           </div>
-          <h2>{featureTitle(validFeature, validKind)}</h2>
-          <p>{featureSubtitle(validFeature, validKind)}</p>
+          <h2>{displayTitle}</h2>
+          <p>{displaySubtitle}</p>
         </div>
         <button
           className="icon-btn icon-btn--light"
           type="button"
           onClick={onClose}
-          aria-label="Close details"
+          aria-label={t('featureDetail.closeDetails')}
         >
           <X size={18} />
         </button>
@@ -356,7 +435,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             <article>
               <Ruler size={17} />
               <span>
-                <small>{isDivision ? 'Division Area' : 'Field Area'}</small>
+                <small>{isDivision ? t('featureDetail.divisionArea') : t('featureDetail.fieldArea')}</small>
                 <strong>{area.primary}</strong>
                 <em>{area.secondary}</em>
               </span>
@@ -365,7 +444,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
           <article>
             <MapPinned size={17} />
             <span>
-              <small>Geo Center</small>
+              <small>{t('featureDetail.geoCenter')}</small>
               <strong>{validCenter.lat.toFixed(5)}°N</strong>
               <em>{validCenter.lng.toFixed(5)}°E</em>
             </span>
@@ -377,13 +456,13 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
            ========================================================================= */}
         <div
           className="plot-distribution-section plot-animated-panel"
-          key={`dist-${featureTitleText}`}
+          key={`dist-${featureTitleText}-${locale}`}
           style={{ marginTop: '2px', marginBottom: '14px' }}
         >
           <div className="plot-section-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>Task Distribution &amp; Operations</span>
+            <span>{t('featureDetail.taskDistribution')}</span>
             <span style={{ textTransform: 'none', color: '#10b981', fontWeight: 700 }}>
-              {isDivision ? 'Division Scope' : featureTitleText}
+              {isDivision ? t('featureDetail.divisionScope') : displayTitle}
             </span>
           </div>
 
@@ -446,19 +525,19 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
 
                 <div className="plot-donut-center">
                   <span className="plot-donut-center-num">{animatedTasks}</span>
-                  <span className="plot-donut-center-label">Tasks</span>
+                  <span className="plot-donut-center-label">{t('featureDetail.tasks')}</span>
                 </div>
               </div>
 
               <div className="plot-donut-legend">
                 <span className="plot-legend-item">
-                  <span className="legend-dot legend-dot--done" /> Done
+                  <span className="legend-dot legend-dot--done" /> {t('featureDetail.done')}
                 </span>
                 <span className="plot-legend-item">
-                  <span className="legend-dot legend-dot--pending" /> Pending
+                  <span className="legend-dot legend-dot--pending" /> {t('featureDetail.pending')}
                 </span>
                 <span className="plot-legend-item">
-                  <span className="legend-dot legend-dot--overdue" /> Overdue
+                  <span className="legend-dot legend-dot--overdue" /> {t('featureDetail.overdue')}
                 </span>
               </div>
             </div>
@@ -467,7 +546,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             <div className="plot-stats-column">
               <div className="plot-stat-card plot-stat-card--green">
                 <span className="plot-stat-num plot-stat-num--green">{animatedCompletionRate}%</span>
-                <span className="plot-stat-label">Completion Rate</span>
+                <span className="plot-stat-label">{t('featureDetail.completionRate')}</span>
               </div>
 
               <div className="plot-stat-card plot-stat-card--red">
@@ -475,7 +554,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
                   <AlertTriangle size={14} className="plot-alert-icon" />
                   <span className="plot-stat-num plot-stat-num--red">{animatedOverdue}</span>
                 </div>
-                <span className="plot-stat-label">Overdue Tasks</span>
+                <span className="plot-stat-label">{t('featureDetail.overdueTasks')}</span>
               </div>
             </div>
           </div>
@@ -484,7 +563,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
         {/* 2x2 Dark Forest Green KPI Tiles Grid */}
         <div
           className="plot-kpi-grid plot-animated-panel"
-          key={`kpi-${featureTitleText}`}
+          key={`kpi-${featureTitleText}-${locale}`}
           style={{ marginBottom: '14px' }}
         >
           <div className="plot-kpi-tile">
@@ -492,7 +571,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               <Sprout size={14} />
             </div>
             <div className="plot-kpi-content">
-              <span className="plot-kpi-title">{isDivision ? 'Crops' : 'Crop Cultivar'}</span>
+              <span className="plot-kpi-title">{isDivision ? t('featureDetail.crops') : t('featureDetail.cropCultivar')}</span>
               <span className="plot-kpi-value">{stats.cultivar}</span>
             </div>
           </div>
@@ -502,8 +581,8 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               <ClipboardList size={14} />
             </div>
             <div className="plot-kpi-content">
-              <span className="plot-kpi-title">Active Tasks</span>
-              <span className="plot-kpi-value">{animatedTasks} Orders</span>
+              <span className="plot-kpi-title">{t('featureDetail.activeTasks')}</span>
+              <span className="plot-kpi-value">{animatedTasks} {t('featureDetail.orders')}</span>
             </div>
           </div>
 
@@ -512,8 +591,8 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               <Users size={14} />
             </div>
             <div className="plot-kpi-content">
-              <span className="plot-kpi-title">Field Labor</span>
-              <span className="plot-kpi-value">{animatedLabor} Active</span>
+              <span className="plot-kpi-title">{t('featureDetail.fieldLabor')}</span>
+              <span className="plot-kpi-value">{animatedLabor} {t('featureDetail.active')}</span>
             </div>
           </div>
 
@@ -522,7 +601,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               <Package size={14} />
             </div>
             <div className="plot-kpi-content">
-              <span className="plot-kpi-title">Est. Harvest</span>
+              <span className="plot-kpi-title">{t('featureDetail.estHarvest')}</span>
               <span className="plot-kpi-value">{formatNumber(animatedHarvest, 0)} Kg</span>
             </div>
           </div>
@@ -532,40 +611,40 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
         {isDivision && breakdown && (
           <div className="landuse-section">
             <div className="attribute-heading">
-              <span><PieChart size={13} /> Land Use &amp; Allocation</span>
+              <span><PieChart size={13} /> {t('featureDetail.landUseAllocation')}</span>
               {breakdown.estateSharePct !== undefined && (
-                <span className="share-pill">{formatNumber(breakdown.estateSharePct, 2)}% of Estate</span>
+                <span className="share-pill">{formatNumber(breakdown.estateSharePct, 2)}{t('featureDetail.ofEstate')}</span>
               )}
             </div>
 
             <div className="landuse-grid">
               {breakdown.teaAcres !== undefined && (
                 <div className="landuse-card landuse-card--tea">
-                  <small>Tea Area</small>
+                  <small>{t('featureDetail.teaArea')}</small>
                   <strong>{formatNumber(breakdown.teaAcres)} ac</strong>
                 </div>
               )}
               {breakdown.vegAcres !== undefined && (
                 <div className="landuse-card landuse-card--veg">
-                  <small>Vegetable Crop</small>
+                  <small>{t('featureDetail.vegetableCrop')}</small>
                   <strong>{formatNumber(breakdown.vegAcres)} ac</strong>
                 </div>
               )}
               {breakdown.grassAcres !== undefined && (
                 <div className="landuse-card landuse-card--grass">
-                  <small>Shrubs / Grass</small>
+                  <small>{t('featureDetail.shrubsGrass')}</small>
                   <strong>{formatNumber(breakdown.grassAcres)} ac</strong>
                 </div>
               )}
               {breakdown.highVegAcres !== undefined && (
                 <div className="landuse-card landuse-card--forest">
-                  <small>High Forest</small>
+                  <small>{t('featureDetail.highForest')}</small>
                   <strong>{formatNumber(breakdown.highVegAcres)} ac</strong>
                 </div>
               )}
               {breakdown.devAcres !== undefined && (
                 <div className="landuse-card landuse-card--dev">
-                  <small>Developed</small>
+                  <small>{t('featureDetail.developed')}</small>
                   <strong>{formatNumber(breakdown.devAcres)} ac</strong>
                 </div>
               )}
@@ -585,7 +664,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             >
               <span>
                 <Users size={13} />
-                Workforce &amp; Supervision
+                {t('featureDetail.workforceSupervision')}
               </span>
               <ChevronDown
                 size={15}
@@ -597,13 +676,13 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               <div className="category-dropdown__content">
                 <dl className="attribute-list">
                   <div>
-                    <dt>Supervisor</dt>
+                    <dt>{t('featureDetail.supervisor')}</dt>
                     <dd>
                       {supervision ? (
                         <a
                           href={`tel:${supervision.supervisor.phone}`}
                           className="supervisor-phone-link"
-                          title="Call Assigned Field Kangany"
+                          title={t('featureDetail.callKangany')}
                         >
                           <strong>{supervision.supervisor.name}</strong>
                           <small>({supervision.supervisor.phone})</small>
@@ -614,31 +693,31 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
                     </dd>
                   </div>
                   <div>
-                    <dt>{isDivision ? 'Total Workers in Division' : 'Assigned Field Workers'}</dt>
+                    <dt>{isDivision ? t('featureDetail.totalWorkersDiv') : t('featureDetail.assignedFieldWorkers')}</dt>
                     <dd>
                       <strong className="text-emerald">{supervision?.totalWorkers ?? 18}</strong>
-                      <span className="unit-label"> active in field</span>
+                      <span className="unit-label"> {t('featureDetail.activeInField')}</span>
                     </dd>
                   </div>
                   <div>
-                    <dt>Active Tasks Underway</dt>
+                    <dt>{t('featureDetail.activeTasksUnderway')}</dt>
                     <dd>
                       <strong>{supervision?.activeTasks ?? 2}</strong>
-                      <span className="unit-label"> work orders</span>
+                      <span className="unit-label"> {t('featureDetail.workOrders')}</span>
                     </dd>
                   </div>
                   <div>
-                    <dt>{isDivision ? 'Female Harvesters' : 'Harvesters'}</dt>
+                    <dt>{isDivision ? t('featureDetail.femaleHarvesters') : t('featureDetail.harvesters')}</dt>
                     <dd>
                       <strong>{supervision?.femaleHarvesters ?? 12}</strong>
-                      <span className="unit-label"> on plucking</span>
+                      <span className="unit-label"> {t('featureDetail.onPlucking')}</span>
                     </dd>
                   </div>
                   <div>
-                    <dt>{isDivision ? 'Male Sundry / Field Ops' : 'Sundry / Field Ops'}</dt>
+                    <dt>{isDivision ? t('featureDetail.maleSundry') : t('featureDetail.sundryFieldOps')}</dt>
                     <dd>
                       <strong>{supervision?.maleSundry ?? 4}</strong>
-                      <span className="unit-label"> sprayers &amp; drainage</span>
+                      <span className="unit-label"> {t('featureDetail.sprayersDrainage')}</span>
                     </dd>
                   </div>
                 </dl>
@@ -656,7 +735,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
             >
               <span>
                 <Sprout size={13} />
-                Agronomy &amp; Operations
+                {t('featureDetail.agronomyOperations')}
               </span>
               <ChevronDown
                 size={15}
@@ -670,55 +749,55 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
                   {isDivision ? (
                     <>
                       <div>
-                        <dt>Active Field Parcels</dt>
-                        <dd><strong>18 Blocks</strong> (High yield vigor)</dd>
+                        <dt>{t('featureDetail.activeFieldParcels')}</dt>
+                        <dd><strong>{t('featureDetail.blocksHighYield')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Elevation Profile</dt>
-                        <dd><strong>1,350m – 1,820m MSL</strong> (High Grown)</dd>
+                        <dt>{t('featureDetail.elevationProfile')}</dt>
+                        <dd><strong>{t('featureDetail.elevationProfileVal')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Monthly Crop Target</dt>
-                        <dd><strong>18,500 kg</strong> green leaf</dd>
+                        <dt>{t('featureDetail.monthlyCropTarget')}</dt>
+                        <dd><strong>{t('featureDetail.greenLeafKg')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Plucking Round Cycle</dt>
-                        <dd><strong>7 – 9 day round</strong> (Active)</dd>
+                        <dt>{t('featureDetail.pluckingRoundCycle')}</dt>
+                        <dd><strong>{t('featureDetail.pluckingRoundCycleVal')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Primary Cultivars</dt>
+                        <dt>{t('featureDetail.primaryCultivars')}</dt>
                         <dd><strong>TRI 2023, TRI 2025, DT 1</strong></dd>
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        <dt>Planting Type</dt>
-                        <dd><strong>VP Clonal Tea</strong> (Vegetatively Propagated)</dd>
+                        <dt>{t('featureDetail.plantingType')}</dt>
+                        <dd><strong>{t('featureDetail.plantingTypeVal')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Cultivar / Clones</dt>
+                        <dt>{t('featureDetail.cultivarClones')}</dt>
                         <dd><strong>TRI 2023 / DT 1 Hybrid</strong></dd>
                       </div>
                       <div>
-                        <dt>Year of Planting</dt>
-                        <dd><strong>2012</strong> (Prime mature bushes)</dd>
+                        <dt>{t('featureDetail.yearOfPlanting')}</dt>
+                        <dd><strong>2012</strong> ({t('featureDetail.matureBushes')})</dd>
                       </div>
                       <div>
-                        <dt>Bush Density / Stand</dt>
-                        <dd><strong>11,800 bushes / ha</strong></dd>
+                        <dt>{t('featureDetail.bushDensity')}</dt>
+                        <dd><strong>{t('featureDetail.bushDensityVal')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Pruning Cycle &amp; Stage</dt>
-                        <dd><strong>Year 3 of 4</strong> (High yield flush)</dd>
+                        <dt>{t('featureDetail.pruningCycleStage')}</dt>
+                        <dd><strong>{t('featureDetail.pruningCycleVal')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Plucking Round Cycle</dt>
-                        <dd><strong>8-Day Round</strong></dd>
+                        <dt>{t('featureDetail.pluckingRoundCycle')}</dt>
+                        <dd><strong>{t('featureDetail.pluckingRoundField')}</strong></dd>
                       </div>
                       <div>
-                        <dt>Soil Condition / pH</dt>
-                        <dd><strong>pH 4.8 – 5.2</strong> (Optimum Red-Yellow Podzolic)</dd>
+                        <dt>{t('featureDetail.soilCondition')}</dt>
+                        <dd><strong>{t('featureDetail.soilConditionVal')}</strong></dd>
                       </div>
                     </>
                   )}
@@ -738,7 +817,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
               >
                 <span>
                   <Database size={13} />
-                  GIS &amp; Dataset Attributes
+                  {t('featureDetail.gisDatasetAttributes')}
                 </span>
                 <ChevronDown
                   size={15}
@@ -751,7 +830,7 @@ export function FeatureDetailPanel({ selection, onClose }: Props) {
                   <dl className="attribute-list">
                     {entries.map(([key, value]) => (
                       <div key={key}>
-                        <dt>{humanizePropertyKey(key)}</dt>
+                        <dt>{getLocalizedPropKey(key, locale)}</dt>
                         <dd>{formatPropertyValue(key, value)}</dd>
                       </div>
                     ))}

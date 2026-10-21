@@ -13,12 +13,29 @@ import { Modal } from '../common/Modal'
 import { useWorkforce } from '../../context/WorkforceContext'
 import { useHarvest } from '../../context/HarvestContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { Worker, WorkerRole, WorkerStatus } from '../../types/workforce'
 
 type WorkforceDirectoryModalProps = {
   isOpen: boolean
   onClose: () => void
   onLocateWorker?: (worker: Worker) => void
+}
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
+
+function getLocalizedDivision(div: string, locale: string): string {
+  const key = div.toLowerCase().trim()
+  if (locale === 'si' && DIVISION_NAMES[key]) {
+    return DIVISION_NAMES[key].si
+  }
+  return div
 }
 
 export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = ({
@@ -29,6 +46,7 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
   const { currentUser } = useAuth()
   const { workers, selectedWorker, setSelectedWorker } = useWorkforce()
   const { setIsLogModalOpen } = useHarvest()
+  const { t, locale } = useTranslation()
 
   const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
   const officerField = currentUser?.assignedField || 'Block 4B'
@@ -131,19 +149,18 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
   const getRoleBadgeLabel = (role: WorkerRole) => {
     switch (role) {
       case 'super_admin':
-        return 'SUPER ADMIN'
+        return t('employees.badgeSuperAdmin')
       case 'division_manager':
-        return 'DIVISION MANAGER'
+        return t('employees.badgeDivisionManager')
       case 'field_officer':
       case 'kangany':
-        return 'FIELD OFFICER'
+        return t('employees.badgeFieldOfficer')
       case 'worker':
       case 'harvester':
       case 'sprayer':
       case 'sundry':
-        return 'EMPLOYEE'
       default:
-        return 'EMPLOYEE'
+        return t('employees.badgeEmployee')
     }
   }
 
@@ -159,24 +176,40 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
     setIsLogModalOpen(true)
   }
 
+  const modalTitle = isFieldOfficer
+    ? t('employees.directoryFieldTitle', {
+        field: selectedField === 'all'
+          ? `${t('employees.allFields')} - ${getLocalizedDivision(officerDivision, locale)}`
+          : selectedField,
+      })
+    : isDivisionManager
+    ? t('employees.directoryDivisionTitle', {
+        division: getLocalizedDivision(managerDivision, locale),
+      })
+    : t('employees.directoryEstateTitle')
+
+  const modalSubtitle = isFieldOfficer
+    ? t('employees.directorySubtitleField', {
+        count: filteredWorkers.length,
+        field: selectedField === 'all'
+          ? `${getLocalizedDivision(officerDivision, locale)} ${t('employees.divisionSuffix')}`
+          : selectedField,
+      })
+    : isDivisionManager
+    ? t('employees.directorySubtitleDivision', {
+        count: filteredWorkers.length,
+        division: getLocalizedDivision(managerDivision, locale),
+      })
+    : t('employees.directorySubtitleEstate', {
+        count: filteredWorkers.length,
+      })
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        isFieldOfficer
-          ? `Field Workforce Directory (${selectedField === 'all' ? `All Fields - ${officerDivision}` : selectedField})`
-          : isDivisionManager
-          ? `Division Workforce Directory (${managerDivision})`
-          : 'Estate Workforce & Live GPS Directory'
-      }
-      subtitle={`${filteredWorkers.length} ${
-        isFieldOfficer
-          ? `employees assigned to ${selectedField === 'all' ? `${officerDivision} Division` : selectedField}`
-          : isDivisionManager
-          ? `employees in ${managerDivision} Division`
-          : 'workers registered across estate sectors'
-      }`}
+      title={modalTitle}
+      subtitle={modalSubtitle}
       icon={<Users size={20} />}
       maxWidth="xl"
     >
@@ -187,7 +220,7 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
             <Search size={15} />
             <input
               type="text"
-              placeholder="Search by worker name, ID (e.g. WKR-102), field block, or task..."
+              placeholder={t('employees.directorySearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="workforce-search-input"
@@ -216,10 +249,10 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
                   cursor: 'pointer',
                 }}
               >
-                <option value="all">All Fields ({officerDivision})</option>
+                <option value="all">{t('employees.allFields')} ({getLocalizedDivision(officerDivision, locale)})</option>
                 {availableOfficerFields.map((f) => (
                   <option key={f} value={f}>
-                    {f} {f === currentUser?.assignedField ? '(In Charge)' : ''}
+                    {f} {f === currentUser?.assignedField ? t('employees.inCharge') : ''}
                   </option>
                 ))}
               </select>
@@ -231,7 +264,9 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
                 title={`Division Manager view restricted to ${managerDivision} Division`}
                 style={{ opacity: 0.9, backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
               >
-                <option value={managerDivision}>{managerDivision} Division (Assigned)</option>
+                <option value={managerDivision}>
+                  {getLocalizedDivision(managerDivision, locale)} {t('employees.divisionSuffix')} {t('employees.assigned')}
+                </option>
               </select>
             ) : (
               <select
@@ -239,12 +274,12 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
                 onChange={(e) => setSelectedDivision(e.target.value)}
                 className="filter-select"
               >
-                <option value="all">All Divisions</option>
-                <option value="Weddamulla">Weddamulla</option>
-                <option value="Ramboda">Ramboda</option>
-                <option value="Camnethan">Camnethan</option>
-                <option value="Lilliesland">Lilliesland</option>
-                <option value="Wewandon">Wewandon</option>
+                <option value="all">{t('employees.allDivisions')}</option>
+                <option value="Weddamulla">{getLocalizedDivision('Weddamulla', locale)}</option>
+                <option value="Ramboda">{getLocalizedDivision('Ramboda', locale)}</option>
+                <option value="Camnethan">{getLocalizedDivision('Camnethan', locale)}</option>
+                <option value="Lilliesland">{getLocalizedDivision('Lilliesland', locale)}</option>
+                <option value="Wewandon">{getLocalizedDivision('Wewandon', locale)}</option>
               </select>
             )}
 
@@ -253,11 +288,11 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
               onChange={(e) => setSelectedRole(e.target.value as WorkerRole | 'all')}
               className="filter-select"
             >
-              <option value="all">All Roles</option>
-              {!isFieldOfficer && <option value="super_admin">Super Admin</option>}
-              {!isFieldOfficer && <option value="division_manager">Division Manager</option>}
-              <option value="field_officer">Field Officer</option>
-              <option value="worker">Employee</option>
+              <option value="all">{t('employees.allRoles')}</option>
+              {!isFieldOfficer && <option value="super_admin">{t('employees.roleSuperAdmin')}</option>}
+              {!isFieldOfficer && <option value="division_manager">{t('employees.roleDivisionManager')}</option>}
+              <option value="field_officer">{t('employees.roleFieldOfficer')}</option>
+              <option value="worker">{t('employees.roleEmployee')}</option>
             </select>
 
             <select
@@ -265,10 +300,10 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
               onChange={(e) => setSelectedStatus(e.target.value as WorkerStatus | 'all')}
               className="filter-select"
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active In Field</option>
-              <option value="break">On Break</option>
-              <option value="offline">Offline</option>
+              <option value="all">{t('employees.allStatuses')}</option>
+              <option value="active">{t('employees.statusActive')}</option>
+              <option value="break">{t('employees.statusBreak')}</option>
+              <option value="offline">{t('employees.statusOffline')}</option>
             </select>
           </div>
         </div>
@@ -278,20 +313,20 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
           <table className="workforce-table">
             <thead>
               <tr>
-                <th>Worker ID &amp; Name</th>
-                <th>Role</th>
-                <th>Division / Field</th>
-                <th>Current Work Order / Task</th>
-                <th>Today's Leaf (kg)</th>
-                <th>Last GPS Ping</th>
-                <th>Actions</th>
+                <th>{t('employees.thWorkerIdName')}</th>
+                <th>{t('employees.thRole')}</th>
+                <th>{t('employees.thDivisionField')}</th>
+                <th>{t('employees.thCurrentWorkOrder')}</th>
+                <th>{t('employees.thTodaysLeafKg')}</th>
+                <th>{t('employees.thLastGpsPing')}</th>
+                <th>{t('employees.thActions')}</th>
               </tr>
             </thead>
             <tbody>
               {filteredWorkers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="empty-table-cell">
-                    No workforce members match your search criteria.
+                    {t('employees.noWorkersMatch')}
                   </td>
                 </tr>
               ) : (
@@ -310,6 +345,7 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
                           <span className={`worker-status-dot worker-status-dot--${worker.status}`} />
                         </div>
                         <div>
+                          {/* Worker personal name kept strictly in English as instructed */}
                           <strong>{worker.name}</strong>
                           <span className="worker-id-code">{worker.id}</span>
                         </div>
@@ -322,7 +358,7 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
                     </td>
                     <td>
                       <div className="division-field-cell">
-                        <span className="division-badge">{worker.division}</span>
+                        <span className="division-badge">{getLocalizedDivision(worker.division, locale)}</span>
                         <span className="field-tag">{worker.fieldBlock}</span>
                       </div>
                     </td>
@@ -336,7 +372,7 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
                         {worker.role === 'harvester' ? (
                           <>
                             <strong>{worker.todayPluckedKg.toFixed(1)}</strong>
-                            <small> kg</small>
+                            <small> {t('employees.kg')}</small>
                           </>
                         ) : (
                           <span className="text-muted">—</span>
@@ -355,26 +391,26 @@ export const WorkforceDirectoryModal: React.FC<WorkforceDirectoryModalProps> = (
                           type="button"
                           className="table-action-btn table-action-btn--locate"
                           onClick={() => handleLocate(worker)}
-                          title="Locate on Leaflet Map"
+                          title={t('employees.titleLocate')}
                         >
                           <MapPin size={13} />
-                          <span>Map</span>
+                          <span>{t('employees.btnMap')}</span>
                         </button>
                         {isFieldOfficer && (worker.role === 'worker' || (worker.role as string) === 'harvester') && (
                           <button
                             type="button"
                             className="table-action-btn table-action-btn--weigh"
                             onClick={() => handleQuickWeighIn(worker)}
-                            title="Record Weigh-In"
+                            title={t('employees.titleRecordWeigh')}
                           >
                             <Scale size={13} />
-                            <span>Weigh</span>
+                            <span>{t('employees.btnWeigh')}</span>
                           </button>
                         )}
                         <a
                           href={`tel:${worker.phone}`}
                           className="table-action-btn table-action-btn--call"
-                          title={`Call ${worker.name} (${worker.phone})`}
+                          title={t('employees.titleCall', { name: worker.name, phone: worker.phone })}
                         >
                           <Phone size={13} />
                         </a>

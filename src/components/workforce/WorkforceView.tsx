@@ -6,6 +6,7 @@ import {
 import { Badge } from '../common/Badge'
 import { useWorkforce } from '../../context/WorkforceContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { Worker, WorkerRole } from '../../types/workforce'
 import { EmployeeDayDetailModal } from './EmployeeDayDetailModal'
 
@@ -13,9 +14,26 @@ type WorkforceViewProps = {
   onLocateOnMap: (worker: Worker) => void
 }
 
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
+
+function getLocalizedDivision(div: string, locale: string): string {
+  const key = div.toLowerCase().trim()
+  if (locale === 'si' && DIVISION_NAMES[key]) {
+    return DIVISION_NAMES[key].si
+  }
+  return div
+}
+
 export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) => {
   const { workers } = useWorkforce()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isDivisionManager = currentUser?.role === 'division_manager'
   const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
@@ -152,19 +170,18 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
   const getRoleBadgeLabel = (role: WorkerRole) => {
     switch (role) {
       case 'super_admin':
-        return 'SUPER ADMIN'
+        return t('employees.badgeSuperAdmin')
       case 'division_manager':
-        return 'DIVISION MANAGER'
+        return t('employees.badgeDivisionManager')
       case 'field_officer':
       case 'kangany':
-        return 'FIELD OFFICER'
+        return t('employees.badgeFieldOfficer')
       case 'worker':
       case 'harvester':
       case 'sprayer':
       case 'sundry':
-        return 'EMPLOYEE'
       default:
-        return 'EMPLOYEE'
+        return t('employees.badgeEmployee')
     }
   }
 
@@ -174,13 +191,15 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
       <div className="erp-page-header">
         <div>
           <h1 className="erp-page-title">
-            Employees Working Today{' '}
+            {t('employees.pageTitle')}{' '}
             {isFieldOfficer ? (
               <span style={{ color: 'var(--emerald-600)' }}>
-                ({selectedField === 'all' ? `All Fields - ${officerDivision}` : selectedField})
+                ({selectedField === 'all'
+                  ? `${t('employees.allFields')} - ${getLocalizedDivision(officerDivision, locale)}`
+                  : selectedField})
               </span>
             ) : isDivisionManager ? (
-              `(${managerDivision} Division)`
+              `(${getLocalizedDivision(managerDivision, locale)} ${t('employees.divisionSuffix')})`
             ) : (
               ''
             )}
@@ -188,11 +207,11 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
           <p className="erp-page-subtitle">
             {isFieldOfficer
               ? selectedField === 'all'
-                ? `Daily muster roll, attendance records, and leaf harvest yields across all monitored fields in ${officerDivision} Division.`
-                : `Daily muster roll, attendance records, and leaf harvest yields for field block ${selectedField} (${officerDivision} Division).`
+                ? t('employees.officerSubtitleAll', { division: getLocalizedDivision(officerDivision, locale) })
+                : t('employees.officerSubtitleField', { field: selectedField, division: getLocalizedDivision(officerDivision, locale) })
               : isDivisionManager
-              ? `Daily muster roll, attendance records, and leaf harvest yields for ${managerDivision} Division.`
-              : 'Daily muster roll, attendance records, and leaf harvest yields across all divisions.'}
+              ? t('employees.managerSubtitle', { division: getLocalizedDivision(managerDivision, locale) })
+              : t('employees.allSubtitle')}
           </p>
         </div>
       </div>
@@ -201,17 +220,17 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Total Employees</span>
+            <span className="kpi-card__label">{t('employees.totalEmployees')}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">{stats.total}</strong>
               <span className="kpi-card__sub">
                 {isFieldOfficer
                   ? selectedField === 'all'
-                    ? `${officerDivision} Division`
-                    : `Field ${selectedField}`
+                    ? `${getLocalizedDivision(officerDivision, locale)} ${t('employees.divisionSuffix')}`
+                    : `${t('employees.fieldPrefix')} ${selectedField}`
                   : isDivisionManager
-                  ? `${managerDivision} Division`
-                  : 'Across 5 Divisions'}
+                  ? `${getLocalizedDivision(managerDivision, locale)} ${t('employees.divisionSuffix')}`
+                  : t('employees.acrossDivisions')}
               </span>
             </div>
           </div>
@@ -219,30 +238,30 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Present Today</span>
+            <span className="kpi-card__label">{t('employees.presentToday')}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value text-emerald">{stats.present}</strong>
-              <span className="kpi-card__sub">Attended Muster Roll</span>
+              <span className="kpi-card__sub">{t('employees.attendedMusterRoll')}</span>
             </div>
           </div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Absent Today</span>
+            <span className="kpi-card__label">{t('employees.absentToday')}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value text-muted">{stats.absent}</strong>
-              <span className="kpi-card__sub">On Leave / Off-Duty</span>
+              <span className="kpi-card__sub">{t('employees.onLeaveOffDuty')}</span>
             </div>
           </div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Today's Harvested Leaf</span>
+            <span className="kpi-card__label">{t('employees.todaysHarvestedLeaf')}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">{stats.totalLeafToday}</strong>
-              <span className="kpi-card__sub">kg total weighed</span>
+              <span className="kpi-card__sub">{t('employees.kgTotalWeighed')}</span>
             </div>
           </div>
         </div>
@@ -255,7 +274,7 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
             <Search size={15} />
             <input
               type="text"
-              placeholder="Search by worker name, ID, or field block..."
+              placeholder={t('employees.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="workforce-search-input"
@@ -277,9 +296,9 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
               onChange={(e) => setSelectedAttendance(e.target.value as 'all' | 'present' | 'absent')}
               className="filter-select"
             >
-              <option value="all">All Attendance</option>
-              <option value="present">Present (Attended)</option>
-              <option value="absent">Absent</option>
+              <option value="all">{t('employees.allAttendance')}</option>
+              <option value="present">{t('employees.presentAttended')}</option>
+              <option value="absent">{t('employees.absent')}</option>
             </select>
 
             {isFieldOfficer ? (
@@ -294,10 +313,10 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                   cursor: 'pointer',
                 }}
               >
-                <option value="all">All Fields ({officerDivision})</option>
+                <option value="all">{t('employees.allFields')} ({getLocalizedDivision(officerDivision, locale)})</option>
                 {availableOfficerFields.map((f) => (
                   <option key={f} value={f}>
-                    {f} {f === currentUser?.assignedField ? '(In Charge)' : ''}
+                    {f} {f === currentUser?.assignedField ? t('employees.inCharge') : ''}
                   </option>
                 ))}
               </select>
@@ -309,7 +328,9 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                 title={`Division Manager view restricted to ${managerDivision} Division`}
                 style={{ opacity: 0.9, backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
               >
-                <option value={managerDivision}>{managerDivision} Division (Assigned)</option>
+                <option value={managerDivision}>
+                  {getLocalizedDivision(managerDivision, locale)} {t('employees.divisionSuffix')} {t('employees.assigned')}
+                </option>
               </select>
             ) : (
               <select
@@ -317,12 +338,12 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                 onChange={(e) => setSelectedDivision(e.target.value)}
                 className="filter-select"
               >
-                <option value="all">All Divisions</option>
-                <option value="Weddamulla">Weddamulla</option>
-                <option value="Ramboda">Ramboda</option>
-                <option value="Camnethan">Camnethan</option>
-                <option value="Lilliesland">Lilliesland</option>
-                <option value="Wewandon">Wewandon</option>
+                <option value="all">{t('employees.allDivisions')}</option>
+                <option value="Weddamulla">{getLocalizedDivision('Weddamulla', locale)}</option>
+                <option value="Ramboda">{getLocalizedDivision('Ramboda', locale)}</option>
+                <option value="Camnethan">{getLocalizedDivision('Camnethan', locale)}</option>
+                <option value="Lilliesland">{getLocalizedDivision('Lilliesland', locale)}</option>
+                <option value="Wewandon">{getLocalizedDivision('Wewandon', locale)}</option>
               </select>
             )}
 
@@ -331,11 +352,11 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
               onChange={(e) => setSelectedRole(e.target.value as WorkerRole | 'all')}
               className="filter-select"
             >
-              <option value="all">All Roles</option>
-              {!isFieldOfficer && <option value="super_admin">Super Admin</option>}
-              {!isFieldOfficer && <option value="division_manager">Division Manager</option>}
-              <option value="field_officer">Field Officer</option>
-              <option value="worker">Employee</option>
+              <option value="all">{t('employees.allRoles')}</option>
+              {!isFieldOfficer && <option value="super_admin">{t('employees.roleSuperAdmin')}</option>}
+              {!isFieldOfficer && <option value="division_manager">{t('employees.roleDivisionManager')}</option>}
+              <option value="field_officer">{t('employees.roleFieldOfficer')}</option>
+              <option value="worker">{t('employees.roleEmployee')}</option>
             </select>
           </div>
         </div>
@@ -344,14 +365,14 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
           <table className="workforce-table">
             <thead>
               <tr>
-                <th>Employee</th>
-                <th>Attendance</th>
-                <th>Role</th>
-                <th>Division &amp; Block</th>
-                <th>Hours Worked</th>
-                <th>Today's Harvest</th>
-                <th>Current Task</th>
-                <th style={{ textAlign: 'right' }}>Action</th>
+                <th>{t('employees.thEmployee')}</th>
+                <th>{t('employees.thAttendance')}</th>
+                <th>{t('employees.thRole')}</th>
+                <th>{t('employees.thDivisionBlock')}</th>
+                <th>{t('employees.thHoursWorked')}</th>
+                <th>{t('employees.thTodaysHarvest')}</th>
+                <th>{t('employees.thCurrentTask')}</th>
+                <th style={{ textAlign: 'right' }}>{t('employees.thAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -360,10 +381,11 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                   key={worker.id}
                   className="workforce-row workforce-row--clickable"
                   onClick={() => setDetailWorker(worker)}
-                  title="Click to view full employee details"
+                  title={t('employees.clickToViewDetails')}
                 >
                   <td>
                     <div>
+                      {/* Person names kept strictly in English as instructed */}
                       <strong style={{ fontSize: '13px', color: '#0f172a' }}>{worker.name}</strong>
                       <div className="worker-id-code">{worker.id}</div>
                     </div>
@@ -374,7 +396,7 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                         worker.attended ? 'employee-status-pill--present' : 'employee-status-pill--absent'
                       }`}
                     >
-                      {worker.attended ? 'Present' : 'Absent'}
+                      {worker.attended ? t('employees.present') : t('employees.absent')}
                     </span>
                   </td>
                   <td>
@@ -384,17 +406,17 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                   </td>
                   <td>
                     <div className="division-field-cell">
-                      <span className="division-badge">{worker.division}</span>
+                      <span className="division-badge">{getLocalizedDivision(worker.division, locale)}</span>
                       <span className="field-tag">{worker.fieldBlock}</span>
                     </div>
                   </td>
                   <td>
                     {worker.attended ? (
                       <span style={{ fontWeight: 600, color: '#334155' }}>
-                        {(worker.hoursWorkedToday ?? 7.5).toFixed(1)} hrs
+                        {(worker.hoursWorkedToday ?? 7.5).toFixed(1)} {t('employees.hrs')}
                       </span>
                     ) : (
-                      <span className="text-muted">0 hrs</span>
+                      <span className="text-muted">0 {t('employees.hrs')}</span>
                     )}
                   </td>
                   <td>
@@ -402,7 +424,7 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                       {worker.todayPluckedKg > 0 && worker.attended ? (
                         <>
                           <strong className="text-emerald">{worker.todayPluckedKg.toFixed(1)}</strong>
-                          <small> kg</small>
+                          <small> {t('employees.kg')}</small>
                         </>
                       ) : (
                         <span className="text-muted">—</span>
@@ -423,7 +445,7 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
                         setDetailWorker(worker)
                       }}
                     >
-                      View Details
+                      {t('employees.viewDetails')}
                     </button>
                   </td>
                 </tr>
@@ -434,8 +456,10 @@ export const WorkforceView: React.FC<WorkforceViewProps> = ({ onLocateOnMap }) =
           {filtered.length === 0 && (
             <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
               {isFieldOfficer
-                ? `No employees found in ${selectedField === 'all' ? officerDivision : selectedField} matching the selected filters.`
-                : 'No employees found matching the selected filters.'}
+                ? t('employees.noEmployeesFoundField', {
+                    scope: selectedField === 'all' ? getLocalizedDivision(officerDivision, locale) : selectedField,
+                  })
+                : t('employees.noEmployeesFound')}
             </div>
           )}
         </div>
