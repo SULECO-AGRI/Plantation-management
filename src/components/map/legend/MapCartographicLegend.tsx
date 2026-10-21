@@ -16,6 +16,7 @@ export function MapCartographicLegend({ rasterVisibility, vectorVisibility }: Pr
   const isChmActive = rasterVisibility.chm
   const isSlopeActive = rasterVisibility.slope
   const isLanduseActive = rasterVisibility.landuse
+  const isContoursActive = rasterVisibility.contours
   const isDivisionsActive = vectorVisibility.divisions
   const isBuildingsActive = vectorVisibility.buildings
   const isRoadsActive = vectorVisibility.roads
@@ -199,7 +200,7 @@ export function MapCartographicLegend({ rasterVisibility, vectorVisibility }: Pr
         {/* =========================================================================
             5. GENERAL FEATURES & INFRASTRUCTURE
            ========================================================================= */}
-        {(activeTab === 'all' || isBoundaryActive || isBuildingsActive || isRoadsActive || isStreamsActive) && (
+        {(activeTab === 'all' || isBoundaryActive || isBuildingsActive || isRoadsActive || isStreamsActive || isContoursActive) && (
           <section className="carto-legend-section">
             <div className="carto-section-title">
               <Shield size={13} />

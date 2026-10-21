@@ -1,6 +1,7 @@
 import { Crosshair, Search, X } from 'lucide-react'
 import type { SearchHit } from '../../types/gis'
 import type { Worker } from '../../types/workforce'
+import { useTranslation } from '../../context/LanguageContext'
 
 type Props = {
   query: string
@@ -27,10 +28,14 @@ export function MapTopBar({
   locatedWorker,
   onClearLocatedWorker,
   onFocusLocatedWorker,
-  estateLabel = 'Weddamulle Estate',
-  placeholder = 'Search division, field number or attribute',
+  estateLabel,
+  placeholder,
   style,
 }: Props) {
+  const { t } = useTranslation()
+  const displayPlaceholder = placeholder || t('map.searchPlaceholder')
+  const displayEstateLabel = estateLabel || t('map.estateLabel')
+
   return (
     <div className="map-topbar" style={style}>
       <div className="map-search-wrap">
@@ -38,15 +43,15 @@ export function MapTopBar({
         <input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder={placeholder}
-          aria-label="Search estate features"
+          placeholder={displayPlaceholder}
+          aria-label={t('map.searchAria')}
         />
         {query && (
           <button
             type="button"
             className="search-clear"
             onClick={onClearQuery}
-            aria-label="Clear search"
+            aria-label={t('map.clearSearch')}
           >
             <X size={16} />
           </button>
@@ -61,14 +66,14 @@ export function MapTopBar({
                 </button>
               ))
             ) : (
-              <p>No matching features found.</p>
+              <p>{t('map.noFeatures')}</p>
             )}
           </div>
         )}
       </div>
 
       <button className="estate-chip" type="button" onClick={onResetView}>
-        <Crosshair size={15} /> {estateLabel}
+        <Crosshair size={15} /> {displayEstateLabel}
       </button>
 
       {locatedWorker && (
@@ -78,15 +83,15 @@ export function MapTopBar({
             className="located-worker-chip__name"
             onClick={onFocusLocatedWorker}
             style={{ cursor: onFocusLocatedWorker ? 'pointer' : 'default' }}
-            title="Re-focus employee pinpoint"
+            title={t('map.refocusPinpoint')}
           >
-            Pin: {locatedWorker.name}
+            {t('map.pin')}: {locatedWorker.name}
           </span>
           <button
             type="button"
             className="located-worker-chip__close"
             onClick={onClearLocatedWorker}
-            title="Clear pinpoint"
+            title={t('map.clearPinpoint')}
           >
             <X size={12} />
           </button>

@@ -8,6 +8,7 @@ import {
   RotateCcw,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import { loadPlantationGeoJson, WATAWALA_METADATA } from '../../utils/layerLoader'
 import { GOOGLE_SATELLITE_TILE_URL, OSM_TILE_URL } from '../../data/layers'
 import { BaseMapSwitcher } from './BaseMapSwitcher'
@@ -73,6 +74,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
   isActive = true,
 }) => {
   const { role, plantationScope } = useAuth()
+  const { t } = useTranslation()
   const activeRole = role || 'Officer'
 
   const hostRef = useRef<HTMLDivElement | null>(null)
@@ -653,15 +655,15 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
             type="button"
             className="layer-controller-pill"
             onClick={() => setIsCollapsed(false)}
-            aria-label="Expand layers and overlays panel"
-            title="Expand Layers & Overlays"
+            aria-label={t('layers.expandAria')}
+            title={t('layers.expandTitle')}
           >
             <span className="layer-controller-pill__icon">
               <Layers size={15} />
             </span>
             <span className="layer-controller-pill__text">
-              <strong>Layers</strong>
-              <span className="layer-count-chip">{activeLayersCount} active</span>
+              <strong>{t('layers.title')}</strong>
+              <span className="layer-count-chip">{t('layers.activeCount', { count: activeLayersCount })}</span>
             </span>
             <ChevronDown size={14} className="layer-controller-pill__chevron" />
           </button>
@@ -673,8 +675,8 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
               <div className="layer-controller-header__title">
                 <h2>
                   <Layers size={15} />
-                  <span>Layers</span>
-                  <span className="layer-count-chip">{activeLayersCount} active</span>
+                  <span>{t('layers.title')}</span>
+                  <span className="layer-count-chip">{t('layers.activeCount', { count: activeLayersCount })}</span>
                   <span
                     style={{
                       fontSize: '10.5px',
@@ -695,18 +697,18 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                 <button
                   className="icon-btn"
                   type="button"
-                  title="Reset overlays to default"
+                  title={t('layers.resetTitle')}
                   onClick={handleResetLayers}
-                  aria-label="Reset overlays to default"
+                  aria-label={t('layers.resetTitle')}
                 >
                   <RotateCcw size={13} />
                 </button>
                 <button
                   className="icon-btn"
                   type="button"
-                  title="Minimize panel"
+                  title={t('layers.minimizeTitle')}
                   onClick={() => setIsCollapsed(true)}
-                  aria-label="Minimize layer panel"
+                  aria-label={t('layers.minimizeTitle')}
                 >
                   <Minus size={14} />
                 </button>

@@ -12,8 +12,10 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import { RoleSwitcher } from './RoleSwitcher'
 import { CropLensBrand } from './CropLensBrand'
+import { LanguageSwitcher } from '../common/LanguageSwitcher'
 
 export type PortalTab =
   | 'map'
@@ -37,6 +39,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenWorkforceModal,
 }) => {
   const { currentUser } = useAuth()
+  const { t } = useTranslation()
 
   const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
 
@@ -56,7 +59,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           onClick={() => onTabChange('map')}
         >
           <Layers size={13} />
-          <span>GIS Map</span>
+          <span>{t('nav.gisMap')}</span>
         </button>
 
         <button
@@ -65,7 +68,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           onClick={() => onTabChange('workforce')}
         >
           <Users size={13} />
-          <span>Employees</span>
+          <span>{t('nav.employees')}</span>
         </button>
 
         <button
@@ -74,7 +77,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           onClick={() => onTabChange('tasks')}
         >
           <CalendarCheck2 size={13} />
-          <span>Tasks</span>
+          <span>{t('nav.tasks')}</span>
         </button>
 
         <button
@@ -83,7 +86,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           onClick={() => onTabChange('harvest')}
         >
           <Scale size={13} />
-          <span>Harvest</span>
+          <span>{t('nav.harvest')}</span>
         </button>
 
         <button
@@ -92,7 +95,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           onClick={() => onTabChange('inventory')}
         >
           <Package size={13} />
-          <span>Inventory</span>
+          <span>{t('nav.inventory')}</span>
         </button>
 
         {isFieldOfficer && (
@@ -101,30 +104,30 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               type="button"
               className={`erp-tab-btn ${activeTab === 'attendance' ? 'erp-tab-btn--active' : ''}`}
               onClick={() => onTabChange('attendance')}
-              title="Employee Attendance Roll-Call"
+              title={t('nav.attendanceTooltip')}
             >
               <ClipboardCheck size={13} />
-              <span>Attendance</span>
+              <span>{t('nav.attendance')}</span>
             </button>
 
             <button
               type="button"
               className={`erp-tab-btn ${activeTab === 'daily_harvest' ? 'erp-tab-btn--active' : ''}`}
               onClick={() => onTabChange('daily_harvest')}
-              title="Daily Harvest Weigh-In"
+              title={t('nav.dailyHarvestTooltip')}
             >
               <Scale size={13} />
-              <span>Daily Harvest</span>
+              <span>{t('nav.dailyHarvest')}</span>
             </button>
 
             <button
               type="button"
               className={`erp-tab-btn ${activeTab === 'daily_salary' ? 'erp-tab-btn--active' : ''}`}
               onClick={() => onTabChange('daily_salary')}
-              title="Employee Daily Salary Payment"
+              title={t('nav.dailySalaryTooltip')}
             >
               <Banknote size={13} />
-              <span>Daily Salary</span>
+              <span>{t('nav.dailySalary')}</span>
             </button>
           </>
         )}
@@ -134,16 +137,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             type="button"
             className={`erp-tab-btn ${activeTab === 'daily_salary' ? 'erp-tab-btn--active' : ''}`}
             onClick={() => onTabChange('daily_salary')}
-            title="Employee Daily Salary Sheets"
+            title={t('nav.dailySalarySheetsTooltip')}
           >
             <Banknote size={13} />
-            <span>Daily Salary</span>
+            <span>{t('nav.dailySalary')}</span>
           </button>
         )}
       </nav>
 
       {/* Header Right Actions */}
       <div className="erp-header__right">
+        {/* Language Switcher */}
+        <LanguageSwitcher />
+
         {/* Role Switcher Dropdown */}
         <RoleSwitcher />
       </div>

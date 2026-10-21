@@ -124,7 +124,7 @@ export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
   {
     id: 'chm',
     label: 'Canopy Height Model (CHM)',
-    shortLabel: 'Canopy Height',
+    shortLabel: 'CHM',
     description: 'LiDAR / photogrammetry tea canopy elevation',
     urlTemplate: `${VISIGEO_ROOT}/rgb/chm/{z}/{x}/{y}.png`,
     category: 'terrain',
@@ -150,7 +150,7 @@ export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
   {
     id: 'landuse',
     label: 'Landuse Classification',
-    shortLabel: 'Land Use',
+    shortLabel: 'Landuse',
     description: 'Vegetation, tea crop and ground classification',
     urlTemplate: `${VISIGEO_ROOT}/rgb/landuse2/{z}/{x}/{y}.png`,
     category: 'terrain',
@@ -159,6 +159,21 @@ export const TERRAIN_RASTER_LAYERS: RasterOverlayConfig[] = [
     maxZoom: 22,
     opacity: 1.0,
     type: 'raster-tile',
+  },
+  {
+    id: 'contours',
+    label: 'Elevation Contours',
+    shortLabel: 'Contours',
+    description: 'Topographic contour elevation lines (m)',
+    urlTemplate: import.meta.env.DEV
+      ? '/visigeo-proxy/contours/{z}/{x}/{y}.pbf'
+      : `${VISIGEO_ROOT}/contours/{z}/{x}/{y}.pbf`,
+    category: 'terrain',
+    defaultVisible: false,
+    minZoom: 10,
+    maxZoom: 22,
+    opacity: 1.0,
+    type: 'vector-tile',
   },
 ]
 
@@ -408,6 +423,7 @@ export const INITIAL_RASTER_VISIBILITY: Record<RasterLayerId, boolean> = {
   chm: false,
   slope: false,
   landuse: false,
+  contours: false,
 }
 
 export const INITIAL_VECTOR_VISIBILITY: Record<LayerKey, boolean> = Object.fromEntries(

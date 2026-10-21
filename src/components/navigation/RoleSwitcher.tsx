@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { ChevronDown, LogOut, Mail, MapPin, Phone, User } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { UserRole } from '../../types/auth'
 
 export const RoleSwitcher: React.FC = () => {
   const { currentUser, logout, isLoading } = useAuth()
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -26,21 +28,21 @@ export const RoleSwitcher: React.FC = () => {
     switch (role) {
       case 'super_admin':
       case 'estate_manager':
-        return 'Super Admin'
+        return t('roles.superAdmin')
       case 'division_manager':
-        return 'Division Manager'
+        return t('roles.divisionManager')
       case 'field_officer':
       case 'kangany':
       case 'agronomist':
-        return 'Field Officer'
+        return t('roles.fieldOfficer')
       case 'worker':
       case 'employee':
       case 'harvester':
       case 'sprayer':
       case 'sundry':
-        return 'Employee'
+        return t('roles.employee')
       default:
-        return 'Super Admin'
+        return t('roles.superAdmin')
     }
   }
 
@@ -141,7 +143,7 @@ export const RoleSwitcher: React.FC = () => {
               }}
             >
               <LogOut size={15} />
-              <span>Log Out</span>
+              <span>{t('roles.logOut')}</span>
             </button>
           </div>
         </div>

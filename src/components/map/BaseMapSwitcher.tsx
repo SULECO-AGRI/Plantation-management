@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { Check, ChevronUp, Globe, Map as MapIcon, Minus } from 'lucide-react'
+import { useTranslation } from '../../context/LanguageContext'
 
 type Props = {
   isSatelliteActive: boolean
@@ -17,6 +18,7 @@ export function BaseMapSwitcher({
   isRgbActive,
   onToggleRgb,
 }: Props) {
+  const { t } = useTranslation()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
@@ -59,14 +61,14 @@ export function BaseMapSwitcher({
         ref={containerRef}
         className="modern-basemap-pill"
         onClick={() => setIsCollapsed(false)}
-        aria-label="Expand Base Map & Imagery Selector"
-        title="Expand Base Map & Imagery"
+        aria-label={t('basemap.expand')}
+        title={t('basemap.expand')}
       >
         <span className="modern-basemap-pill__icon">
           {isSatelliteActive ? <Globe size={15} /> : <MapIcon size={15} />}
         </span>
         <span className="modern-basemap-pill__text">
-          <strong>{isSatelliteActive ? 'Satellite' : 'Street Map'}</strong>
+          <strong>{isSatelliteActive ? t('basemap.satellite') : t('basemap.streetMap')}</strong>
           {isRgbActive && <span className="modern-basemap-badge">RGB HD</span>}
         </span>
         <ChevronUp size={14} className="modern-basemap-pill__chevron" />
@@ -86,7 +88,7 @@ export function BaseMapSwitcher({
       {/* Category: Base Map */}
       <div className="modern-basemap-section">
         <div className="modern-basemap-header-row">
-          <span className="modern-basemap-header">Base Map</span>
+          <span className="modern-basemap-header">{t('basemap.title')}</span>
           <button
             type="button"
             className="modern-basemap-minimize-btn"
@@ -94,8 +96,8 @@ export function BaseMapSwitcher({
               e.stopPropagation()
               setIsCollapsed(true)
             }}
-            aria-label="Collapse Base Map panel"
-            title="Collapse Base Map"
+            aria-label={t('basemap.collapse')}
+            title={t('basemap.collapse')}
           >
             <Minus size={13} />
           </button>
@@ -106,13 +108,13 @@ export function BaseMapSwitcher({
           type="button"
           className={`modern-basemap-row ${!isSatelliteActive ? 'modern-basemap-row--active' : ''}`}
           onClick={handleSelectOsm}
-          title="Switch to OpenStreetMap vector street map"
+          title={t('basemap.osmTitle')}
         >
           <div className="modern-basemap-left">
             <span className={`modern-radio-circle ${!isSatelliteActive ? 'modern-radio-circle--active' : ''}`}>
               {!isSatelliteActive && <span className="modern-radio-dot" />}
             </span>
-            <span className="modern-basemap-title">OpenStreetMap</span>
+            <span className="modern-basemap-title">{t('basemap.osm')}</span>
           </div>
           <MapIcon size={14} className="modern-basemap-icon" />
         </button>
@@ -122,13 +124,13 @@ export function BaseMapSwitcher({
           type="button"
           className={`modern-basemap-row ${isSatelliteActive ? 'modern-basemap-row--active' : ''}`}
           onClick={handleSelectSatellite}
-          title="Switch to Google Satellite satellite imagery"
+          title={t('basemap.satelliteTitle')}
         >
           <div className="modern-basemap-left">
             <span className={`modern-radio-circle ${isSatelliteActive ? 'modern-radio-circle--active' : ''}`}>
               {isSatelliteActive && <span className="modern-radio-dot" />}
             </span>
-            <span className="modern-basemap-title">Google Satellite</span>
+            <span className="modern-basemap-title">{t('basemap.satellite')}</span>
           </div>
           <Globe size={14} className="modern-basemap-icon" />
         </button>
@@ -138,20 +140,20 @@ export function BaseMapSwitcher({
 
       {/* Category: Imagery Overlay */}
       <div className="modern-basemap-section">
-        <span className="modern-basemap-header">Imagery</span>
+        <span className="modern-basemap-header">{t('basemap.imagery')}</span>
 
         {/* RGB Orthophoto Option */}
         <button
           type="button"
           className={`modern-basemap-row ${isRgbActive ? 'modern-basemap-row--active' : ''}`}
           onClick={handleToggleRgbClick}
-          title="Toggle high-resolution RGB aerial drone orthophoto"
+          title={t('basemap.rgbTitle')}
         >
           <div className="modern-basemap-left">
             <span className={`modern-checkbox-square ${isRgbActive ? 'modern-checkbox-square--active' : ''}`}>
               {isRgbActive && <Check size={11} strokeWidth={3.2} />}
             </span>
-            <span className="modern-basemap-title">RGB</span>
+            <span className="modern-basemap-title">{t('basemap.rgb')}</span>
           </div>
           <span className="modern-basemap-badge">HD</span>
         </button>

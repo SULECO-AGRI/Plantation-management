@@ -18,6 +18,7 @@ import type {
 import type { Worker } from '../../../types/workforce'
 import { useWorkforce } from '../../../context/WorkforceContext'
 import { useAuth } from '../../../context/AuthContext'
+import { useTranslation } from '../../../context/LanguageContext'
 import { EmployeeDayDetailModal } from '../../workforce/EmployeeDayDetailModal'
 
 type Props = {
@@ -39,6 +40,7 @@ export function LayerController({
   onSelectEmployee,
   onSelectPlot,
 }: Props) {
+  const { t } = useTranslation()
   const { isGpsLayerVisible, setIsGpsLayerVisible, workers, setSelectedWorker } = useWorkforce()
 
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -48,7 +50,7 @@ export function LayerController({
     infrastructure: true,
     estate: true,
     telemetry: true,
-    terrain: false,
+    terrain: true,
   })
 
   const toggleSection = (sec: string) => {
@@ -69,8 +71,54 @@ export function LayerController({
 
   const { role } = useAuth()
   const activeRole = role || 'Officer'
-  const showTerrain = activeRole === 'Admin' || activeRole === 'Manager'
+  const showTerrain = true
   const showTelemetry = activeRole === 'Admin' || activeRole === 'Officer'
+
+  const getRoleBadgeLabel = (r: string) => {
+    switch (r.toLowerCase()) {
+      case 'admin':
+        return t('roles.admin')
+      case 'manager':
+        return t('roles.manager')
+      case 'officer':
+        return t('roles.officer')
+      default:
+        return r
+    }
+  }
+
+  const getLayerLabel = (key: string, fallbackLabel: string) => {
+    switch (key) {
+      case 'roads':
+        return t('layers.roads')
+      case 'streams':
+        return t('layers.streams')
+      case 'buildings':
+        return t('layers.buildings')
+      case 'divisions':
+        return t('layers.divisions')
+      case 'fields_weddamulla':
+        return t('layers.weddamulla')
+      case 'fields_ramboda':
+        return t('layers.ramboda')
+      case 'fields_camnethan':
+        return t('layers.camnethan')
+      case 'fields_lilliesland':
+        return t('layers.lilliesland')
+      case 'fields_wewandon':
+        return t('layers.wewandon')
+      case 'chm':
+        return t('layers.chm')
+      case 'slope':
+        return t('layers.slope')
+      case 'landuse':
+        return t('layers.landuse')
+      case 'contours':
+        return t('layers.contours')
+      default:
+        return fallbackLabel
+    }
+  }
 
   const allowedInfraLayers = INFRASTRUCTURE_LAYERS.filter((l) => {
     if (activeRole === 'Admin') return true
@@ -94,15 +142,15 @@ export function LayerController({
         type="button"
         className="layer-controller-pill"
         onClick={() => setIsCollapsed(false)}
-        aria-label="Expand layers and overlays panel"
-        title="Expand Layers & Overlays"
+        aria-label={t('layers.expandAria')}
+        title={t('layers.expandTitle')}
       >
         <span className="layer-controller-pill__icon">
           <Layers size={15} />
         </span>
         <span className="layer-controller-pill__text">
-          <strong>Layers</strong>
-          <span className="layer-count-chip">{totalThematicActive} active</span>
+          <strong>{t('layers.title')}</strong>
+          <span className="layer-count-chip">{t('layers.activeCount', { count: totalThematicActive })}</span>
         </span>
         <ChevronDown size={14} className="layer-controller-pill__chevron" />
       </button>
@@ -116,8 +164,8 @@ export function LayerController({
         <div className="layer-controller-header__title">
           <h2>
             <Layers size={15} />
-            <span>Layers</span>
-            <span className="layer-count-chip">{totalThematicActive} active</span>
+            <span>{t('layers.title')}</span>
+            <span className="layer-count-chip">{t('layers.activeCount', { count: totalThematicActive })}</span>
             <span
               style={{
                 fontSize: '10.5px',
@@ -130,7 +178,7 @@ export function LayerController({
                 letterSpacing: '0.3px',
               }}
             >
-              {activeRole}
+              {getRoleBadgeLabel(activeRole)}
             </span>
           </h2>
         </div>
@@ -138,18 +186,18 @@ export function LayerController({
           <button
             className="icon-btn"
             type="button"
-            title="Reset overlays to default"
+            title={t('layers.resetTitle')}
             onClick={onResetLayersToDefault}
-            aria-label="Reset overlays to default"
+            aria-label={t('layers.resetTitle')}
           >
             <RotateCcw size={13} />
           </button>
           <button
             className="icon-btn"
             type="button"
-            title="Minimize panel"
+            title={t('layers.minimizeTitle')}
             onClick={() => setIsCollapsed(true)}
-            aria-label="Minimize layer panel"
+            aria-label={t('layers.minimizeTitle')}
           >
             <Minus size={14} />
           </button>
@@ -167,7 +215,7 @@ export function LayerController({
             onClick={() => toggleSection('infrastructure')}
             aria-expanded={openSections.infrastructure}
           >
-            <span className="category-title">Infrastructure &amp; Hydrology</span>
+            <span className="category-title">{t('layers.infraTitle')}</span>
             <span className="category-meta">
               {activeInfraCount > 0 && (
                 <span className="category-active-tag">{activeInfraCount}</span>
@@ -201,7 +249,7 @@ export function LayerController({
                       }}
                     />
                     <span className="layer-copy">
-                      <strong>{layer.shortLabel}</strong>
+                      <strong>{getLayerLabel(layer.key, layer.shortLabel)}</strong>
                     </span>
                     <span
                       className={`layer-toggle-switch ${isVisible ? 'layer-toggle-switch--active' : ''}`}
@@ -226,7 +274,7 @@ export function LayerController({
             onClick={() => toggleSection('estate')}
             aria-expanded={openSections.estate}
           >
-            <span className="category-title">Plantation Sectors &amp; Blocks</span>
+            <span className="category-title">{t('layers.sectorsTitle')}</span>
             <span className="category-meta">
               {activeEstateCount > 0 && (
                 <span className="category-active-tag">{activeEstateCount}</span>
@@ -257,8 +305,8 @@ export function LayerController({
                     <span style={{ background: CARTOGRAPHIC_COLORS.divisions.wewandon.hex }} />
                   </span>
                   <span className="layer-copy">
-                    <strong>{divisionLayer.shortLabel}</strong>
-                    <small>Estate Divisions boundary &amp; areas</small>
+                    <strong>{t('layers.divisions')}</strong>
+                    <small>{t('layers.divisionsSubtitle')}</small>
                   </span>
                   <span
                     className={`layer-toggle-switch ${vectorVisibility[divisionLayer.key] ? 'layer-toggle-switch--active' : ''}`}
@@ -272,7 +320,7 @@ export function LayerController({
               {/* Agricultural Fields Sub-group */}
               <div className="fields-subgroup">
                 <div className="fields-subgroup__header">
-                  <span>Agricultural Fields</span>
+                  <span>{t('layers.agriculturalFields')}</span>
                 </div>
 
                 <div className="fields-subgroup__list">
@@ -291,7 +339,7 @@ export function LayerController({
                           style={{ borderColor: layer.color, background: layer.fillColor || layer.color }}
                         />
                         <span className="layer-copy">
-                          <strong>{layer.shortLabel}</strong>
+                          <strong>{getLayerLabel(layer.key, layer.shortLabel)}</strong>
                         </span>
                         <span
                           className={`layer-toggle-switch layer-toggle-switch--compact ${isVisible ? 'layer-toggle-switch--active' : ''}`}
@@ -319,7 +367,7 @@ export function LayerController({
             onClick={() => toggleSection('telemetry')}
             aria-expanded={openSections.telemetry}
           >
-            <span className="category-title">Operational Telemetry</span>
+            <span className="category-title">{t('layers.telemetryTitle')}</span>
             <span className="category-meta">
               {activeTelemetryCount > 0 && (
                 <span className="category-active-tag">{activeTelemetryCount}</span>
@@ -346,9 +394,9 @@ export function LayerController({
                   onClick={() => setIsRosterOpen((prev) => !prev)}
                   title="Click to view employees and attendance"
                 >
-                  <strong>Employees Working Today</strong>
+                  <strong>{t('layers.employeesToday')}</strong>
                   <small>
-                    {attendedCount} Present · {absentCount} Absent
+                    {t('layers.presentCount', { attended: attendedCount, absent: absentCount })}
                   </small>
                 </span>
                 <button
@@ -368,7 +416,7 @@ export function LayerController({
                 className="employees-sub-toggle-btn"
                 onClick={() => setIsRosterOpen((prev) => !prev)}
               >
-                <span>{isRosterOpen ? 'Hide Employee List' : 'View Employees & Daily KGs'}</span>
+                <span>{isRosterOpen ? t('layers.hideRoster') : t('layers.viewRoster')}</span>
                 <span>{isRosterOpen ? '▲' : '▼'}</span>
               </button>
 
@@ -407,7 +455,7 @@ export function LayerController({
                               : 'employee-roster-item__tag--absent'
                           }`}
                         >
-                          {w.attended ? 'Present' : 'Absent'}
+                          {w.attended ? t('layers.present') : t('layers.absent')}
                         </span>
                       </div>
                     </button>
@@ -430,7 +478,7 @@ export function LayerController({
               onClick={() => toggleSection('terrain')}
               aria-expanded={openSections.terrain}
             >
-              <span className="category-title">Remote Sensing &amp; Terrain</span>
+              <span className="category-title">{t('layers.terrainTitle')}</span>
               <span className="category-meta">
                 {activeAnalysisCount > 0 && (
                   <span className="category-active-tag">{activeAnalysisCount}</span>
@@ -446,6 +494,14 @@ export function LayerController({
               <div className="layer-category__content">
                 {ANALYSIS_RASTER_LAYERS.map((layer) => {
                   const isVisible = rasterVisibility[layer.id]
+                  const swatchColor =
+                    layer.id === 'contours'
+                      ? '#9B59B6'
+                      : layer.id === 'chm'
+                      ? '#8CD056'
+                      : layer.id === 'slope'
+                      ? '#FFD300'
+                      : '#408018'
 
                   return (
                     <button
@@ -454,10 +510,18 @@ export function LayerController({
                       className={`layer-row ${isVisible ? 'layer-row--active' : ''}`}
                       onClick={() => onToggleRaster(layer.id)}
                       aria-label={`Toggle ${layer.label}`}
+                      title={`${layer.label} (${layer.description})`}
                     >
+                      <span
+                        className="layer-swatch"
+                        style={{
+                          borderColor: swatchColor,
+                          background: layer.id === 'contours' ? '#F4ECF7' : swatchColor,
+                          borderWidth: layer.id === 'contours' ? '2.5px' : '1.5px',
+                        }}
+                      />
                       <span className="layer-copy">
-                        <strong>{layer.shortLabel}</strong>
-                        <small>{layer.description}</small>
+                        <strong>{getLayerLabel(layer.id, layer.shortLabel)}</strong>
                       </span>
 
                       <span

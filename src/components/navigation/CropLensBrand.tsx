@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from '../../context/LanguageContext'
 
 interface CropLensBrandProps {
   title?: string
@@ -145,12 +146,14 @@ export const CropLensLogoIcon: React.FC<{ size?: number; className?: string }> =
 
 export const CropLensBrand: React.FC<CropLensBrandProps> = ({
   title = 'Spatio Agri',
-  subtitle = 'PLANTATION MANAGEMENT',
+  subtitle,
   theme = 'dark',
   size = 'md',
   className = '',
   showSubtitle = true,
 }) => {
+  const { t } = useTranslation()
+  const displaySubtitle = subtitle || t('brand.subtitle')
   const words = title.split(' ')
   const firstWord = words[0] || 'Spatio'
   const secondWord = words.slice(1).join(' ') || 'Agri'
@@ -162,8 +165,8 @@ export const CropLensBrand: React.FC<CropLensBrandProps> = ({
           <span className="croplens-brand__word-primary">{firstWord}</span>
           {secondWord && <span className="croplens-brand__word-accent">{secondWord}</span>}
         </span>
-        {showSubtitle && subtitle && (
-          <span className="croplens-brand__subtitle">{subtitle}</span>
+        {showSubtitle && displaySubtitle && (
+          <span className="croplens-brand__subtitle">{displaySubtitle}</span>
         )}
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
   OSM_TILE_URL,
   TERRAIN_RASTER_LAYERS,
   VISIGEO_IMAGERY_LAYERS,
+  VISIGEO_ROOT,
   CARTOGRAPHIC_COLORS,
 } from '../../data/layers'
 import {
@@ -23,6 +24,7 @@ import {
   numeric,
   searchableText,
 } from '../../utils/gisUtils'
+import { ensureVectorGrid } from '../../utils/leafletPlugins'
 import type {
   BaseMapId,
   EstateFeature,
@@ -160,6 +162,7 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
   // Raster overlay tile layers
   const rasterTileLayersRef = useRef<Partial<Record<RasterLayerId, L.TileLayer>>>({})
   const visigeoGroupRef = useRef<L.LayerGroup | null>(null)
+  const contoursLayerRef = useRef<any>(null)
 
   // Vector GeoJSON layers
   const loadedVectorLayersRef = useRef<Partial<Record<LayerKey, LoadedVectorLayer>>>({})
@@ -412,6 +415,10 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
     map.createPane('analysis_raster')
     map.getPane('analysis_raster')!.style.zIndex = '450'
 
+    // Dedicated pane for topographic contour elevation lines
+    map.createPane('contours_pane')
+    map.getPane('contours_pane')!.style.zIndex = '460'
+
     // Top layer: User Drawing Tools
     map.createPane('drawn_features')
     map.getPane('drawn_features')!.style.zIndex = '500'
@@ -502,9 +509,9 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
       if (successfulVisiGeoTiles === 0) setImageryStatus('error')
     }, 5000)
 
-    // 3. Terrain & Analysis Raster Layers (CHM, Slope, Landuse)
+    // 3. Terrain & Analysis Layers (CHM, Slope, Landuse, Contours)
     TERRAIN_RASTER_LAYERS.forEach((rasterConfig) => {
-      if (rasterConfig.type === 'visigeo-multi') return
+      if (rasterConfig.type === 'visigeo-multi' || rasterConfig.type === 'vector-tile') return
 
       const tileLayer = L.tileLayer(rasterConfig.urlTemplate, {
         pane: 'analysis_raster',
@@ -518,6 +525,65 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
 
       if (rasterVisibilityRef.current[rasterConfig.id]) {
         tileLayer.addTo(map)
+      }
+    })
+
+    // Initialize Contours Vector Tile Layer (Protobuf PBF)
+    ensureVectorGrid().then((ready) => {
+      if (!ready || !mapRef.current) return
+      const currentMap = mapRef.current
+
+      try {
+        const contoursConfig = TERRAIN_RASTER_LAYERS.find((l) => l.id === 'contours')
+        const url = contoursConfig?.urlTemplate || `${VISIGEO_ROOT}/contours/{z}/{x}/{y}.pbf`
+
+        const contoursLayer = (L as any).vectorGrid.protobuf(url, {
+          rendererFactory: (L as any).canvas.tile,
+          vectorTileLayerStyles: {
+            contours: (properties: any, zoom: number) => {
+              const elev = properties?.Elevation || properties?.ELEV || 0
+              const isIndex = elev % 50 === 0
+              const weight = ((zoom - 8) / (25 - 8)) * 0.75 + (isIndex ? 0.9 : 0.45)
+              return {
+                weight: Math.max(weight, 0.4),
+                color: isIndex ? '#8E44AD' : '#9B59B6',
+                opacity: isIndex ? 0.95 : 0.7,
+              }
+            },
+          },
+          pane: 'contours_pane',
+          minNativeZoom: 15,
+          minZoom: 10,
+          maxZoom: 22,
+          maxNativeZoom: 20,
+          interactive: true,
+        })
+
+        contoursLayer.on('mouseover', (e: any) => {
+          const props = e.layer?.properties
+          if (props?.Elevation !== undefined) {
+            currentMap.openTooltip(`Elevation: ${props.Elevation}m`, e.latlng)
+          }
+        })
+        contoursLayer.on('mouseout', () => {
+          currentMap.closeTooltip()
+        })
+        contoursLayer.on('click', (e: any) => {
+          const props = e.layer?.properties
+          if (props?.Elevation !== undefined) {
+            L.popup()
+              .setLatLng(e.latlng)
+              .setContent(`<div style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 4px;">Elevation: ${props.Elevation} m</div>`)
+              .openOn(currentMap)
+          }
+        })
+
+        contoursLayerRef.current = contoursLayer
+        if (rasterVisibilityRef.current.contours) {
+          contoursLayer.addTo(currentMap)
+        }
+      } catch (err) {
+        console.error('Error initializing contours vectorGrid layer:', err)
       }
     })
 
@@ -779,6 +845,14 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
       setMapInstance(null)
       baseMapTileLayersRef.current = {}
       visigeoGroupRef.current = null
+      if (contoursLayerRef.current && map.hasLayer(contoursLayerRef.current)) {
+        try {
+          map.removeLayer(contoursLayerRef.current)
+        } catch {
+          // ignore
+        }
+      }
+      contoursLayerRef.current = null
       rasterTileLayersRef.current = {}
       loadedVectorLayersRef.current = {}
       activeSelectedPathRef.current = null
@@ -902,7 +976,7 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
     }
   }
 
-  // Toggle Thematic Raster Analysis Layers (Exclusive per analysis layer)
+  // Toggle Thematic Raster Analysis Layers
   const handleToggleRaster = (id: RasterLayerId) => {
     const map = mapRef.current
     if (!map) return
@@ -919,11 +993,28 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
       return
     }
 
-    // Analysis rasters: chm, slope, landuse
+    // Contours: Vector Tile overlay (transparent linework, independent of raster overlays)
+    if (id === 'contours') {
+      const contoursLayer = contoursLayerRef.current
+      if (nextState) {
+        if (contoursLayer && !map.hasLayer(contoursLayer)) {
+          contoursLayer.addTo(map)
+        }
+        setRasterVisibility((prev) => ({ ...prev, contours: true }))
+      } else {
+        if (contoursLayer && map.hasLayer(contoursLayer)) {
+          map.removeLayer(contoursLayer)
+        }
+        setRasterVisibility((prev) => ({ ...prev, contours: false }))
+      }
+      return
+    }
+
+    // Analysis rasters: chm, slope, landuse (exclusive opaque overlays)
     if (nextState) {
-      // Turn off any other active analysis layers so they display separately without overlapping
-      const analysisIds: RasterLayerId[] = ['chm', 'slope', 'landuse']
-      analysisIds.forEach((otherId) => {
+      // Turn off any other opaque analysis layers so they display separately without overlapping
+      const opaqueAnalysisIds: RasterLayerId[] = ['chm', 'slope', 'landuse']
+      opaqueAnalysisIds.forEach((otherId) => {
         if (otherId !== id) {
           const otherLayer = rasterTileLayersRef.current[otherId]
           if (otherLayer && map.hasLayer(otherLayer)) {
@@ -1005,13 +1096,19 @@ export function PlantationMap({ locateTarget, onClearLocateTarget, isActive = tr
     // 1. Reset Base Layer to Street Map (OSM)
     handleSelectBaseLayer('osm')
 
-    // 2. Reset Thematic Rasters (CHM, Slope, Landuse to false)
+    // 2. Reset Thematic Rasters & Contours (CHM, Slope, Landuse, Contours to false)
     Object.entries(INITIAL_RASTER_VISIBILITY).forEach(([rawId, defaultVal]) => {
       const id = rawId as RasterLayerId
       if (id !== 'visigeo') {
-        const layer = rasterTileLayersRef.current[id]
-        if (defaultVal) layer?.addTo(map)
-        else layer?.removeFrom(map)
+        if (id === 'contours') {
+          const cLayer = contoursLayerRef.current
+          if (defaultVal) cLayer?.addTo(map)
+          else cLayer?.removeFrom(map)
+        } else {
+          const layer = rasterTileLayersRef.current[id]
+          if (defaultVal) layer?.addTo(map)
+          else layer?.removeFrom(map)
+        }
       }
     })
     setRasterVisibility(INITIAL_RASTER_VISIBILITY)

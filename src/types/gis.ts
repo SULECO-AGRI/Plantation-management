@@ -52,6 +52,7 @@ export type RasterLayerId =
   | 'chm'
   | 'slope'
   | 'landuse'
+  | 'contours'
 
 export type LayerKey =
   | 'boundary'
@@ -93,7 +94,7 @@ export type RasterOverlayConfig = {
   minZoom?: number
   maxZoom?: number
   opacity?: number
-  type: 'visigeo-multi' | 'raster-tile'
+  type: 'visigeo-multi' | 'raster-tile' | 'vector-tile'
 }
 
 export type SelectedEstateFeature = {
