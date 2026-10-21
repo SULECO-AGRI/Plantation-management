@@ -119,7 +119,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     color: string,
     weight: number,
     opacity: number,
-    defaultTypeLabel: string
+    defaultTypeKey: 'estateRoad' | 'provincialRoad' | 'rdaRoad'
   ): L.GeoJSON => {
     return L.geoJSON(
       { type: 'FeatureCollection', features } as GeoJSON.FeatureCollection,
@@ -132,23 +132,31 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
         }),
         onEachFeature: (feature, layer) => {
           const props = feature.properties || {}
-          const rdType = props.RdType || defaultTypeLabel
-          const length = props.Length ? `${Number(props.Length).toFixed(1)} m` : 'N/A'
           const fid = props.FID !== undefined ? `#${props.FID}` : ''
 
           layer.bindPopup(
+            () => {
+              const rawType = String(props.RdType || '').trim().toLowerCase()
+              let typeLabel = t(`watawala.${defaultTypeKey}`)
+              if (rawType.includes('rda')) typeLabel = t('watawala.rdaRoad')
+              else if (rawType.includes('provincial')) typeLabel = t('watawala.provincialRoad')
+              else if (rawType.includes('estate')) typeLabel = t('watawala.estateRoad')
+
+              const lengthVal = props.Length ? `${Number(props.Length).toFixed(1)} m` : 'N/A'
+
+              return `
+              <div style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px; padding: 4px 6px; line-height: 1.4; min-width: 170px;">
+                <div style="font-weight: 700; color: #071712; font-size: 13px; margin-bottom: 4px; border-bottom: 1px solid #e2ede6; padding-bottom: 4px;">
+                  ${typeLabel} <span style="color: #6b7f75; font-size: 11px; font-weight: 500;">${fid}</span>
+                </div>
+                <div style="color: #3c5248; margin-top: 5px;">${t('watawala.length')} <strong style="color: #071712;">${lengthVal}</strong></div>
+                <div style="color: #6b7f75; font-size: 10.5px; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
+                  <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${color};"></span>
+                  ${t('watawala.companyName')}
+                </div>
+              </div>
             `
-            <div style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px; padding: 4px 6px; line-height: 1.4; min-width: 170px;">
-              <div style="font-weight: 700; color: #071712; font-size: 13px; margin-bottom: 4px; border-bottom: 1px solid #e2ede6; padding-bottom: 4px;">
-                ${rdType} <span style="color: #6b7f75; font-size: 11px; font-weight: 500;">${fid}</span>
-              </div>
-              <div style="color: #3c5248; margin-top: 5px;">Length: <strong style="color: #071712;">${length}</strong></div>
-              <div style="color: #6b7f75; font-size: 10.5px; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
-                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${color};"></span>
-                Watawala Plantations PLC
-              </div>
-            </div>
-          `,
+            },
             {
               className: 'estate-leaflet-popup',
             }
@@ -263,17 +271,17 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
         rdaGroup.clearLayers()
 
         // 1. Estate Roads layer (#D84F4F)
-        const estateLayer = createRoadSubLayer(estateFeatures, '#D84F4F', 1.5, 0.88, 'Estate Road')
+        const estateLayer = createRoadSubLayer(estateFeatures, '#D84F4F', 1.5, 0.88, 'estateRoad')
         estateRoadsLayerRef.current = estateLayer
         estateGroup.addLayer(estateLayer)
 
         // 2. Provincial Roads layer (#ff7800)
-        const provincialLayer = createRoadSubLayer(provincialFeatures, '#ff7800', 2.2, 0.95, 'Provincial Road')
+        const provincialLayer = createRoadSubLayer(provincialFeatures, '#ff7800', 2.2, 0.95, 'provincialRoad')
         provincialRoadsLayerRef.current = provincialLayer
         provincialGroup.addLayer(provincialLayer)
 
         // 3. RDA Roads layer (#ca8a04)
-        const rdaLayer = createRoadSubLayer(rdaFeatures, '#ca8a04', 2.5, 0.95, 'RDA Road')
+        const rdaLayer = createRoadSubLayer(rdaFeatures, '#ca8a04', 2.5, 0.95, 'rdaRoad')
         rdaRoadsLayerRef.current = rdaLayer
         rdaGroup.addLayer(rdaLayer)
 
@@ -486,12 +494,23 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
 
     // 1. Search landmark divisions/estates
     WATAWALA_ESTATES.forEach((e) => {
-      if (e.name.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q)) {
+      const localizedSubtitle =
+        e.id === 'homadola'
+          ? t('watawala.homadolaSubtitle')
+          : e.id === 'nakiyadeniya'
+          ? t('watawala.nakiyadeniyaSubtitle')
+          : e.id === 'thalangaha'
+          ? t('watawala.thalangahaSubtitle')
+          : e.id === 'udugama'
+          ? t('watawala.udugamaSubtitle')
+          : e.subtitle
+
+      if (e.name.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q) || localizedSubtitle.toLowerCase().includes(q)) {
         hits.push({
           id: `estate-${e.id}`,
           layerKey: 'boundary',
           label: e.name,
-          subtitle: e.subtitle,
+          subtitle: localizedSubtitle,
           feature: {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [e.center[1], e.center[0]] },
@@ -513,12 +532,17 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
         const matchesType = rdType.toLowerCase().includes(q)
 
         if (matchesFid || matchesType) {
-          const length = props.Length ? `${Number(props.Length).toFixed(1)} m` : ''
+          const rawType = rdType.toLowerCase()
+          let localizedType = t('watawala.estateRoad')
+          if (rawType.includes('rda')) localizedType = t('watawala.rdaRoad')
+          else if (rawType.includes('provincial')) localizedType = t('watawala.provincialRoad')
+
+          const lengthStr = props.Length ? `${t('watawala.length')} ${Number(props.Length).toFixed(1)} m · ` : ''
           hits.push({
             id: `road-${props.FID}`,
             layerKey: 'roads',
-            label: `${rdType} #${props.FID}`,
-            subtitle: length ? `Length: ${length} · Watawala Plantations PLC` : 'Watawala Plantations PLC',
+            label: `${localizedType} #${props.FID}`,
+            subtitle: `${lengthStr}${t('watawala.companyName')}`,
             feature: f as unknown as EstateFeature,
           })
         }
@@ -526,7 +550,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     }
 
     return hits
-  }, [query])
+  }, [query, t])
 
   // Hit selection handler
   const handleSelectHit = (hit: SearchHit) => {
@@ -536,13 +560,24 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     if (hit.id.startsWith('estate-')) {
       const estate = WATAWALA_ESTATES.find((e) => `estate-${e.id}` === hit.id)
       if (estate) {
+        const localizedSubtitle =
+          estate.id === 'homadola'
+            ? t('watawala.homadolaSubtitle')
+            : estate.id === 'nakiyadeniya'
+            ? t('watawala.nakiyadeniyaSubtitle')
+            : estate.id === 'thalangaha'
+            ? t('watawala.thalangahaSubtitle')
+            : estate.id === 'udugama'
+            ? t('watawala.udugamaSubtitle')
+            : estate.subtitle
+
         map.flyTo(estate.center, 15.5, { duration: 1.2 })
         L.popup()
           .setLatLng(estate.center)
           .setContent(`
             <div style="font-family: system-ui, sans-serif; font-size: 12px; padding: 4px 6px;">
               <strong style="color: #071712; font-size: 13px;">${estate.name}</strong>
-              <div style="color: #6b7f75; font-size: 11px; margin-top: 3px;">${estate.subtitle}</div>
+              <div style="color: #6b7f75; font-size: 11px; margin-top: 3px;">${localizedSubtitle}</div>
             </div>
           `)
           .openOn(map)
@@ -639,8 +674,8 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
         searchHits={searchHits}
         onSelectHit={handleSelectHit}
         onResetView={handleResetView}
-        estateLabel="Watawala Plantation"
-        placeholder="Search estate, road type or FID (e.g. Homadola, Nakiyadeniya, Road #10)..."
+        estateLabel={t('watawala.estateLabel')}
+        placeholder={t('watawala.searchPlaceholder')}
         style={{
           left: isCollapsed ? '160px' : '366px',
           transition: 'left 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -689,7 +724,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                       letterSpacing: '0.3px',
                     }}
                   >
-                    {activeRole}
+                    {t(`roles.${activeRole.toLowerCase()}`) || activeRole}
                   </span>
                 </h2>
               </div>
@@ -725,7 +760,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                   onClick={() => setIsInfraOpen((prev) => !prev)}
                   aria-expanded={isInfraOpen}
                 >
-                  <span className="category-title">Infrastructure &amp; Hydrology</span>
+                  <span className="category-title">{t('layers.infraTitle')}</span>
                   <span className="category-meta">
                     {activeRoadsCount > 0 && (
                       <span className="category-active-tag">{activeRoadsCount}</span>
@@ -744,7 +779,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                       type="button"
                       className={`layer-row ${isEstateRoadsVisible ? 'layer-row--active' : ''}`}
                       onClick={handleToggleEstateRoads}
-                      aria-label="Toggle Estate Roads"
+                      aria-label={t('watawala.estateRoads')}
                     >
                       <span
                         className="layer-swatch"
@@ -757,10 +792,10 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                       />
                       <span className="layer-copy">
                         <strong style={{ color: isEstateRoadsVisible ? '#172d23' : '#64748b' }}>
-                          Estate Roads
+                          {t('watawala.estateRoads')}
                         </strong>
                         <small style={{ color: '#6b7f75', fontSize: '10.5px' }}>
-                          4,362 segments
+                          {t('watawala.segmentsCount', { count: '4,362' })}
                         </small>
                       </span>
                       <span
@@ -776,7 +811,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                       type="button"
                       className={`layer-row ${isProvincialRoadsVisible ? 'layer-row--active' : ''}`}
                       onClick={handleToggleProvincialRoads}
-                      aria-label="Toggle Provincial Roads"
+                      aria-label={t('watawala.provincialRoads')}
                     >
                       <span
                         className="layer-swatch"
@@ -789,10 +824,10 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                       />
                       <span className="layer-copy">
                         <strong style={{ color: isProvincialRoadsVisible ? '#172d23' : '#64748b' }}>
-                          Provincial Roads
+                          {t('watawala.provincialRoads')}
                         </strong>
                         <small style={{ color: '#6b7f75', fontSize: '10.5px' }}>
-                          1,267 segments
+                          {t('watawala.segmentsCount', { count: '1,267' })}
                         </small>
                       </span>
                       <span
@@ -808,7 +843,7 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                       type="button"
                       className={`layer-row ${isRdaRoadsVisible ? 'layer-row--active' : ''}`}
                       onClick={handleToggleRdaRoads}
-                      aria-label="Toggle RDA Roads"
+                      aria-label={t('watawala.rdaRoads')}
                     >
                       <span
                         className="layer-swatch"
@@ -821,10 +856,10 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                       />
                       <span className="layer-copy">
                         <strong style={{ color: isRdaRoadsVisible ? '#172d23' : '#64748b' }}>
-                          RDA Roads
+                          {t('watawala.rdaRoads')}
                         </strong>
                         <small style={{ color: '#6b7f75', fontSize: '10.5px' }}>
-                          5 segments
+                          {t('watawala.segmentsCount', { count: '5' })}
                         </small>
                       </span>
                       <span
@@ -871,13 +906,13 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
         }}
       >
         <div style={{ fontWeight: 700, fontSize: '11.5px', color: '#0f291e', marginBottom: '2px' }}>
-          Watawala Plantations PLC
+          {t('watawala.companyName')}
         </div>
         <div style={{ color: '#4b6357', fontSize: '10.5px' }}>
-          <strong>Estates:</strong> Homadola, Nakiyadeniya, Thalangaha
+          <strong>{t('watawala.statsEstates')}</strong> {t('watawala.statsEstatesList')}
         </div>
         <div style={{ color: '#4b6357', fontSize: '10.5px' }}>
-          <strong>Area:</strong> 5,900 ha &bull; <strong>Oil Palm:</strong> 347,074 &bull; <strong>Coconut:</strong> 4,774
+          <strong>{t('watawala.statsArea')}</strong> 5,900 ha &bull; <strong>{t('watawala.statsOilPalm')}</strong> 347,074 &bull; <strong>{t('watawala.statsCoconut')}</strong> 4,774
         </div>
       </div>
 
@@ -885,14 +920,14 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
       {isLoadingVector && (
         <div className="watawala-loading-overlay">
           <div className="clean-spinner" />
-          <span>Loading Watawala road network GIS data...</span>
+          <span>{t('watawala.loadingRoads')}</span>
         </div>
       )}
 
       {/* Load Error Notice */}
       {loadError && (
         <div className="watawala-error-banner">
-          <strong>GIS Layer Notice</strong>
+          <strong>{t('watawala.gisNotice')}</strong>
           <p>{loadError}</p>
         </div>
       )}

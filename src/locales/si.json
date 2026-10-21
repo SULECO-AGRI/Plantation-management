@@ -584,5 +584,29 @@
     "zoomIn": "විශාලනය කරන්න",
     "zoomOut": "කුඩා කරන්න",
     "exportFeatures": "අඳින ලද අංග {{count}} ක් GeoJSON ලෙස බාගත කරන්න"
+  },
+  "watawala": {
+    "estateLabel": "වටවල වැවිලි සමාගම",
+    "searchPlaceholder": "වතුයාය, මාර්ග වර්ගය හෝ FID සොයන්න (උදා. Homadola, Nakiyadeniya, මාර්ගය #10)...",
+    "estateRoads": "වතු අභ්‍යන්තර මාර්ග",
+    "provincialRoads": "පළාත් සභා මාර්ග",
+    "rdaRoads": "RDA ප්‍රධාන මාර්ග",
+    "estateRoad": "වතු අභ්‍යන්තර මාර්ගය",
+    "provincialRoad": "පළාත් සභා මාර්ගය",
+    "rdaRoad": "RDA මාර්ගය",
+    "segmentsCount": "කොටස් {{count}}",
+    "loadingRoads": "වටවල මාර්ග ජාල GIS දත්ත පූරණය වෙමින් පවතී...",
+    "gisNotice": "GIS ස්ථර නිවේදනය",
+    "length": "දිග:",
+    "companyName": "වටවල ප්ලාන්ටේෂන්ස් පීඑල්සී (Watawala Plantations PLC)",
+    "homadolaSubtitle": "වටවල ප්ලාන්ටේෂන්ස් පීඑල්සී · පාම් සහ රබර් අංශය",
+    "nakiyadeniyaSubtitle": "වටවල ප්ලාන්ටේෂන්ස් පීඑල්සී · පාම් තෙල් කම්හල සහ වතුයාය",
+    "thalangahaSubtitle": "වටවල ප්ලාන්ටේෂන්ස් පීඑල්සී · කෘෂිකාර්මික අංශය",
+    "udugamaSubtitle": "පළාත් මංසන්ධිය සහ ප්‍රවාහන මධ්‍යස්ථානය",
+    "statsEstates": "වතුයායන්:",
+    "statsArea": "වර්ගඵලය:",
+    "statsOilPalm": "තෙල් පාම්:",
+    "statsCoconut": "පොල්:",
+    "statsEstatesList": "Homadola, Nakiyadeniya, Thalangaha"
   }
 }

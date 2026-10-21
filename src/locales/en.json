@@ -584,5 +584,29 @@
     "zoomIn": "Zoom In",
     "zoomOut": "Zoom Out",
     "exportFeatures": "Export {{count}} drawn features as GeoJSON"
+  },
+  "watawala": {
+    "estateLabel": "Watawala Plantation",
+    "searchPlaceholder": "Search estate, road type or FID (e.g. Homadola, Nakiyadeniya, Road #10)...",
+    "estateRoads": "Estate Roads",
+    "provincialRoads": "Provincial Roads",
+    "rdaRoads": "RDA Roads",
+    "estateRoad": "Estate Road",
+    "provincialRoad": "Provincial Road",
+    "rdaRoad": "RDA Road",
+    "segmentsCount": "{{count}} segments",
+    "loadingRoads": "Loading Watawala road network GIS data...",
+    "gisNotice": "GIS Layer Notice",
+    "length": "Length:",
+    "companyName": "Watawala Plantations PLC",
+    "homadolaSubtitle": "Watawala Plantations PLC · Palm & Rubber Division",
+    "nakiyadeniyaSubtitle": "Watawala Plantations PLC · Palm Oil Mill & Estate",
+    "thalangahaSubtitle": "Watawala Plantations PLC · Agricultural Division",
+    "udugamaSubtitle": "Provincial Junction & Transport Hub",
+    "statsEstates": "Estates:",
+    "statsArea": "Area:",
+    "statsOilPalm": "Oil Palm:",
+    "statsCoconut": "Coconut:",
+    "statsEstatesList": "Homadola, Nakiyadeniya, Thalangaha"
   }
 }
