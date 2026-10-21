@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { UserProfile } from '../../types/auth'
 
 type LoginFormProps = {
@@ -13,6 +14,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   redirectAfterLogin = true,
 }) => {
   const { login, getRoleDefaultTab } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -36,7 +38,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setStatusNotice(null)
 
     if (!username.trim()) {
-      setErrorMessage('Please enter your username or work email address.')
+      setErrorMessage(t('auth.enterUsername'))
       return
     }
 
@@ -48,7 +50,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       const plantation = user.plantationScope || 'Agalawatte'
       const roleTitle = user.roleTitle || user.role
 
-      setStatusNotice(`Authenticated as ${user.name} (${roleTitle}). Routing to ${plantation} map view...`)
+      setStatusNotice(t('auth.routingStatus', {
+        name: user.name,
+        role: roleTitle,
+        plantation,
+      }))
 
       setTimeout(() => {
         if (onSuccess) onSuccess(user)
@@ -80,7 +86,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         }
       }, 400)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Invalid username or password.'
+      const msg = err instanceof Error ? err.message : t('auth.invalidCredentials')
       setErrorMessage(msg)
     } finally {
       setIsSubmitting(false)
@@ -90,13 +96,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   return (
     <div className="clean-login-card">
       <div className="clean-login-header">
-        <h1 className="clean-login-title">Plantation Portal Sign In</h1>
+        <h1 className="clean-login-title">{t('auth.signInTitle')}</h1>
       </div>
 
       {/* Status Notice (Minimalist without decorative icons) */}
       {statusNotice && (
         <div className="clean-alert clean-alert--success" role="status">
-          <strong>Access Authorized</strong>
+          <strong>{t('auth.accessAuthorized')}</strong>
           <p>{statusNotice}</p>
         </div>
       )}
@@ -104,7 +110,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {/* Error Alert (Minimalist without decorative icons) */}
       {errorMessage && (
         <div className="clean-alert clean-alert--error" role="alert">
-          <strong>Authentication Failed</strong>
+          <strong>{t('auth.authFailed')}</strong>
           <p>{errorMessage}</p>
         </div>
       )}
@@ -113,13 +119,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <form onSubmit={handleSubmit} className="clean-login-form">
         <div className="clean-form-group">
           <label htmlFor="login-username" className="clean-form-label">
-            Username or Work Email
+            {t('auth.usernameLabel')}
           </label>
           <input
             id="login-username"
             type="text"
             className="clean-form-input"
-            placeholder="admin, manager, officer (Agalawatte) or admin_wat, manager_wat, officer_wat (Watawala)"
+            placeholder={t('auth.usernamePlaceholder')}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             disabled={isSubmitting}
@@ -132,7 +138,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <div className="clean-form-group">
           <div className="clean-label-row">
             <label htmlFor="login-password" className="clean-form-label">
-              Password
+              {t('auth.passwordLabel')}
             </label>
             <button
               type="button"
@@ -140,14 +146,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               onClick={() => setShowPassword((prev) => !prev)}
               tabIndex={-1}
             >
-              {showPassword ? 'Hide' : 'Show'}
+              {showPassword ? t('auth.hide') : t('auth.show')}
             </button>
           </div>
           <input
             id="login-password"
             type={showPassword ? 'text' : 'password'}
             className="clean-form-input"
-            placeholder="Enter password (default: estate123)"
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isSubmitting}
@@ -163,7 +169,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
             />
-            <span>Remember session on this device</span>
+            <span>{t('auth.rememberMe')}</span>
           </label>
         </div>
 
@@ -172,16 +178,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           className="clean-submit-btn"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Authenticating & Routing...' : 'Sign In'}
+          {isSubmitting ? t('auth.authenticating') : t('auth.signInBtn')}
         </button>
       </form>
 
       {/* Quick Demo Credentials Footer */}
       <div className="clean-demo-accounts">
-        <span className="clean-demo-title">Test Credentials (Password: estate123):</span>
+        <span className="clean-demo-title">{t('auth.testCredentials')}</span>
         
         <div style={{ marginTop: '8px', marginBottom: '4px', fontSize: '11px', fontWeight: 600, color: '#3c5248' }}>
-          Agalawatte Map:
+          {t('auth.agalawatteMap')}
         </div>
         <div className="clean-demo-buttons">
           <button
@@ -211,7 +217,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </div>
 
         <div style={{ marginTop: '10px', marginBottom: '4px', fontSize: '11px', fontWeight: 600, color: '#3c5248' }}>
-          Watawala Map:
+          {t('auth.watawalaMap')}
         </div>
         <div className="clean-demo-buttons">
           <button

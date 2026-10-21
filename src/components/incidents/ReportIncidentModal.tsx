@@ -3,7 +3,16 @@ import { AlertTriangle, CheckCircle, MapPin, ShieldAlert, Sparkles } from 'lucid
 import { Modal } from '../common/Modal'
 import { useIncident } from '../../context/IncidentContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { IncidentSeverity, IncidentType } from '../../types/incident'
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
 
 type ReportIncidentModalProps = {
   isOpen: boolean
@@ -13,6 +22,7 @@ type ReportIncidentModalProps = {
 export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen, onClose }) => {
   const { reportIncident, dropLocation, setDropLocation } = useIncident()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const [type, setType] = useState<IncidentType>('pest_outbreak')
   const [severity, setSeverity] = useState<IncidentSeverity>('critical')
@@ -81,7 +91,7 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
         lng,
         reportedBy: `${currentUser?.name || 'Field Officer'} (${currentUser?.roleTitle || 'Supervisor'})`,
       })
-      setSuccessMsg('Incident geo-tagged and broadcast to field superintendents!')
+      setSuccessMsg(t('incidents.successMsg'))
       setTimeout(() => {
         setSuccessMsg('')
         setDropLocation(null)
@@ -98,8 +108,8 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Geo-Tagged Incident &amp; Hazard Report"
-      subtitle="Broadcast emergency, pest outbreaks, soil landslips, or infrastructure damage"
+      title={t('incidents.modalTitle')}
+      subtitle={t('incidents.modalSubtitle')}
       icon={<AlertTriangle size={18} />}
       maxWidth="lg"
     >
@@ -114,7 +124,7 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
         <div className="form-grid-2">
           {/* Incident Category */}
           <div className="form-group">
-            <label className="form-label" htmlFor="incident-type">Hazard Category *</label>
+            <label className="form-label" htmlFor="incident-type">{t('incidents.categoryLabel')}</label>
             <select
               id="incident-type"
               value={type}
@@ -122,16 +132,16 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
               className="form-input"
               required
             >
-              <option value="pest_outbreak">🐛 Pest Outbreak (Tea Tortrix / Blister Blight)</option>
-              <option value="soil_erosion">⛰️ Soil Erosion / Landslip Risk</option>
-              <option value="road_blockage">🚜 Road Network Blockage</option>
-              <option value="irrigation_leak">💧 Irrigation / Water Pipe Leak</option>
+              <option value="pest_outbreak">{t('incidents.pestOutbreak')}</option>
+              <option value="soil_erosion">{t('incidents.soilErosion')}</option>
+              <option value="road_blockage">{t('incidents.roadBlockage')}</option>
+              <option value="irrigation_leak">{t('incidents.irrigationLeak')}</option>
             </select>
           </div>
 
           {/* Severity */}
           <div className="form-group">
-            <label className="form-label" htmlFor="incident-severity">Severity Level *</label>
+            <label className="form-label" htmlFor="incident-severity">{t('incidents.severityLabel')}</label>
             <select
               id="incident-severity"
               value={severity}
@@ -139,20 +149,20 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
               className="form-input"
               required
             >
-              <option value="critical">🔴 Critical (Immediate Action Required)</option>
-              <option value="moderate">🟡 Moderate Hazard</option>
-              <option value="advisory">🔵 Advisory / Routine Attention</option>
+              <option value="critical">{t('incidents.severityCritical')}</option>
+              <option value="moderate">{t('incidents.severityModerate')}</option>
+              <option value="advisory">{t('incidents.severityAdvisory')}</option>
             </select>
           </div>
         </div>
 
         {/* Title */}
         <div className="form-group">
-          <label className="form-label" htmlFor="incident-title">Incident Title *</label>
+          <label className="form-label" htmlFor="incident-title">{t('incidents.titleLabel')}</label>
           <input
             id="incident-title"
             type="text"
-            placeholder="e.g. Caterpillar nesting spotted on high terrace ridge"
+            placeholder={t('incidents.titlePlaceholder')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="form-input"
@@ -163,7 +173,7 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
         <div className="form-grid-2">
           {/* Division */}
           <div className="form-group">
-            <label className="form-label" htmlFor="incident-division">Target Estate Division *</label>
+            <label className="form-label" htmlFor="incident-division">{t('incidents.divisionLabel')}</label>
             <select
               id="incident-division"
               value={division}
@@ -171,21 +181,31 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
               className="form-input"
               required
             >
-              <option value="Weddamulla">Weddamulla Division</option>
-              <option value="Ramboda">Ramboda Division</option>
-              <option value="Camnethan">Camnethan Division</option>
-              <option value="Lilliesland">Lilliesland Division</option>
-              <option value="Wewandon">Wewandon Division</option>
+              <option value="Weddamulla">
+                {DIVISION_NAMES.weddamulla[locale]} {t('incidents.divisionSuffix')}
+              </option>
+              <option value="Ramboda">
+                {DIVISION_NAMES.ramboda[locale]} {t('incidents.divisionSuffix')}
+              </option>
+              <option value="Camnethan">
+                {DIVISION_NAMES.camnethan[locale]} {t('incidents.divisionSuffix')}
+              </option>
+              <option value="Lilliesland">
+                {DIVISION_NAMES.lilliesland[locale]} {t('incidents.divisionSuffix')}
+              </option>
+              <option value="Wewandon">
+                {DIVISION_NAMES.wewandon[locale]} {t('incidents.divisionSuffix')}
+              </option>
             </select>
           </div>
 
           {/* Field Block */}
           <div className="form-group">
-            <label className="form-label" htmlFor="incident-block">Field Block Identifier</label>
+            <label className="form-label" htmlFor="incident-block">{t('incidents.fieldBlockLabel')}</label>
             <input
               id="incident-block"
               type="text"
-              placeholder="e.g. Block 4B or Road 3 Bypass"
+              placeholder={t('incidents.fieldBlockPlaceholder')}
               value={fieldBlock}
               onChange={(e) => setFieldBlock(e.target.value)}
               className="form-input"
@@ -196,7 +216,7 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
         {/* Geographic Coordinates */}
         <div className="form-grid-2">
           <div className="form-group">
-            <label className="form-label">GPS Latitude</label>
+            <label className="form-label">{t('incidents.latLabel')}</label>
             <input
               type="number"
               step="0.0001"
@@ -207,7 +227,7 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
             />
           </div>
           <div className="form-group">
-            <label className="form-label">GPS Longitude</label>
+            <label className="form-label">{t('incidents.lngLabel')}</label>
             <input
               type="number"
               step="0.0001"
@@ -221,11 +241,11 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
 
         {/* Description */}
         <div className="form-group">
-          <label className="form-label" htmlFor="incident-desc">Hazard Observation &amp; Action Recommendation *</label>
+          <label className="form-label" htmlFor="incident-desc">{t('incidents.descLabel')}</label>
           <textarea
             id="incident-desc"
             rows={3}
-            placeholder="Describe extent of damage, affected acreage, immediate containment actions taken..."
+            placeholder={t('incidents.descPlaceholder')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="form-input form-textarea"
@@ -236,10 +256,10 @@ export const ReportIncidentModal: React.FC<ReportIncidentModalProps> = ({ isOpen
         {/* Footer Actions */}
         <div className="modal-footer">
           <button type="button" className="btn btn--secondary" onClick={onClose}>
-            Cancel
+            {t('incidents.cancelBtn')}
           </button>
           <button type="submit" className="btn btn--primary btn--danger-accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Transmitting Alert...' : 'Broadcast Incident Alert'}
+            {isSubmitting ? t('incidents.transmittingBtn') : t('incidents.broadcastBtn')}
           </button>
         </div>
       </form>

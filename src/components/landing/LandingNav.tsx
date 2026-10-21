@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { ArrowRight, LogIn, LogOut, Menu, Sparkles, User, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
+import { LanguageSwitcher } from '../common/LanguageSwitcher'
 import { LoginModal } from '../navigation/LoginModal'
 import { CropLensBrand } from '../navigation/CropLensBrand'
 import type { UserRole } from '../../types/auth'
@@ -10,6 +12,7 @@ export function LandingNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const { currentUser, isAuthenticated, logout, getRoleDefaultTab } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev)
@@ -48,12 +51,14 @@ export function LandingNav() {
             </Link>
 
             <div className="nav-menu">
-              <a href="#about" className="nav-link">About Us</a>
-              <a href="#offerings" className="nav-link">Our Services</a>
-              <a href="#operations" className="nav-link">Operations</a>
+              <a href="#about" className="nav-link">{t('landing.aboutUs')}</a>
+              <a href="#offerings" className="nav-link">{t('landing.services')}</a>
+              <a href="#operations" className="nav-link">{t('landing.operations')}</a>
             </div>
 
             <div className="nav-actions">
+              <LanguageSwitcher />
+
               {/* Authenticated: Show GIS Map button + subtle logout */}
               {isAuthenticated && currentUser ? (
                 <div className="nav-user-cluster">
@@ -62,7 +67,7 @@ export function LandingNav() {
                     className="btn btn--nav"
                     title={`Open GIS Map (${getRoleDestinationLabel(currentUser.role)})`}
                   >
-                    GIS Map
+                    {t('landing.gisMap')}
                   </Link>
 
                   <button
@@ -83,7 +88,7 @@ export function LandingNav() {
                   onClick={() => setIsLoginModalOpen(true)}
                   title="Sign In to Spatio Agri PM Portal"
                 >
-                  Login
+                  {t('landing.login')}
                 </button>
               )}
 
@@ -104,9 +109,9 @@ export function LandingNav() {
         {mobileMenuOpen && (
           <div className="nav-mobile-drawer">
             <div className="nav-mobile-menu">
-              <a href="#about" className="nav-mobile-link" onClick={closeMobileMenu}>About Us</a>
-              <a href="#offerings" className="nav-mobile-link" onClick={closeMobileMenu}>Our Services</a>
-              <a href="#operations" className="nav-mobile-link" onClick={closeMobileMenu}>Operations</a>
+              <a href="#about" className="nav-mobile-link" onClick={closeMobileMenu}>{t('landing.aboutUs')}</a>
+              <a href="#offerings" className="nav-mobile-link" onClick={closeMobileMenu}>{t('landing.services')}</a>
+              <a href="#operations" className="nav-mobile-link" onClick={closeMobileMenu}>{t('landing.operations')}</a>
             </div>
 
             <div className="nav-mobile-action">
@@ -117,7 +122,7 @@ export function LandingNav() {
                     className="btn btn--nav-mobile"
                     onClick={closeMobileMenu}
                   >
-                    GIS Map
+                    {t('landing.gisMap')}
                   </Link>
                   <button
                     type="button"
@@ -128,7 +133,7 @@ export function LandingNav() {
                     }}
                   >
                     <LogOut size={14} />
-                    <span>Sign Out ({currentUser.name})</span>
+                    <span>{t('landing.signOut')} ({currentUser.name})</span>
                   </button>
                 </div>
               ) : (
@@ -140,7 +145,7 @@ export function LandingNav() {
                     setIsLoginModalOpen(true)
                   }}
                 >
-                  Login
+                  {t('landing.login')}
                 </button>
               )}
             </div>

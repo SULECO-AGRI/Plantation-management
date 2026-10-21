@@ -15,6 +15,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import { useTranslation } from '../../../context/LanguageContext'
 
 export type DrawToolType =
   | 'polyline'
@@ -39,6 +40,7 @@ export function MapDrawToolbar({
   isDetailOpen,
   onActiveToolChange,
 }: Props) {
+  const { t } = useTranslation()
   const [activeTool, setActiveTool] = useState<DrawToolType>(null)
   const [featureCount, setFeatureCount] = useState<number>(0)
   const activeHandlerRef = useRef<any>(null)
@@ -75,8 +77,8 @@ export function MapDrawToolbar({
         }
         const hectares = (areaM2 / 10000).toFixed(2)
         const acres = (areaM2 / 4046.86).toFixed(2)
-        content += `<div class="draw-popup-row"><span>Area:</span> <strong>${hectares} ha (${acres} ac)</strong></div>`
-        content += `<div class="draw-popup-row"><span>Metric:</span> <span>${Math.round(areaM2).toLocaleString()} m²</span></div>`
+        content += `<div class="draw-popup-row"><span>${t('draw.area')}</span> <strong>${hectares} ha (${acres} ac)</strong></div>`
+        content += `<div class="draw-popup-row"><span>${t('draw.metric')}</span> <span>${Math.round(areaM2).toLocaleString()} m²</span></div>`
       } catch {
         // Fallback
       }
@@ -87,17 +89,17 @@ export function MapDrawToolbar({
         lengthM += latlngs[i].distanceTo(latlngs[i + 1])
       }
       const km = (lengthM / 1000).toFixed(2)
-      content += `<div class="draw-popup-row"><span>Length:</span> <strong>${km} km</strong> (${Math.round(lengthM).toLocaleString()} m)</div>`
+      content += `<div class="draw-popup-row"><span>${t('draw.length')}</span> <strong>${km} km</strong> (${Math.round(lengthM).toLocaleString()} m)</div>`
     } else if (layer instanceof L.Circle) {
       const radius = layer.getRadius()
       const areaM2 = Math.PI * radius * radius
       const hectares = (areaM2 / 10000).toFixed(2)
-      content += `<div class="draw-popup-row"><span>Radius:</span> <strong>${Math.round(radius).toLocaleString()} m</strong></div>`
-      content += `<div class="draw-popup-row"><span>Area:</span> <strong>${hectares} ha</strong> (${Math.round(areaM2).toLocaleString()} m²)</div>`
+      content += `<div class="draw-popup-row"><span>${t('draw.radius')}</span> <strong>${Math.round(radius).toLocaleString()} m</strong></div>`
+      content += `<div class="draw-popup-row"><span>${t('draw.area')}</span> <strong>${hectares} ha</strong> (${Math.round(areaM2).toLocaleString()} m²)</div>`
     } else if (layer instanceof L.Marker) {
       const pos = layer.getLatLng()
-      content += `<div class="draw-popup-row"><span>Lat:</span> <strong>${pos.lat.toFixed(6)}</strong></div>`
-      content += `<div class="draw-popup-row"><span>Lng:</span> <strong>${pos.lng.toFixed(6)}</strong></div>`
+      content += `<div class="draw-popup-row"><span>${t('draw.lat')}</span> <strong>${pos.lat.toFixed(6)}</strong></div>`
+      content += `<div class="draw-popup-row"><span>${t('draw.lng')}</span> <strong>${pos.lng.toFixed(6)}</strong></div>`
     }
 
     content += `</div>`
@@ -155,7 +157,7 @@ export function MapDrawToolbar({
       map.off(L.Draw.Event.EDITED, handleEdited)
       map.off(L.Draw.Event.DELETED, handleDeleted)
     }
-  }, [map, drawnItems])
+  }, [map, drawnItems, t])
 
   // Disable current active tool
   const disableCurrentHandler = () => {
@@ -292,8 +294,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className="draw-tool-btn"
-          title="Zoom In"
-          aria-label="Zoom in"
+          title={t('draw.zoomIn')}
+          aria-label={t('draw.zoomIn')}
           onClick={() => map?.zoomIn()}
         >
           <Plus size={16} />
@@ -301,8 +303,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className="draw-tool-btn"
-          title="Zoom Out"
-          aria-label="Zoom out"
+          title={t('draw.zoomOut')}
+          aria-label={t('draw.zoomOut')}
           onClick={() => map?.zoomOut()}
         >
           <Minus size={16} />
@@ -314,8 +316,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className={`draw-tool-btn ${activeTool === 'polyline' ? 'draw-tool-btn--active' : ''}`}
-          title="Draw a polyline / line measurement"
-          aria-label="Draw polyline"
+          title={t('draw.polylineTooltip')}
+          aria-label={t('draw.polylineTooltip')}
           onClick={() => handleSelectTool('polyline')}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -327,8 +329,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className={`draw-tool-btn ${activeTool === 'polygon' ? 'draw-tool-btn--active' : ''}`}
-          title="Draw a polygon / plot area"
-          aria-label="Draw polygon"
+          title={t('draw.polygonTooltip')}
+          aria-label={t('draw.polygonTooltip')}
           onClick={() => handleSelectTool('polygon')}
         >
           <Pentagon size={15} />
@@ -336,8 +338,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className={`draw-tool-btn ${activeTool === 'rectangle' ? 'draw-tool-btn--active' : ''}`}
-          title="Draw a rectangle"
-          aria-label="Draw rectangle"
+          title={t('draw.rectTooltip')}
+          aria-label={t('draw.rectTooltip')}
           onClick={() => handleSelectTool('rectangle')}
         >
           <Square size={14} />
@@ -345,8 +347,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className={`draw-tool-btn ${activeTool === 'circle' ? 'draw-tool-btn--active' : ''}`}
-          title="Draw a circle"
-          aria-label="Draw circle"
+          title={t('draw.circleTooltip')}
+          aria-label={t('draw.circleTooltip')}
           onClick={() => handleSelectTool('circle')}
         >
           <Circle size={14} />
@@ -354,8 +356,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className={`draw-tool-btn ${activeTool === 'marker' ? 'draw-tool-btn--active' : ''}`}
-          title="Draw a marker / point of interest"
-          aria-label="Draw marker"
+          title={t('draw.markerTooltip')}
+          aria-label={t('draw.markerTooltip')}
           onClick={() => handleSelectTool('marker')}
         >
           <MapPin size={15} />
@@ -367,8 +369,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className={`draw-tool-btn ${activeTool === 'edit' ? 'draw-tool-btn--active' : ''}`}
-          title="Edit drawn shapes"
-          aria-label="Edit shapes"
+          title={t('draw.editTooltip')}
+          aria-label={t('draw.editTooltip')}
           onClick={() => handleSelectTool('edit')}
         >
           <Edit3 size={15} />
@@ -376,8 +378,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className={`draw-tool-btn ${activeTool === 'delete' ? 'draw-tool-btn--active' : ''}`}
-          title="Delete drawn shapes"
-          aria-label="Delete shapes"
+          title={t('draw.deleteTooltip')}
+          aria-label={t('draw.deleteTooltip')}
           onClick={() => handleSelectTool('delete')}
         >
           <Trash2 size={15} />
@@ -389,8 +391,8 @@ export function MapDrawToolbar({
         <button
           type="button"
           className="draw-tool-btn"
-          title={`Export ${featureCount} drawn features as GeoJSON`}
-          aria-label="Export GeoJSON"
+          title={t('draw.exportFeatures', { count: featureCount })}
+          aria-label={t('draw.exportFeatures', { count: featureCount })}
           onClick={handleExportGeoJson}
         >
           <Download size={15} />
@@ -403,13 +405,13 @@ export function MapDrawToolbar({
         <div className="draw-active-indicator">
           <div className="draw-active-info">
             <span className="draw-active-title">
-              {activeTool === 'polygon' && 'Click points to draw polygon'}
-              {activeTool === 'rectangle' && 'Click & drag across map'}
-              {activeTool === 'polyline' && 'Click points to draw line'}
-              {activeTool === 'circle' && 'Click & drag for radius'}
-              {activeTool === 'marker' && 'Click on map to place pin'}
-              {activeTool === 'edit' && 'Drag vertices to reshape'}
-              {activeTool === 'delete' && 'Click shapes to delete'}
+              {activeTool === 'polygon' && t('draw.drawPolygonPrompt')}
+              {activeTool === 'rectangle' && t('draw.drawRectanglePrompt')}
+              {activeTool === 'polyline' && t('draw.drawPolylinePrompt')}
+              {activeTool === 'circle' && t('draw.drawCirclePrompt')}
+              {activeTool === 'marker' && t('draw.drawMarkerPrompt')}
+              {activeTool === 'edit' && t('draw.drawEditPrompt')}
+              {activeTool === 'delete' && t('draw.drawDeletePrompt')}
             </span>
           </div>
           <div className="draw-active-actions">
@@ -427,16 +429,16 @@ export function MapDrawToolbar({
                   }
                   disableCurrentHandler()
                 }}
-                title="Finish and save shape"
+                title={t('draw.finish')}
               >
-                <Check size={13} /> Finish
+                <Check size={13} /> {t('draw.finish')}
               </button>
             )}
             <button
               type="button"
               className="draw-btn-cancel"
               onClick={disableCurrentHandler}
-              title="Cancel drawing"
+              title={t('draw.cancel')}
             >
               <X size={13} />
             </button>
