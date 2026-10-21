@@ -13,12 +13,33 @@ import {
 } from 'lucide-react'
 import { useWorkforce } from '../../context/WorkforceContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import { Badge } from '../common/Badge'
 import type { Worker, WorkerRole, WorkerStatus } from '../../types/workforce'
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
+
+const ROLE_LABELS: Record<string, { en: string; si: string }> = {
+  harvester: { en: 'Harvester', si: 'දළු නෙළන්නා' },
+  sprayer: { en: 'Chemical / Fertilizer Sprayer', si: 'පොහොර / බෙහෙත් ඉසින්නා' },
+  pruner: { en: 'Bush Pruner', si: 'කප්පාදු සේවකයා' },
+  field_officer: { en: 'Field Officer', si: 'ක්ෂේත්‍ර නිලධාරී' },
+  kangany: { en: 'Field Kangany', si: 'ක්ෂේත්‍ර කංකානි' },
+  sundry: { en: 'Sundry Laborer', si: 'සාමාන්‍ය සේවකයා' },
+  division_manager: { en: 'Division Manager', si: 'කොට්ඨාස කළමනාකරු' },
+  super_admin: { en: 'Super Admin', si: 'ප්‍රධාන පරිපාලක' },
+}
 
 export const AttendanceMarkingView: React.FC = () => {
   const { workers, batchUpdateAttendance, markAttendance } = useWorkforce()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const officerDivision =
     currentUser?.assignedDivision ||
@@ -154,7 +175,11 @@ export const AttendanceMarkingView: React.FC = () => {
 
     markAttendance(workerId, attended, updated.checkInTime, updated.status)
     const workerName = fieldWorkers.find((w) => w.id === workerId)?.name || workerId
-    showToast(`${workerName} marked as ${attended ? 'Present' : 'Absent'}`)
+    showToast(
+      attended
+        ? t('attendance.toastWorkerPresent', { name: workerName, time: updated.checkInTime })
+        : t('attendance.toastWorkerAbsent', { name: workerName })
+    )
   }
 
   // Update check-in time for worker
@@ -189,7 +214,7 @@ export const AttendanceMarkingView: React.FC = () => {
     setLocalAttendance((prev) => ({ ...prev, ...newLocal }))
     await batchUpdateAttendance(updates)
     setIsSaving(false)
-    showToast(`Marked ${updates.length} employees in ${selectedField} as Present`)
+    showToast(t('attendance.toastSavedAllPresent', { count: updates.length, field: selectedField }))
   }
 
   // Batch: Mark All Absent for this field
@@ -216,7 +241,7 @@ export const AttendanceMarkingView: React.FC = () => {
     setLocalAttendance((prev) => ({ ...prev, ...newLocal }))
     await batchUpdateAttendance(updates)
     setIsSaving(false)
-    showToast(`Marked ${updates.length} employees in ${selectedField} as Absent`)
+    showToast(t('attendance.toastSavedAllAbsent', { count: updates.length, field: selectedField }))
   }
 
   const getRoleBadgeVariant = (role: WorkerRole) => {
@@ -234,6 +259,10 @@ export const AttendanceMarkingView: React.FC = () => {
         return 'slate'
     }
   }
+
+  const localizedDivision = locale === 'si' && DIVISION_NAMES[selectedDivision.toLowerCase()]
+    ? DIVISION_NAMES[selectedDivision.toLowerCase()].si
+    : selectedDivision
 
   return (
     <div className="erp-page-container">
@@ -267,11 +296,10 @@ export const AttendanceMarkingView: React.FC = () => {
       <div className="erp-page-header">
         <div>
           <h1 className="erp-page-title">
-            Attendance: <span style={{ color: 'var(--emerald-600)' }}>{selectedField}</span>
+            {t('attendance.title', { field: selectedField })}
           </h1>
           <p className="erp-page-subtitle">
-            Daily attendance for field crew in{' '}
-            <strong style={{ color: 'var(--forest-900)' }}>{selectedField}</strong> ({selectedDivision} Division).
+            {t('attendance.subtitle', { field: selectedField, division: localizedDivision })}
           </p>
         </div>
 
@@ -280,7 +308,7 @@ export const AttendanceMarkingView: React.FC = () => {
           {/* Field in Charge Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Layers size={15} color="var(--emerald-600)" />
-            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--forest-900)' }}>Field in Charge:</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--forest-900)' }}>{t('attendance.fieldInCharge')}</label>
             <select
               value={selectedField}
               onChange={(e) => setSelectedField(e.target.value)}
@@ -294,7 +322,7 @@ export const AttendanceMarkingView: React.FC = () => {
             >
               {availableFields.map((f) => (
                 <option key={f} value={f}>
-                  {f} {f === currentUser?.assignedField ? '(In Charge)' : ''}
+                  {f} {f === currentUser?.assignedField ? t('attendance.inChargeTag') : ''}
                 </option>
               ))}
             </select>
@@ -303,7 +331,9 @@ export const AttendanceMarkingView: React.FC = () => {
           {/* Division Badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <MapPin size={14} color="var(--text-muted)" />
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{selectedDivision} Division</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              {localizedDivision} {t('attendance.divisionSuffix')}
+            </span>
           </div>
         </div>
       </div>
@@ -312,17 +342,17 @@ export const AttendanceMarkingView: React.FC = () => {
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">{selectedField} Workforce</span>
+            <span className="kpi-card__label">{t('attendance.kpiWorkforce', { field: selectedField })}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">{stats.total}</strong>
-              <span className="kpi-card__sub">Field Laborers</span>
+              <span className="kpi-card__sub">{t('attendance.kpiFieldLaborers')}</span>
             </div>
           </div>
         </div>
 
         <div className="kpi-card kpi-card--highlight">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Present in {selectedField}</span>
+            <span className="kpi-card__label">{t('attendance.kpiPresentIn', { field: selectedField })}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value text-emerald">{stats.present}</strong>
               <span className="kpi-card__unit" style={{ color: 'var(--emerald-600)', fontSize: '13px' }}>
@@ -330,14 +360,14 @@ export const AttendanceMarkingView: React.FC = () => {
               </span>
             </div>
             <span className="kpi-card__sub" style={{ color: 'var(--emerald-600)' }}>
-              Attended Morning Muster
+              {t('attendance.kpiAttendedMuster')}
             </span>
           </div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Absent from {selectedField}</span>
+            <span className="kpi-card__label">{t('attendance.kpiAbsentFrom', { field: selectedField })}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value" style={{ color: '#dc2626' }}>
                 {stats.absent}
@@ -346,17 +376,17 @@ export const AttendanceMarkingView: React.FC = () => {
                 ({100 - stats.presentPct}%)
               </span>
             </div>
-            <span className="kpi-card__sub">Off-Duty / Sick Leave</span>
+            <span className="kpi-card__sub">{t('attendance.kpiOffDuty')}</span>
           </div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Field Gate Time</span>
+            <span className="kpi-card__label">{t('attendance.kpiGateTime')}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">07:00 AM</strong>
             </div>
-            <span className="kpi-card__sub">Muster Closes 07:30 AM</span>
+            <span className="kpi-card__sub">{t('attendance.kpiMusterCloses')}</span>
           </div>
         </div>
       </div>
@@ -369,7 +399,7 @@ export const AttendanceMarkingView: React.FC = () => {
             <Search size={15} />
             <input
               type="text"
-              placeholder={`Search workers in ${selectedField}...`}
+              placeholder={t('attendance.searchPlaceholder', { field: selectedField })}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="workforce-search-input"
@@ -392,9 +422,9 @@ export const AttendanceMarkingView: React.FC = () => {
               onChange={(e) => setSelectedFilter(e.target.value as any)}
               className="filter-select"
             >
-              <option value="all">All in {selectedField} ({fieldWorkers.length})</option>
-              <option value="present">Present ({stats.present})</option>
-              <option value="absent">Absent ({stats.absent})</option>
+              <option value="all">{t('attendance.filterAll', { field: selectedField, count: fieldWorkers.length })}</option>
+              <option value="present">{t('attendance.filterPresent', { count: stats.present })}</option>
+              <option value="absent">{t('attendance.filterAbsent', { count: stats.absent })}</option>
             </select>
 
             {/* Batch Action Buttons */}
@@ -418,7 +448,7 @@ export const AttendanceMarkingView: React.FC = () => {
               }}
             >
               <CheckCheck size={14} />
-              <span>Mark All Present</span>
+              <span>{t('attendance.btnMarkAllPresent')}</span>
             </button>
 
             <button
@@ -440,7 +470,7 @@ export const AttendanceMarkingView: React.FC = () => {
               }}
             >
               <UserX size={14} />
-              <span>Mark All Absent</span>
+              <span>{t('attendance.btnMarkAllAbsent')}</span>
             </button>
           </div>
         </div>
@@ -450,13 +480,13 @@ export const AttendanceMarkingView: React.FC = () => {
           <table className="workforce-table">
             <thead>
               <tr>
-                <th>Laborer / ID</th>
-                <th>Field Role</th>
-                <th>Gang &amp; Task</th>
-                <th>Attendance Status</th>
-                <th>Check-In Time</th>
-                <th>Daily Hours</th>
-                <th style={{ textAlign: 'right' }}>Muster Action</th>
+                <th>{t('attendance.thLaborerId')}</th>
+                <th>{t('attendance.thFieldRole')}</th>
+                <th>{t('attendance.thGangTask')}</th>
+                <th>{t('attendance.thAttendanceStatus')}</th>
+                <th>{t('attendance.thCheckInTime')}</th>
+                <th>{t('attendance.thDailyHours')}</th>
+                <th style={{ textAlign: 'right' }}>{t('attendance.thMusterAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -464,7 +494,7 @@ export const AttendanceMarkingView: React.FC = () => {
                 <tr>
                   <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                     <Users size={32} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
-                    <p style={{ margin: 0 }}>No field laborers found in {selectedField}.</p>
+                    <p style={{ margin: 0 }}>{t('attendance.noLaborersFound', { field: selectedField })}</p>
                   </td>
                 </tr>
               ) : (
@@ -474,7 +504,7 @@ export const AttendanceMarkingView: React.FC = () => {
 
                   return (
                     <tr key={w.id} className="workforce-row">
-                      {/* Name & ID */}
+                      {/* Name & ID (Strictly English name) */}
                       <td>
                         <div>
                           <strong style={{ fontSize: '13px', color: 'var(--forest-900)', display: 'block' }}>
@@ -487,7 +517,7 @@ export const AttendanceMarkingView: React.FC = () => {
                       {/* Role */}
                       <td>
                         <Badge variant={getRoleBadgeVariant(w.role)}>
-                          {w.roleLabel}
+                          {locale === 'si' && ROLE_LABELS[w.role] ? ROLE_LABELS[w.role].si : w.roleLabel}
                         </Badge>
                       </td>
 
@@ -508,7 +538,7 @@ export const AttendanceMarkingView: React.FC = () => {
                             isPresent ? 'employee-status-pill--present' : 'employee-status-pill--absent'
                           }`}
                         >
-                          {isPresent ? `Present (${state.status})` : 'Absent'}
+                          {isPresent ? t('attendance.statusPresentWithStatus', { status: state.status }) : t('attendance.statusAbsent')}
                         </span>
                       </td>
 
@@ -545,10 +575,10 @@ export const AttendanceMarkingView: React.FC = () => {
                       <td>
                         {isPresent ? (
                           <strong style={{ color: 'var(--text-body)', fontSize: '12px' }}>
-                            {state.hoursWorked.toFixed(1)} hrs
+                            {state.hoursWorked.toFixed(1)} {t('employees.hrs')}
                           </strong>
                         ) : (
-                          <span style={{ color: 'var(--text-muted)' }}>0 hrs</span>
+                          <span style={{ color: 'var(--text-muted)' }}>0 {t('employees.hrs')}</span>
                         )}
                       </td>
 
@@ -558,7 +588,7 @@ export const AttendanceMarkingView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleSetStatus(w.id, true, 'active')}
-                            title="Mark Present"
+                            title={t('attendance.btnPresent')}
                             style={{
                               backgroundColor: isPresent ? 'var(--emerald-600)' : '#ffffff',
                               color: isPresent ? '#ffffff' : 'var(--emerald-600)',
@@ -575,13 +605,13 @@ export const AttendanceMarkingView: React.FC = () => {
                             }}
                           >
                             <Check size={12} />
-                            <span>Present</span>
+                            <span>{t('attendance.btnPresent')}</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleSetStatus(w.id, false, 'offline')}
-                            title="Mark Absent"
+                            title={t('attendance.btnAbsent')}
                             style={{
                               backgroundColor: !isPresent ? '#dc2626' : '#ffffff',
                               color: !isPresent ? '#ffffff' : '#dc2626',
@@ -598,7 +628,7 @@ export const AttendanceMarkingView: React.FC = () => {
                             }}
                           >
                             <X size={12} />
-                            <span>Absent</span>
+                            <span>{t('attendance.btnAbsent')}</span>
                           </button>
                         </div>
                       </td>

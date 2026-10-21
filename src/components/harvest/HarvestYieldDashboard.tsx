@@ -8,7 +8,16 @@ import { Badge } from '../common/Badge'
 import { WeighInModal } from './WeighInModal'
 import { useHarvest } from '../../context/HarvestContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { WeighInSession } from '../../types/harvest'
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
 
 export const HarvestYieldDashboard: React.FC = () => {
   const {
@@ -24,6 +33,7 @@ export const HarvestYieldDashboard: React.FC = () => {
     setIsLogModalOpen,
   } = useHarvest()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isDivisionManager = currentUser?.role === 'division_manager'
   const managerDivision =
@@ -205,23 +215,35 @@ export const HarvestYieldDashboard: React.FC = () => {
     }
   }
 
+  const localizedActiveDivision = locale === 'si' && DIVISION_NAMES[activeDivision.toLowerCase()]
+    ? DIVISION_NAMES[activeDivision.toLowerCase()].si
+    : activeDivision
+
+  const localizedManagerDivision = locale === 'si' && DIVISION_NAMES[managerDivision.toLowerCase()]
+    ? DIVISION_NAMES[managerDivision.toLowerCase()].si
+    : managerDivision
+
   return (
     <div className="erp-page-container">
       {/* Top Banner */}
       <div className="erp-page-header">
         <div>
           <h1 className="erp-page-title">
-            Harvest &amp; Crop Operations
+            {locale === 'si' ? 'අස්වනු සහ වගා මෙහෙයුම්' : 'Harvest & Crop Operations'}
           </h1>
           {isDivisionManager && (
             <div className="division-jurisdiction-label">
-              <span>{managerDivision} Division</span>
+              <span>{localizedManagerDivision} {t('attendance.divisionSuffix')}</span>
             </div>
           )}
           <p className="erp-page-subtitle">
             {isDivisionManager
-              ? `Daily morning & afternoon digital weigh-ins, harvester productivity, and green leaf yield analytics for ${managerDivision} and its field blocks.`
-              : 'Daily morning & afternoon digital weigh-ins, harvester productivity, and division green leaf yield analytics.'}
+              ? (locale === 'si'
+                  ? `${localizedManagerDivision} කොට්ඨාසය සහ එහි ක්ෂේත්‍ර සඳහා උදෑසන සහ සවස ඩිජිටල් කිරුම්, දළු නෙළන්නන්ගේ ඵලදායිතාව සහ අස්වනු විශ්ලේෂණය.`
+                  : `Daily morning & afternoon digital weigh-ins, harvester productivity, and green leaf yield analytics for ${managerDivision} and its field blocks.`)
+              : (locale === 'si'
+                  ? 'දෛනික උදෑසන සහ සවස ඩිජිටල් කිරුම්, දළු නෙළන්නන්ගේ ඵලදායිතාව සහ කොට්ඨාස අස්වනු විශ්ලේෂණය.'
+                  : 'Daily morning & afternoon digital weigh-ins, harvester productivity, and division green leaf yield analytics.')}
           </p>
         </div>
       </div>
@@ -232,11 +254,15 @@ export const HarvestYieldDashboard: React.FC = () => {
           <div className="kpi-card__content">
             <span className="kpi-card__label">
               {isDivisionManager ? (
-                fieldFilter !== 'all' ? `Total ${fieldFilter} Yield Today` : `Total ${managerDivision} Yield Today`
+                fieldFilter !== 'all'
+                  ? (locale === 'si' ? `අද ${fieldFilter} මුළු අස්වැන්න` : `Total ${fieldFilter} Yield Today`)
+                  : (locale === 'si' ? `අද ${localizedManagerDivision} මුළු අස්වැන්න` : `Total ${managerDivision} Yield Today`)
               ) : (
                 divisionFilter !== 'All Divisions' ? (
-                  fieldFilter !== 'all' ? `Total ${fieldFilter} Yield Today` : `Total ${divisionFilter} Yield Today`
-                ) : 'Total Estate Yield Today'
+                  fieldFilter !== 'all'
+                    ? (locale === 'si' ? `අද ${fieldFilter} මුළු අස්වැන්න` : `Total ${fieldFilter} Yield Today`)
+                    : (locale === 'si' ? `අද ${localizedActiveDivision} මුළු අස්වැන්න` : `Total ${divisionFilter} Yield Today`)
+                ) : (locale === 'si' ? 'අද වත්තේ මුළු අස්වැන්න' : 'Total Estate Yield Today')
               )}
             </span>
             <div className="kpi-card__val-row">
@@ -247,9 +273,13 @@ export const HarvestYieldDashboard: React.FC = () => {
             </div>
             <span className="kpi-card__sub">
               {currentFieldData ? (
-                `Morning: ${currentFieldData.morningKg} kg · Afternoon: ${currentFieldData.afternoonKg} kg`
+                locale === 'si'
+                  ? `උදෑසන: ${currentFieldData.morningKg} kg · සවස: ${currentFieldData.afternoonKg} kg`
+                  : `Morning: ${currentFieldData.morningKg} kg · Afternoon: ${currentFieldData.afternoonKg} kg`
               ) : (
-                `Morning: ${summary?.morningSessionKg ?? 0} kg · Afternoon: ${summary?.afternoonSessionKg ?? 0} kg`
+                locale === 'si'
+                  ? `උදෑසන: ${summary?.morningSessionKg ?? 0} kg · සවස: ${summary?.afternoonSessionKg ?? 0} kg`
+                  : `Morning: ${summary?.morningSessionKg ?? 0} kg · Afternoon: ${summary?.afternoonSessionKg ?? 0} kg`
               )}
             </span>
           </div>
@@ -259,10 +289,10 @@ export const HarvestYieldDashboard: React.FC = () => {
           <div className="kpi-card__content">
             <span className="kpi-card__label">
               {isDivisionManager
-                ? `Harvester Daily Average (${managerDivision})`
+                ? (locale === 'si' ? `දළු නෙළන්නෙකුගේ දෛනික සාමාන්‍යය (${localizedManagerDivision})` : `Harvester Daily Average (${managerDivision})`)
                 : isSingleDivision
-                ? `Harvester Average (${activeDivision})`
-                : 'Harvester Daily Average'}
+                ? (locale === 'si' ? `දළු නෙළන්නෙකුගේ සාමාන්‍යය (${localizedActiveDivision})` : `Harvester Average (${activeDivision})`)
+                : (locale === 'si' ? 'දළු නෙළන්නෙකුගේ දෛනික සාමාන්‍යය' : 'Harvester Daily Average')}
             </span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">
@@ -272,8 +302,8 @@ export const HarvestYieldDashboard: React.FC = () => {
             </div>
             <span className="kpi-card__sub text-emerald">
               {isDivisionManager || isSingleDivision
-                ? `▲ Division average across active plucking gangs`
-                : '▲ +2.4 kg above regional Nuwara Eliya benchmark (20.6 kg)'}
+                ? (locale === 'si' ? '▲ සක්‍රීය කණ්ඩායම් හරහා කොට්ඨාස සාමාන්‍යය' : '▲ Division average across active plucking gangs')
+                : (locale === 'si' ? '▲ නුවරඑළිය කලාපීය මිනුම් ලකුණට වඩා +2.4 kg ඉහළින්' : '▲ +2.4 kg above regional Nuwara Eliya benchmark (20.6 kg)')}
             </span>
           </div>
         </div>
@@ -282,36 +312,36 @@ export const HarvestYieldDashboard: React.FC = () => {
           <div className="kpi-card__content">
             <span className="kpi-card__label">
               {isDivisionManager
-                ? `Active Harvesters Weighed`
+                ? (locale === 'si' ? 'කිරා බැලූ දළු නෙළන්නන්' : 'Active Harvesters Weighed')
                 : isSingleDivision
-                ? `Harvesters Weighed (${activeDivision})`
-                : 'Active Harvesters Weighed'}
+                ? (locale === 'si' ? `කිරා බැලූ නෙළන්නන් (${localizedActiveDivision})` : `Harvesters Weighed (${activeDivision})`)
+                : (locale === 'si' ? 'කිරා බැලූ දළු නෙළන්නන්' : 'Active Harvesters Weighed')}
             </span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">
                 {currentFieldData ? currentFieldData.harvesterCount : (summary?.totalHarvestersWeighed ?? 0)}
               </strong>
-              <span className="kpi-card__sub">Harvesters</span>
+              <span className="kpi-card__sub">{locale === 'si' ? 'නෙළන්නන්' : 'Harvesters'}</span>
             </div>
             <span className="kpi-card__sub">
               {isDivisionManager || isSingleDivision
-                ? `100% attendance in ${fieldFilter !== 'all' ? fieldFilter : activeDivision}`
-                : '100% attendance across morning gang'}
+                ? (locale === 'si' ? `${fieldFilter !== 'all' ? fieldFilter : localizedActiveDivision} තුළ 100% පැමිණීම` : `100% attendance in ${fieldFilter !== 'all' ? fieldFilter : activeDivision}`)
+                : (locale === 'si' ? 'උදෑසන කණ්ඩායම පුරා 100% පැමිණීම' : '100% attendance across morning gang')}
             </span>
           </div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Leaf Quality Standard</span>
+            <span className="kpi-card__label">{locale === 'si' ? 'දළු ගුණාත්මක තත්ත්වය' : 'Leaf Quality Standard'}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">
                 {currentFieldData ? currentFieldData.fineLeafAvgPct : (summary?.fineLeafAvgPct ?? 0)}%
               </strong>
-              <span className="kpi-card__sub">Fine Grade</span>
+              <span className="kpi-card__sub">{locale === 'si' ? 'මනා දළු' : 'Fine Grade'}</span>
             </div>
             <span className="kpi-card__sub text-purple">
-              Two leaves and a bud export standard
+              {locale === 'si' ? 'අපනයන තත්ත්වයේ දළු දෙකයි එක් මලිරැක්ක' : 'Two leaves and a bud export standard'}
             </span>
           </div>
         </div>
@@ -324,8 +354,8 @@ export const HarvestYieldDashboard: React.FC = () => {
             <BarChart3 size={17} />
             <h3>
               {isSingleDivision
-                ? `${activeDivision} Field Block Yield Comparison (Today's Crop)`
-                : "Top Division Yield Comparison (Today's Crop)"}
+                ? (locale === 'si' ? `${localizedActiveDivision} ක්ෂේත්‍ර කොටස් අස්වනු සංසන්දනය (අද)` : `${activeDivision} Field Block Yield Comparison (Today's Crop)`)
+                : (locale === 'si' ? 'ප්‍රධාන කොට්ඨාස අස්වනු සංසන්දනය (අද)' : "Top Division Yield Comparison (Today's Crop)")}
             </h3>
             {fieldFilter !== 'all' && (
               <button
@@ -340,16 +370,16 @@ export const HarvestYieldDashboard: React.FC = () => {
           </div>
           <div className="chart-legend-group">
             <span className="chart-legend-item">
-              <span className="legend-swatch legend-swatch--bar" /> Net Clean Leaf (kg)
+              <span className="legend-swatch legend-swatch--bar" /> {locale === 'si' ? 'ශුද්ධ දළු බර (kg)' : 'Net Clean Leaf (kg)'}
             </span>
           </div>
         </div>
 
         <div className="vertical-bar-chart-container">
           <div className="vchart-y-axis">
-            {ticks.map((t) => (
-              <span key={t} className="vchart-y-tick">
-                {t} kg
+            {ticks.map((tVal) => (
+              <span key={tVal} className="vchart-y-tick">
+                {tVal} kg
               </span>
             ))}
           </div>
@@ -357,12 +387,12 @@ export const HarvestYieldDashboard: React.FC = () => {
           <div className="vchart-canvas-area">
             {/* 220px High Plot Stage with Gridlines and Bar Tracks */}
             <div className="vchart-stage">
-              {ticks.map((t, idx) => {
+              {ticks.map((tVal, idx) => {
                 const bottomPct = ((ticks.length - 1 - idx) / (ticks.length - 1)) * 100
                 return (
                   <div
-                    key={t}
-                    className={`chart-grid-line ${t === 0 ? 'chart-grid-line--baseline' : ''}`}
+                    key={tVal}
+                    className={`chart-grid-line ${tVal === 0 ? 'chart-grid-line--baseline' : ''}`}
                     style={{ bottom: `${bottomPct}%` }}
                   />
                 )
@@ -380,7 +410,7 @@ export const HarvestYieldDashboard: React.FC = () => {
                         key={item.key}
                         className={`vchart-bar-slot ${isSelected ? 'vchart-bar-slot--selected' : ''}`}
                         onClick={() => handleBarClick(item.key)}
-                        title={`${item.label}: ${item.totalYieldKg} kg (${item.subLabel || ''}) · Click to filter`}
+                        title={`${item.label}: ${item.totalYieldKg} kg (${item.subLabel || ''})`}
                       >
                         <div className="vchart-track">
                           <div
@@ -398,7 +428,7 @@ export const HarvestYieldDashboard: React.FC = () => {
                   })
                 ) : (
                   <div className="vchart-empty-state">
-                    No weigh-in logs recorded for {activeDivision} today.
+                    {t('harvest.noLogsActiveDiv', { division: localizedActiveDivision })}
                   </div>
                 )}
               </div>
@@ -408,17 +438,19 @@ export const HarvestYieldDashboard: React.FC = () => {
             <div className="vchart-x-row">
               {chartData.map((item) => {
                 const isSelected = isSingleDivision ? fieldFilter === item.key : divisionFilter === item.key
+                const displayLabel = !isSingleDivision && locale === 'si' && DIVISION_NAMES[item.label.toLowerCase()]
+                  ? DIVISION_NAMES[item.label.toLowerCase()].si
+                  : item.label
 
                 return (
                   <div
                     key={item.key}
                     className={`vchart-x-slot ${isSelected ? 'vchart-x-slot--selected' : ''}`}
                     onClick={() => handleBarClick(item.key)}
-                    title={`Click to filter by ${item.label}`}
                   >
-                    <strong className="x-division-title">{item.label}</strong>
+                    <strong className="x-division-title">{displayLabel}</strong>
                     {item.subLabel && <span className="x-division-sub">{item.subLabel}</span>}
-                    {isSelected && <span className="vchart-selected-chip">Selected</span>}
+                    {isSelected && <span className="vchart-selected-chip">{t('harvest.selectedChip')}</span>}
                   </div>
                 )
               })}
@@ -434,10 +466,10 @@ export const HarvestYieldDashboard: React.FC = () => {
             <Calendar size={16} />
             <h3>
               {isSingleDivision
-                ? `${activeDivision} Digital Weigh-In Records`
-                : "Today's Digital Weigh-In Records"}
+                ? t('harvest.titleSingle', { division: localizedActiveDivision })
+                : t('harvest.titleAll')}
             </h3>
-            <span className="log-count-pill">{displayedLogs.length} entries</span>
+            <span className="log-count-pill">{t('harvest.entriesCount', { count: displayedLogs.length })}</span>
           </div>
 
           <div className="workforce-dropdown-filters">
@@ -448,7 +480,7 @@ export const HarvestYieldDashboard: React.FC = () => {
                 title={`Jurisdiction strictly scoped to ${managerDivision} Division`}
               >
                 <Layers size={13} />
-                <span>{managerDivision}</span>
+                <span>{localizedManagerDivision}</span>
               </div>
             ) : (
               <select
@@ -459,12 +491,12 @@ export const HarvestYieldDashboard: React.FC = () => {
                 }}
                 className="filter-select"
               >
-                <option value="All Divisions">All Divisions</option>
-                <option value="Weddamulla">Weddamulla</option>
-                <option value="Ramboda">Ramboda</option>
-                <option value="Camnethan">Camnethan</option>
-                <option value="Lilliesland">Lilliesland</option>
-                <option value="Wewandon">Wewandon</option>
+                <option value="All Divisions">{t('harvest.allDivisions')}</option>
+                <option value="Weddamulla">{locale === 'si' ? 'වෙද්දමුල්ල' : 'Weddamulla'}</option>
+                <option value="Ramboda">{locale === 'si' ? 'රම්බොඩ' : 'Ramboda'}</option>
+                <option value="Camnethan">{locale === 'si' ? 'කැම්නෙතන්' : 'Camnethan'}</option>
+                <option value="Lilliesland">{locale === 'si' ? 'ලිලීස්ලන්ඩ්' : 'Lilliesland'}</option>
+                <option value="Wewandon">{locale === 'si' ? 'වැවන්ඩන්' : 'Wewandon'}</option>
               </select>
             )}
 
@@ -476,7 +508,7 @@ export const HarvestYieldDashboard: React.FC = () => {
                 className="filter-select"
                 title={`Filter by field in ${activeDivision}`}
               >
-                <option value="all">All Fields ({activeDivision})</option>
+                <option value="all">{t('harvest.allFields', { division: localizedActiveDivision })}</option>
                 {availableFields.map((field) => (
                   <option key={field} value={field}>
                     {field}
@@ -491,9 +523,9 @@ export const HarvestYieldDashboard: React.FC = () => {
               onChange={(e) => setSessionFilter(e.target.value as WeighInSession | 'all')}
               className="filter-select"
             >
-              <option value="all">All Sessions</option>
-              <option value="morning">Morning Session (11:30)</option>
-              <option value="afternoon">Afternoon Session (16:30)</option>
+              <option value="all">{t('harvest.allSessions')}</option>
+              <option value="morning">{t('harvest.sessionMorning')}</option>
+              <option value="afternoon">{t('harvest.sessionAfternoon')}</option>
             </select>
           </div>
         </div>
@@ -502,64 +534,72 @@ export const HarvestYieldDashboard: React.FC = () => {
           <table className="workforce-table">
             <thead>
               <tr>
-                <th>Record ID &amp; Time</th>
-                <th>Session</th>
-                <th>Harvester</th>
-                <th>Division / Field</th>
-                <th>Gross Weight</th>
-                <th>Tare Bag</th>
-                <th>Net Clean Leaf</th>
-                <th>Fine Leaf %</th>
-                <th>Supervisor Signature</th>
+                <th>{t('harvest.thRecordIdTime')}</th>
+                <th>{t('harvest.thSession')}</th>
+                <th>{t('harvest.thHarvester')}</th>
+                <th>{t('harvest.thDivisionField')}</th>
+                <th>{t('harvest.thGrossWeight')}</th>
+                <th>{t('harvest.thTareBag')}</th>
+                <th>{t('harvest.thNetCleanLeaf')}</th>
+                <th>{t('harvest.thFineLeafPct')}</th>
+                <th>{t('harvest.thSupervisorSignature')}</th>
               </tr>
             </thead>
             <tbody>
               {displayedLogs.length > 0 ? (
-                displayedLogs.map((log) => (
-                  <tr key={log.id} className="workforce-row">
-                    <td>
-                      <strong>{log.id}</strong>
-                      <span className="table-timestamp">{log.timestamp}</span>
-                    </td>
-                    <td>
-                      <Badge variant={log.session === 'morning' ? 'amber' : 'purple'}>
-                        {log.session === 'morning' ? 'MORNING' : 'AFTERNOON'}
-                      </Badge>
-                    </td>
-                    <td>
-                      <div className="worker-profile-cell">
-                        <div>
-                          <strong>{log.workerName}</strong>
-                          <span className="worker-id-code">{log.workerId}</span>
+                displayedLogs.map((log) => {
+                  const logDivisionName = locale === 'si' && DIVISION_NAMES[log.division.toLowerCase()]
+                    ? DIVISION_NAMES[log.division.toLowerCase()].si
+                    : log.division
+
+                  return (
+                    <tr key={log.id} className="workforce-row">
+                      <td>
+                        <strong>{log.id}</strong>
+                        <span className="table-timestamp">{log.timestamp}</span>
+                      </td>
+                      <td>
+                        <Badge variant={log.session === 'morning' ? 'amber' : 'purple'}>
+                          {log.session === 'morning' ? t('harvest.badgeMorning') : t('harvest.badgeAfternoon')}
+                        </Badge>
+                      </td>
+                      <td>
+                        <div className="worker-profile-cell">
+                          <div>
+                            {/* Harvester Name strictly in English */}
+                            <strong>{log.workerName}</strong>
+                            <span className="worker-id-code">{log.workerId}</span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="division-field-cell">
-                        <span className="division-badge">{log.division}</span>
-                        <span className="field-tag">{log.fieldBlock}</span>
-                      </div>
-                    </td>
-                    <td>{log.grossWeightKg.toFixed(1)} kg</td>
-                    <td>{log.tareBagWeightKg.toFixed(1)} kg</td>
-                    <td>
-                      <strong className="text-emerald text-lg">{log.netWeightKg.toFixed(1)} kg</strong>
-                    </td>
-                    <td>
-                      <div className="quality-pill">
-                        <span className="quality-dot" />
-                        <strong>{log.fineLeafPct}%</strong>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="recorded-by-chip">{log.recordedBy}</span>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td>
+                        <div className="division-field-cell">
+                          <span className="division-badge">{logDivisionName}</span>
+                          <span className="field-tag">{log.fieldBlock}</span>
+                        </div>
+                      </td>
+                      <td>{log.grossWeightKg.toFixed(1)} kg</td>
+                      <td>{log.tareBagWeightKg.toFixed(1)} kg</td>
+                      <td>
+                        <strong className="text-emerald text-lg">{log.netWeightKg.toFixed(1)} kg</strong>
+                      </td>
+                      <td>
+                        <div className="quality-pill">
+                          <span className="quality-dot" />
+                          <strong>{log.fineLeafPct}%</strong>
+                        </div>
+                      </td>
+                      <td>
+                        {/* Supervisor signature/name strictly in English */}
+                        <span className="recorded-by-chip">{log.recordedBy}</span>
+                      </td>
+                    </tr>
+                  )
+                })
               ) : (
                 <tr>
                   <td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                    No weigh-in logs found for the selected {activeDivision} {fieldFilter !== 'all' ? `(${fieldFilter})` : ''} criteria.
+                    {t('harvest.noLogsCriteria')}
                   </td>
                 </tr>
               )}

@@ -4,7 +4,16 @@ import { Modal } from '../common/Modal'
 import { useHarvest } from '../../context/HarvestContext'
 import { useWorkforce } from '../../context/WorkforceContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { WeighInSession } from '../../types/harvest'
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
 
 type WeighInModalProps = {
   isOpen: boolean
@@ -15,6 +24,7 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
   const { recordWeighIn } = useHarvest()
   const { workers, selectedWorker } = useWorkforce()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isDivisionManager = currentUser?.role === 'division_manager'
   const managerDivision =
@@ -80,7 +90,11 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
         fineLeafPct,
         recordedBy: `${currentUser?.name || 'Field Kangany'} (${currentUser?.roleTitle || 'Supervisor'})`,
       })
-      setSuccessMsg(`Recorded ${netWeightCalculated} kg net leaf for ${workerName}!`)
+      setSuccessMsg(
+        locale === 'si'
+          ? `${workerName} සඳහා ශුද්ධ දළු කි.ග්‍රෑ. ${netWeightCalculated} සටහන් විය!`
+          : `Recorded ${netWeightCalculated} kg net leaf for ${workerName}!`
+      )
       setTimeout(() => {
         setSuccessMsg('')
         onClose()
@@ -92,12 +106,16 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
     }
   }
 
+  const localizedDivision = locale === 'si' && DIVISION_NAMES[division.toLowerCase()]
+    ? DIVISION_NAMES[division.toLowerCase()].si
+    : division
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Daily Harvest &amp; Plucking Weigh-In"
-      subtitle="Digital scale logger with automatic tare deduction &amp; fine leaf grading"
+      title={t('harvest.modalTitle')}
+      subtitle={t('harvest.modalSubtitle')}
       icon={<Scale size={18} />}
       maxWidth="md"
     >
@@ -111,28 +129,28 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
 
         {/* Session Selector Toggle */}
         <div className="form-group">
-          <label className="form-label">Weighing Session *</label>
+          <label className="form-label">{t('harvest.thSession')} *</label>
           <div className="session-toggle-pill">
             <button
               type="button"
               className={`session-btn ${session === 'morning' ? 'session-btn--active' : ''}`}
               onClick={() => setSession('morning')}
             >
-              ☀️ Morning Pluck Weigh-In (11:30 AM)
+              ☀️ {t('harvest.sessionMorning')}
             </button>
             <button
               type="button"
               className={`session-btn ${session === 'afternoon' ? 'session-btn--active' : ''}`}
               onClick={() => setSession('afternoon')}
             >
-              ⛅ Afternoon Pluck Weigh-In (4:30 PM)
+              ⛅ {t('harvest.sessionAfternoon')}
             </button>
           </div>
         </div>
 
-        {/* Worker Picker */}
+        {/* Worker Picker (Name strictly in English) */}
         <div className="form-group">
-          <label className="form-label" htmlFor="weigh-worker">Harvester *</label>
+          <label className="form-label" htmlFor="weigh-worker">{t('harvest.modalHarvester')} *</label>
           <select
             id="weigh-worker"
             value={workerId}
@@ -140,27 +158,32 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
             className="form-input"
             required
           >
-            {harvesters.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.name} ({w.id}) — {w.division} {w.fieldBlock}
-              </option>
-            ))}
+            {harvesters.map((w) => {
+              const divName = locale === 'si' && DIVISION_NAMES[w.division.toLowerCase()]
+                ? DIVISION_NAMES[w.division.toLowerCase()].si
+                : w.division
+              return (
+                <option key={w.id} value={w.id}>
+                  {w.name} ({w.id}) — {divName} {w.fieldBlock}
+                </option>
+              )
+            })}
           </select>
         </div>
 
         {/* Division & Field Block readonly display */}
         <div className="form-grid-2">
           <div className="form-group">
-            <label className="form-label">Assigned Sector</label>
+            <label className="form-label">{t('harvest.thDivisionField')}</label>
             <input
               type="text"
-              value={`${division} · ${fieldBlock}`}
+              value={`${localizedDivision} · ${fieldBlock}`}
               readOnly
               className="form-input form-input--readonly"
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Tare Bag Standard</label>
+            <label className="form-label">{t('harvest.modalTareKg')}</label>
             <input
               type="number"
               step="0.1"
@@ -176,7 +199,7 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
         <div className="weigh-card">
           <div className="weigh-card__inputs">
             <div className="form-group">
-              <label className="form-label" htmlFor="weigh-gross">Gross Weight (Scale reading in kg) *</label>
+              <label className="form-label" htmlFor="weigh-gross">{t('harvest.modalGrossKg')} *</label>
               <input
                 id="weigh-gross"
                 type="number"
@@ -190,7 +213,7 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Net Clean Leaf (Gross - Tare)</label>
+              <label className="form-label">{t('harvest.modalNetKg')}</label>
               <div className="net-weight-display">
                 <span className="net-weight-number">{netWeightCalculated.toFixed(1)}</span>
                 <span className="net-weight-unit">kg</span>
@@ -202,8 +225,8 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
         {/* Quality Fine Leaf % Slider */}
         <div className="form-group">
           <div className="slider-header">
-            <label className="form-label" htmlFor="weigh-fine-pct">Leaf Quality Grade (% Fine Two Leaves &amp; A Bud)</label>
-            <span className="fine-pct-value">{fineLeafPct}% Fine Grade</span>
+            <label className="form-label" htmlFor="weigh-fine-pct">{t('harvest.modalFineLeafQuality')}</label>
+            <span className="fine-pct-value">{fineLeafPct}% {locale === 'si' ? 'මනා දළු' : 'Fine Grade'}</span>
           </div>
           <input
             id="weigh-fine-pct"
@@ -215,19 +238,19 @@ export const WeighInModal: React.FC<WeighInModalProps> = ({ isOpen, onClose }) =
             className="form-slider"
           />
           <div className="slider-labels">
-            <span>Coarse Leaf ({100 - fineLeafPct}%)</span>
-            <span>Target Export Standard (&ge;75%)</span>
-            <span>Super Fine (90%+)</span>
+            <span>{locale === 'si' ? `රළු දළු (${100 - fineLeafPct}%)` : `Coarse Leaf (${100 - fineLeafPct}%)`}</span>
+            <span>{locale === 'si' ? 'අපනයන ඉලක්කය (≥75%)' : 'Target Export Standard (≥75%)'}</span>
+            <span>{locale === 'si' ? 'විශිෂ්ට මනා දළු (90%+)' : 'Super Fine (90%+)'}</span>
           </div>
         </div>
 
         {/* Footer Actions */}
         <div className="modal-footer">
           <button type="button" className="btn btn--secondary" onClick={onClose}>
-            Cancel
+            {t('harvest.modalCancelBtn')}
           </button>
           <button type="submit" className="btn btn--primary" disabled={isSubmitting || netWeightCalculated <= 0}>
-            {isSubmitting ? 'Recording...' : `Record ${netWeightCalculated.toFixed(1)} kg Net`}
+            {isSubmitting ? t('harvest.modalSubmitting') : `${t('harvest.modalSubmitBtn')} (${netWeightCalculated.toFixed(1)} kg)`}
           </button>
         </div>
       </form>

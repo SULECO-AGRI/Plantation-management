@@ -1,9 +1,36 @@
 import React, { useMemo, useState } from 'react'
 import { useSalary } from '../../context/SalaryContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { DailySalaryRecord, PaymentMethod, SalaryPaymentStatus } from '../../types/salary'
 
 const ALL_DIVISIONS = ['Weddamulla', 'Ramboda', 'Camnethan', 'Lilliesland', 'Wewandon']
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
+
+const ROLE_LABELS: Record<string, { en: string; si: string }> = {
+  harvester: { en: 'Harvester', si: 'දළු නෙළන්නා' },
+  sprayer: { en: 'Chemical / Fertilizer Sprayer', si: 'පොහොර / බෙහෙත් ඉසින්නා' },
+  pruner: { en: 'Bush Pruner', si: 'කප්පාදු සේවකයා' },
+  field_officer: { en: 'Field Officer', si: 'ක්ෂේත්‍ර නිලධාරී' },
+  kangany: { en: 'Field Kangany', si: 'ක්ෂේත්‍ර කංකානි' },
+  sundry: { en: 'Sundry Laborer', si: 'සාමාන්‍ය සේවකයා' },
+  division_manager: { en: 'Division Manager', si: 'කොට්ඨාස කළමනාකරු' },
+  super_admin: { en: 'Super Admin', si: 'ප්‍රධාන පරිපාලක' },
+  'chemical / fertilizer sprayer': { en: 'Chemical / Fertilizer Sprayer', si: 'පොහොර / බෙහෙත් ඉසින්නා' },
+  'bush pruner': { en: 'Bush Pruner', si: 'කප්පාදු සේවකයා' },
+  'field officer': { en: 'Field Officer', si: 'ක්ෂේත්‍ර නිලධාරී' },
+  'field kangany': { en: 'Field Kangany', si: 'ක්ෂේත්‍ර කංකානි' },
+  'sundry laborer': { en: 'Sundry Laborer', si: 'සාමාන්‍ය සේවකයා' },
+  'division manager': { en: 'Division Manager', si: 'කොට්ඨාස කළමනාකරු' },
+  'super admin': { en: 'Super Admin', si: 'ප්‍රධාන පරිපාලක' },
+}
 
 const DIVISION_FIELDS: Record<string, string[]> = {
   Weddamulla: ['Block 4B', 'Block 3C', 'Block 2A', 'Block 4A'],
@@ -16,6 +43,7 @@ const DIVISION_FIELDS: Record<string, string[]> = {
 export const DailySalaryPayView: React.FC = () => {
   const { records, selectedDate, setSelectedDate, isLoading, markPaid, markUnpaid, batchMarkPaid } = useSalary()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isSuperAdmin = currentUser?.role === 'super_admin'
   const isDivisionManager = currentUser?.role === 'division_manager'
@@ -159,17 +187,25 @@ export const DailySalaryPayView: React.FC = () => {
   }
 
   // Titles
+  const localizedUserDivision = DIVISION_NAMES[userDivision.toLowerCase()]?.[locale] || userDivision
+
   const viewTitle = isFieldOfficer
-    ? `Daily Salary: ${userField}`
+    ? (locale === 'si' ? `දෛනික වැටුප්: ${userField}` : `Daily Salary: ${userField}`)
     : isDivisionManager
-    ? `Daily Salary: ${userDivision} Division`
-    : 'Daily Salary: All Divisions'
+    ? (locale === 'si' ? `දෛනික වැටුප්: ${localizedUserDivision} කොට්ඨාසය` : `Daily Salary: ${userDivision} Division`)
+    : (locale === 'si' ? 'දෛනික වැටුප්: සියලු කොට්ඨාස' : 'Daily Salary: All Divisions')
 
   const viewSubtitle = isFieldOfficer
-    ? `Mark and record daily salary payments for employees in ${userField} (${userDivision} Division)`
+    ? (locale === 'si'
+        ? `${localizedUserDivision} කොට්ඨාසයේ ${userField} හි සේවකයින්ගේ දෛනික වැටුප් ගෙවීම් සටහන් කිරීම.`
+        : `Mark and record daily salary payments for employees in ${userField} (${userDivision} Division)`)
     : isDivisionManager
-    ? `Daily wage tracking and field payments overview for ${userDivision} Division`
-    : 'Global estate daily wage payout tracking across all divisions and fields'
+    ? (locale === 'si'
+        ? `${localizedUserDivision} කොට්ඨාසය සඳහා දෛනික වැටුප් නිරීක්ෂණය සහ ක්ෂේත්‍ර ගෙවීම්.`
+        : `Daily wage tracking and field payments overview for ${userDivision} Division`)
+    : (locale === 'si'
+        ? 'සියලු කොට්ඨාස සහ ක්ෂේත්‍ර හරහා සමස්ත වතු දෛනික වැටුප් ගෙවීම් නිරීක්ෂණය.'
+        : 'Global estate daily wage payout tracking across all divisions and fields')
 
   return (
     <div className="erp-page-container">
@@ -180,10 +216,10 @@ export const DailySalaryPayView: React.FC = () => {
             <h1 className="erp-page-title">{viewTitle}</h1>
             <span className="erp-badge erp-badge--neutral">
               {isFieldOfficer
-                ? `Field Officer (${userField})`
+                ? `${locale === 'si' ? 'ක්ෂේත්‍ර නිලධාරී' : 'Field Officer'} (${userField})`
                 : isDivisionManager
-                ? `Division Manager (${userDivision})`
-                : 'Super Admin'}
+                ? `${locale === 'si' ? 'කොට්ඨාස කළමනාකරු' : 'Division Manager'} (${localizedUserDivision})`
+                : (locale === 'si' ? 'ප්‍රධාන පරිපාලක' : 'Super Admin')}
             </span>
           </div>
           <p className="erp-page-subtitle">{viewSubtitle}</p>
@@ -199,8 +235,8 @@ export const DailySalaryPayView: React.FC = () => {
               disabled={isProcessingId === 'batch'}
             >
               {isProcessingId === 'batch'
-                ? 'Processing...'
-                : `Pay All Present (${stats.unpaidPresent} Workers)`}
+                ? (locale === 'si' ? 'සකසමින්...' : 'Processing...')
+                : t('salary.btnPayAllPresent', { count: stats.unpaidPresent })}
             </button>
           </div>
         )}
@@ -219,25 +255,25 @@ export const DailySalaryPayView: React.FC = () => {
       {/* Summary Metrics */}
       <div className="erp-metrics-grid">
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Field Workers</div>
+          <div className="erp-metric-card__label">{t('salary.kpiTotalWorkers')}</div>
           <div className="erp-metric-card__value">{stats.totalWorkers}</div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Present Today</div>
+          <div className="erp-metric-card__label">{t('salary.kpiPresentAttended')}</div>
           <div className="erp-metric-card__value">{stats.presentWorkers}</div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Total Daily Wage Due</div>
+          <div className="erp-metric-card__label">{t('salary.kpiTotalWageBill')}</div>
           <div className="erp-metric-card__value">LKR {stats.totalDue.toLocaleString()}</div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Total Paid Today</div>
+          <div className="erp-metric-card__label">{t('salary.kpiTotalPaidOut')}</div>
           <div className="erp-metric-card__value" style={{ color: '#15803d' }}>
             LKR {stats.totalPaid.toLocaleString()}
           </div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Unpaid Workers</div>
+          <div className="erp-metric-card__label">{t('salary.kpiUnpaidPresent')}</div>
           <div
             className="erp-metric-card__value"
             style={{ color: stats.unpaidPresent > 0 ? '#b45309' : undefined }}
@@ -256,21 +292,21 @@ export const DailySalaryPayView: React.FC = () => {
             className={`erp-pill-btn ${statusFilter === 'all' ? 'erp-pill-btn--active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            All Workers ({scopedRecords.length})
+            {locale === 'si' ? 'සියලු සේවකයින්' : 'All Workers'} ({scopedRecords.length})
           </button>
           <button
             type="button"
             className={`erp-pill-btn ${statusFilter === 'unpaid' ? 'erp-pill-btn--active' : ''}`}
             onClick={() => setStatusFilter('unpaid')}
           >
-            Unpaid ({scopedRecords.filter((r) => r.status === 'unpaid').length})
+            {t('salary.filterUnpaid')} ({scopedRecords.filter((r) => r.status === 'unpaid').length})
           </button>
           <button
             type="button"
             className={`erp-pill-btn ${statusFilter === 'paid' ? 'erp-pill-btn--active' : ''}`}
             onClick={() => setStatusFilter('paid')}
           >
-            Paid ({scopedRecords.filter((r) => r.status === 'paid').length})
+            {t('salary.filterPaid')} ({scopedRecords.filter((r) => r.status === 'paid').length})
           </button>
         </div>
 
@@ -297,7 +333,7 @@ export const DailySalaryPayView: React.FC = () => {
             >
               {ALL_DIVISIONS.map((div) => (
                 <option key={div} value={div}>
-                  {div} Division
+                  {DIVISION_NAMES[div.toLowerCase()]?.[locale] || div} {locale === 'si' ? 'කොට්ඨාසය' : 'Division'}
                 </option>
               ))}
             </select>
@@ -310,7 +346,7 @@ export const DailySalaryPayView: React.FC = () => {
               value={selectedFieldBlock}
               onChange={(e) => setSelectedFieldBlock(e.target.value)}
             >
-              <option value="all">All Fields</option>
+              <option value="all">{t('salary.allFields')}</option>
               {availableFields.map((field) => (
                 <option key={field} value={field}>
                   {field}
@@ -323,7 +359,7 @@ export const DailySalaryPayView: React.FC = () => {
           <input
             type="text"
             className="erp-input erp-input--search"
-            placeholder="Search worker ID or name..."
+            placeholder={t('salary.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -333,24 +369,24 @@ export const DailySalaryPayView: React.FC = () => {
       {/* Salary Table */}
       <div className="erp-table-container">
         {isLoading ? (
-          <div className="erp-table-empty">Loading salary records...</div>
+          <div className="erp-table-empty">{t('salary.loadingSalary')}</div>
         ) : filteredRecords.length === 0 ? (
           <div className="erp-table-empty">
-            No employee salary records found matching the criteria.
+            {t('salary.noSalaryRecords')}
           </div>
         ) : (
           <table className="erp-table">
             <thead>
               <tr>
-                <th>Worker ID & Name</th>
-                <th>Role</th>
-                <th>Attendance</th>
-                <th>Work Output</th>
-                <th>Base Wage</th>
-                <th>Incentive</th>
-                <th>Total Pay</th>
-                <th>Payment Status</th>
-                <th style={{ textAlign: 'right' }}>Action</th>
+                <th>{t('salary.thWorkerIdName')}</th>
+                <th>{t('salary.thRole')}</th>
+                <th>{t('salary.thAttendance')}</th>
+                <th>{t('salary.thWorkOutput')}</th>
+                <th>{t('salary.thBaseWage')}</th>
+                <th>{t('salary.thIncentive')}</th>
+                <th>{t('salary.thTotalPay')}</th>
+                <th>{t('salary.thPaymentStatus')}</th>
+                <th style={{ textAlign: 'right' }}>{t('salary.thAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -359,7 +395,7 @@ export const DailySalaryPayView: React.FC = () => {
 
                 return (
                   <tr key={record.id}>
-                    {/* Worker ID & Name */}
+                    {/* Worker ID & Name (Strictly keep Worker Name in English) */}
                     <td>
                       <div className="erp-table__primary-text">{record.workerName}</div>
                       <div className="erp-table__secondary-text">
@@ -369,24 +405,28 @@ export const DailySalaryPayView: React.FC = () => {
 
                     {/* Role */}
                     <td>
-                      <span className="erp-table__category-badge">{record.roleLabel}</span>
+                      <span className="erp-table__category-badge">
+                        {ROLE_LABELS[record.roleLabel.toLowerCase()]?.[locale] || record.roleLabel}
+                      </span>
                     </td>
 
                     {/* Attendance */}
                     <td>
                       {record.attended ? (
                         <span className="erp-badge erp-badge--success">
-                          Present ({record.hoursWorked}h)
+                          {t('salary.presentHours', { hours: record.hoursWorked })}
                         </span>
                       ) : (
-                        <span className="erp-badge erp-badge--muted">Absent</span>
+                        <span className="erp-badge erp-badge--muted">{t('salary.absent')}</span>
                       )}
                     </td>
 
                     {/* Work Output */}
                     <td>
                       {record.pluckedKg > 0 ? (
-                        <span style={{ fontWeight: 500 }}>{record.pluckedKg} kg Leaf</span>
+                        <span style={{ fontWeight: 500 }}>
+                          {t('salary.leafKg', { kg: record.pluckedKg })}
+                        </span>
                       ) : (
                         <span className="erp-table__status-text">—</span>
                       )}
@@ -419,7 +459,7 @@ export const DailySalaryPayView: React.FC = () => {
                     <td>
                       {isPaid ? (
                         <div>
-                          <span className="erp-badge erp-badge--success">Paid (Cash)</span>
+                          <span className="erp-badge erp-badge--success">{t('salary.statusPaidCash')}</span>
                           {record.paidBy && (
                             <div className="erp-table__secondary-text" style={{ fontSize: '11px', marginTop: '2px' }}>
                               {record.paidBy} {record.paidAt ? `• ${record.paidAt.split(' ')[1]}` : ''}
@@ -427,9 +467,9 @@ export const DailySalaryPayView: React.FC = () => {
                           )}
                         </div>
                       ) : record.attended ? (
-                        <span className="erp-badge erp-badge--warning">Unpaid</span>
+                        <span className="erp-badge erp-badge--warning">{t('salary.statusUnpaid')}</span>
                       ) : (
-                        <span className="erp-badge erp-badge--muted">No Payout</span>
+                        <span className="erp-badge erp-badge--muted">{t('salary.statusNoPayout')}</span>
                       )}
                     </td>
 
@@ -442,9 +482,9 @@ export const DailySalaryPayView: React.FC = () => {
                             className="erp-btn erp-btn--sm erp-btn--outline"
                             onClick={() => handleUnpay(record)}
                             disabled={isProcessingId === record.id}
-                            title="Mark back to unpaid"
+                            title={locale === 'si' ? 'නොගෙවූ ලෙස නැවත සලකුණු කරන්න' : 'Mark back to unpaid'}
                           >
-                            Mark Unpaid
+                            {t('salary.btnMarkUnpaid')}
                           </button>
                         ) : (
                           <button
@@ -453,11 +493,13 @@ export const DailySalaryPayView: React.FC = () => {
                             onClick={() => handlePay(record, 'cash')}
                             disabled={isProcessingId === record.id}
                           >
-                            {isProcessingId === record.id ? 'Saving...' : 'Mark Paid'}
+                            {isProcessingId === record.id
+                              ? (locale === 'si' ? 'සුරකිමින්...' : 'Saving...')
+                              : (locale === 'si' ? 'ගෙවන්න' : 'Mark Paid')}
                           </button>
                         )
                       ) : (
-                        <span className="erp-table__status-text">No Pay</span>
+                        <span className="erp-table__status-text">{locale === 'si' ? 'ගෙවීමක් නැත' : 'No Pay'}</span>
                       )}
                     </td>
                   </tr>

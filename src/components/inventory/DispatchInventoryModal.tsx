@@ -2,7 +2,16 @@ import React, { useEffect, useState } from 'react'
 import { Modal } from '../common/Modal'
 import { useInventory } from '../../context/InventoryContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { InventoryItem } from '../../types/inventory'
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
 
 const DIVISION_FIELDS: Record<string, string[]> = {
   Weddamulla: ['Block 4B', 'Block 3C', 'Block 2A', 'Central Depot', 'Factory Yard'],
@@ -33,6 +42,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
 }) => {
   const { items, dispatchItem } = useInventory()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isSuperAdmin = currentUser?.role === 'super_admin'
   const userDivision = (currentUser?.assignedDivision || currentUser?.divisionScope || 'Weddamulla') as
@@ -132,15 +142,21 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
     }
   }
 
+  const localizedUserDivision = DIVISION_NAMES[userDivision.toLowerCase()]?.[locale] || userDivision
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Dispatch Inventory"
+      title={t('inventory.modalDispatchTitle')}
       subtitle={
         isSuperAdmin
-          ? 'Super Admin Dispatch: Send equipment, vehicles or supplies across any division & field.'
-          : `Division Dispatch (${userDivision}): Send inventory to fields inside your division.`
+          ? (locale === 'si'
+              ? 'ප්‍රධාන පරිපාලක නිකුත් කිරීම්: ඕනෑම කොට්ඨාසයක් සහ ක්ෂේත්‍රයක් වෙත උපකරණ, වාහන හෝ සැපයුම් යවන්න.'
+              : 'Super Admin Dispatch: Send equipment, vehicles or supplies across any division & field.')
+          : (locale === 'si'
+              ? `කොට්ඨාස නිකුත් කිරීම් (${localizedUserDivision}): ඔබේ කොට්ඨාසය තුළ පිහිටි ක්ෂේත්‍ර වෙත භාණ්ඩ යවන්න.`
+              : `Division Dispatch (${userDivision}): Send inventory to fields inside your division.`)
       }
       maxWidth="md"
     >
@@ -153,7 +169,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
 
         {/* Item Selection */}
         <div className="form-group">
-          <label className="form-label">Select Item</label>
+          <label className="form-label">{t('inventory.modalSelectItem')}</label>
           {preselectedItem ? (
             <div
               style={{
@@ -166,7 +182,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
             >
               <strong>{preselectedItem.code}</strong> — {preselectedItem.name} ({preselectedItem.categoryLabel})
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                Current Location: {preselectedItem.division} — {preselectedItem.fieldBlock} | Available: {preselectedItem.quantity} {preselectedItem.unit}
+                {locale === 'si' ? 'වත්මන් ස්ථානය:' : 'Current Location:'} {DIVISION_NAMES[preselectedItem.division.toLowerCase()]?.[locale] || preselectedItem.division} — {preselectedItem.fieldBlock} | {locale === 'si' ? 'පවතින ප්‍රමාණය:' : 'Available:'} {preselectedItem.quantity} {preselectedItem.unit}
               </div>
             </div>
           ) : (
@@ -178,7 +194,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
             >
               {selectableItems.map((item) => (
                 <option key={item.id} value={item.id}>
-                  [{item.code}] {item.name} ({item.division} - {item.fieldBlock}) - Qty: {item.quantity} {item.unit}
+                  [{item.code}] {item.name} ({DIVISION_NAMES[item.division.toLowerCase()]?.[locale] || item.division} - {item.fieldBlock}) - {locale === 'si' ? 'ප්‍රමාණය:' : 'Qty:'} {item.quantity} {item.unit}
                 </option>
               ))}
             </select>
@@ -189,7 +205,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
         <div className="form-grid-2">
           <div className="form-group">
             <label className="form-label">
-              Target Division {isSuperAdmin ? '(All Divisions)' : '(Your Division)'}
+              {t('inventory.modalDestinationDivision')} {isSuperAdmin ? (locale === 'si' ? '(සියලු කොට්ඨාස)' : '(All Divisions)') : (locale === 'si' ? '(ඔබේ කොට්ඨාසය)' : '(Your Division)')}
             </label>
             {isSuperAdmin ? (
               <select
@@ -200,7 +216,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
               >
                 {ALL_DIVISIONS.map((div) => (
                   <option key={div} value={div}>
-                    {div} Division
+                    {DIVISION_NAMES[div.toLowerCase()]?.[locale] || div} {locale === 'si' ? 'කොට්ඨාසය' : 'Division'}
                   </option>
                 ))}
               </select>
@@ -208,7 +224,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
               <input
                 type="text"
                 className="form-input"
-                value={`${userDivision} Division`}
+                value={`${localizedUserDivision} ${locale === 'si' ? 'කොට්ඨාසය' : 'Division'}`}
                 disabled
               />
             )}
@@ -216,7 +232,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
 
           {/* Target Field / Block */}
           <div className="form-group">
-            <label className="form-label">Target Field / Block</label>
+            <label className="form-label">{t('inventory.modalDestinationField')}</label>
             <select
               className="form-input"
               value={targetFieldBlock}
@@ -236,7 +252,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
         <div className="form-grid-2">
           <div className="form-group">
             <label className="form-label">
-              Quantity {activeItem ? `(Max: ${activeItem.quantity} ${activeItem.unit})` : ''}
+              {t('inventory.modalQuantityToDispatch')} {activeItem ? `(${locale === 'si' ? 'උපරිම:' : 'Max:'} ${activeItem.quantity} ${activeItem.unit})` : ''}
             </label>
             <input
               type="number"
@@ -250,7 +266,7 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Unit</label>
+            <label className="form-label">{locale === 'si' ? 'ඒකකය' : 'Unit'}</label>
             <input
               type="text"
               className="form-input"
@@ -262,11 +278,11 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
 
         {/* Dispatch Notes / Purpose */}
         <div className="form-group">
-          <label className="form-label">Instructions / Note (Optional)</label>
+          <label className="form-label">{t('inventory.modalDispatchNotes')}</label>
           <input
             type="text"
             className="form-input"
-            placeholder="e.g. Allocation for morning field work or scheduled spray"
+            placeholder={locale === 'si' ? 'උදා. උදෑසන ක්ෂේත්‍ර වැඩ හෝ නියමිත බෙහෙත් ඉසීම සඳහා වෙන් කිරීම' : 'e.g. Allocation for morning field work or scheduled spray'}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -280,14 +296,14 @@ export const DispatchInventoryModal: React.FC<DispatchInventoryModalProps> = ({
             onClick={onClose}
             disabled={isSubmitting}
           >
-            Cancel
+            {locale === 'si' ? 'අවලංගු කරන්න' : 'Cancel'}
           </button>
           <button
             type="submit"
             className="btn btn--primary"
             disabled={isSubmitting || !activeItem}
           >
-            {isSubmitting ? 'Dispatching...' : 'Dispatch Item'}
+            {isSubmitting ? t('inventory.modalDispatching') : t('inventory.modalDispatchBtn')}
           </button>
         </div>
       </form>

@@ -4,17 +4,31 @@ import { TaskCard } from './TaskCard'
 import { CreateTaskModal } from './CreateTaskModal'
 import { useTask } from '../../context/TaskContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { TaskPriority, TaskStatus, WorkType } from '../../types/task'
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
 
 export const TaskKanbanBoard: React.FC = () => {
   const { tasks, updateTaskStatus, isCreateModalOpen, setIsCreateModalOpen } = useTask()
   const { currentUser, selectedDivisionFilter, setSelectedDivisionFilter } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isSuperAdmin = currentUser?.role === 'super_admin'
   const isDivisionManager = currentUser?.role === 'division_manager'
   const isFieldOfficer = currentUser?.role === 'field_officer' || (currentUser?.role as string) === 'kangany'
   const canCreateTask = isSuperAdmin || isDivisionManager
   const userDivision = currentUser?.assignedDivision || currentUser?.divisionScope || 'Weddamulla'
+
+  const localizedUserDivision = locale === 'si' && DIVISION_NAMES[userDivision.toLowerCase()]
+    ? DIVISION_NAMES[userDivision.toLowerCase()].si
+    : userDivision
 
   // Filter tab
   const [filterTab, setFilterTab] = useState<'all' | 'managers' | 'officers' | 'my_tasks'>(
@@ -89,10 +103,10 @@ export const TaskKanbanBoard: React.FC = () => {
   ])
 
   const columns: Array<{ id: TaskStatus; label: string }> = [
-    { id: 'scheduled', label: 'Scheduled' },
-    { id: 'in_progress', label: 'In Progress' },
-    { id: 'completed', label: 'Completed' },
-    { id: 'delayed', label: 'Delayed' },
+    { id: 'scheduled', label: t('tasks.colScheduled') },
+    { id: 'in_progress', label: t('tasks.colInProgress') },
+    { id: 'completed', label: t('tasks.colCompleted') },
+    { id: 'delayed', label: t('tasks.colDelayed') },
   ]
 
   const handleDrop = async (e: React.DragEvent, targetStatus: TaskStatus) => {
@@ -110,21 +124,21 @@ export const TaskKanbanBoard: React.FC = () => {
       <div className="simple-tasks-header">
         <div>
           <div className="simple-tasks-title-row">
-            <h1 className="simple-tasks-title">Tasks</h1>
+            <h1 className="simple-tasks-title">{t('tasks.title')}</h1>
             <span className="simple-tasks-role-badge">
               {isSuperAdmin
-                ? 'Super Admin'
+                ? t('tasks.roleSuperAdmin')
                 : isDivisionManager
-                ? `${userDivision} Manager`
-                : `${userDivision} Field Officer`}
+                ? t('tasks.roleManagerBadge', { division: localizedUserDivision })
+                : t('tasks.roleOfficerBadge', { division: localizedUserDivision })}
             </span>
           </div>
           <p className="simple-tasks-subtitle">
             {isSuperAdmin
-              ? 'Assign tasks to Division Managers and Field Officers.'
+              ? t('tasks.subtitleAdmin')
               : isDivisionManager
-              ? 'Assign tasks to your field officers and view assigned work.'
-              : 'View your assigned tasks and update work progress.'}
+              ? t('tasks.subtitleManager')
+              : t('tasks.subtitleOfficer')}
           </p>
         </div>
 
@@ -135,7 +149,7 @@ export const TaskKanbanBoard: React.FC = () => {
             onClick={() => setIsCreateModalOpen(true)}
           >
             <Plus size={16} />
-            <span>Add Task</span>
+            <span>{t('tasks.addTask')}</span>
           </button>
         )}
       </div>
@@ -147,7 +161,7 @@ export const TaskKanbanBoard: React.FC = () => {
           <Search size={14} className="simple-search-icon" />
           <input
             type="text"
-            placeholder="Search tasks..."
+            placeholder={t('tasks.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="simple-search-input"
@@ -172,21 +186,21 @@ export const TaskKanbanBoard: React.FC = () => {
                 className={`simple-pill ${filterTab === 'all' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('all')}
               >
-                All
+                {t('tasks.filterAll')}
               </button>
               <button
                 type="button"
                 className={`simple-pill ${filterTab === 'managers' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('managers')}
               >
-                To Managers
+                {t('tasks.filterToManagers')}
               </button>
               <button
                 type="button"
                 className={`simple-pill ${filterTab === 'officers' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('officers')}
               >
-                To Field Officers
+                {t('tasks.filterToOfficers')}
               </button>
             </>
           )}
@@ -198,21 +212,21 @@ export const TaskKanbanBoard: React.FC = () => {
                 className={`simple-pill ${filterTab === 'all' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('all')}
               >
-                All
+                {t('tasks.filterAll')}
               </button>
               <button
                 type="button"
                 className={`simple-pill ${filterTab === 'managers' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('managers')}
               >
-                My Tasks
+                {t('tasks.filterMyTasks')}
               </button>
               <button
                 type="button"
                 className={`simple-pill ${filterTab === 'officers' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('officers')}
               >
-                Field Officers
+                {t('tasks.filterFieldOfficers')}
               </button>
             </>
           )}
@@ -224,14 +238,14 @@ export const TaskKanbanBoard: React.FC = () => {
                 className={`simple-pill ${filterTab === 'my_tasks' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('my_tasks')}
               >
-                My Tasks
+                {t('tasks.filterMyTasks')}
               </button>
               <button
                 type="button"
                 className={`simple-pill ${filterTab === 'all' ? 'simple-pill--active' : ''}`}
                 onClick={() => setFilterTab('all')}
               >
-                All Division
+                {t('tasks.filterAllDivision')}
               </button>
             </>
           )}
@@ -245,12 +259,12 @@ export const TaskKanbanBoard: React.FC = () => {
               onChange={(e) => setSelectedDivisionFilter(e.target.value)}
               className="simple-select"
             >
-              <option value="All Divisions">All Divisions</option>
-              <option value="Weddamulla">Weddamulla</option>
-              <option value="Ramboda">Ramboda</option>
-              <option value="Camnethan">Camnethan</option>
-              <option value="Lilliesland">Lilliesland</option>
-              <option value="Wewandon">Wewandon</option>
+              <option value="All Divisions">{t('tasks.allDivisions')}</option>
+              <option value="Weddamulla">{locale === 'si' ? 'වෙද්දමුල්ල' : 'Weddamulla'}</option>
+              <option value="Ramboda">{locale === 'si' ? 'රම්බොඩ' : 'Ramboda'}</option>
+              <option value="Camnethan">{locale === 'si' ? 'කැම්නෙතන්' : 'Camnethan'}</option>
+              <option value="Lilliesland">{locale === 'si' ? 'ලිලීස්ලන්ඩ්' : 'Lilliesland'}</option>
+              <option value="Wewandon">{locale === 'si' ? 'වැවන්ඩන්' : 'Wewandon'}</option>
             </select>
           )}
 
@@ -259,12 +273,12 @@ export const TaskKanbanBoard: React.FC = () => {
             onChange={(e) => setFilterType(e.target.value as WorkType | 'all')}
             className="simple-select"
           >
-            <option value="all">All Types</option>
-            <option value="tea_plucking">Tea Plucking</option>
-            <option value="fertilizer_spraying">Spraying</option>
-            <option value="pruning">Pruning</option>
-            <option value="weeding">Weeding</option>
-            <option value="drainage_cleansing">Drainage</option>
+            <option value="all">{t('tasks.allTypes')}</option>
+            <option value="tea_plucking">{t('tasks.typeTeaPlucking')}</option>
+            <option value="fertilizer_spraying">{t('tasks.typeFertilizer')}</option>
+            <option value="pruning">{t('tasks.typePruning')}</option>
+            <option value="weeding">{t('tasks.typeWeeding')}</option>
+            <option value="drainage_cleansing">{t('tasks.typeDrainage')}</option>
           </select>
         </div>
       </div>
@@ -293,7 +307,7 @@ export const TaskKanbanBoard: React.FC = () => {
 
               <div className="simple-kanban-col__cards">
                 {colTasks.length === 0 ? (
-                  <div className="simple-kanban-col__empty">No tasks</div>
+                  <div className="simple-kanban-col__empty">{t('tasks.noTasks')}</div>
                 ) : (
                   colTasks.map((task) => (
                     <TaskCard

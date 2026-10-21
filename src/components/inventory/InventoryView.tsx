@@ -1,28 +1,29 @@
 import React, { useMemo, useState } from 'react'
 import { useInventory } from '../../context/InventoryContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import { DispatchInventoryModal } from './DispatchInventoryModal'
 import type { InventoryCategory, InventoryItem, InventoryStatus } from '../../types/inventory'
 
-const CATEGORY_TABS: Array<{ id: InventoryCategory | 'all'; label: string }> = [
-  { id: 'all', label: 'All Items' },
-  { id: 'vehicles', label: 'Vehicles' },
-  { id: 'fertilizer', label: 'Fertilizer' },
-  { id: 'tools', label: 'Tools' },
-  { id: 'equipment', label: 'Equipment' },
-]
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
 
-const STATUS_OPTIONS: Array<{ id: InventoryStatus | 'all'; label: string }> = [
-  { id: 'all', label: 'All Status' },
-  { id: 'available', label: 'Available' },
-  { id: 'in_transit', label: 'In Transit' },
-  { id: 'received', label: 'Received' },
-  { id: 'maintenance', label: 'Maintenance' },
-]
+const CATEGORY_LABELS: Record<string, { en: string; si: string }> = {
+  vehicles: { en: 'Vehicles', si: 'වාහන' },
+  fertilizer: { en: 'Fertilizer', si: 'පොහොර' },
+  tools: { en: 'Tools', si: 'මෙවලම්' },
+  equipment: { en: 'Equipment', si: 'උපකරණ' },
+}
 
 export const InventoryView: React.FC = () => {
   const { items, isLoading, receiveItem } = useInventory()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isSuperAdmin = currentUser?.role === 'super_admin'
   const isDivisionManager = currentUser?.role === 'division_manager'
@@ -132,21 +133,46 @@ export const InventoryView: React.FC = () => {
   }
 
   // Header Titles
+  const localizedUserDivision = DIVISION_NAMES[userDivision.toLowerCase()]?.[locale] || userDivision
+
   const viewTitle = isSuperAdmin
-    ? 'Inventory: All Divisions'
+    ? (locale === 'si' ? 'ඉන්වෙන්ටරි: සියලු කොට්ඨාස' : 'Inventory: All Divisions')
     : isDivisionManager
-    ? `Inventory: ${userDivision} Division`
+    ? (locale === 'si' ? `ඉන්වෙන්ටරි: ${localizedUserDivision} කොට්ඨාසය` : `Inventory: ${userDivision} Division`)
     : isFieldOfficer
-    ? `Inventory: ${userField}`
-    : `Inventory: ${userDivision}`
+    ? (locale === 'si' ? `ඉන්වෙන්ටරි: ${userField}` : `Inventory: ${userField}`)
+    : (locale === 'si' ? `ඉන්වෙන්ටරි: ${localizedUserDivision}` : `Inventory: ${userDivision}`)
 
   const viewSubtitle = isSuperAdmin
-    ? 'All estate vehicles, tools, fertilizers, and supplies across divisions'
+    ? (locale === 'si' ? 'සියලු කොට්ඨාස හරහා වතු වාහන, මෙවලම්, පොහොර සහ සැපයුම්' : 'All estate vehicles, tools, fertilizers, and supplies across divisions')
     : isDivisionManager
-    ? `Inventory management and field dispatch for ${userDivision} Division`
+    ? (locale === 'si' ? `${localizedUserDivision} කොට්ඨාසය සඳහා ඉන්වෙන්ටරි කළමනාකරණය සහ ක්ෂේත්‍ර නිකුත් කිරීම්` : `Inventory management and field dispatch for ${userDivision} Division`)
     : isFieldOfficer
-    ? `Assigned field vehicles, tools, and incoming dispatches for ${userField}`
-    : `Inventory view for ${userDivision}`
+    ? (locale === 'si' ? `${userField} සඳහා අනුයුක්ත ක්ෂේත්‍ර වාහන, මෙවලම් සහ ලැබෙන නිකුත් කිරීම්` : `Assigned field vehicles, tools, and incoming dispatches for ${userField}`)
+    : (locale === 'si' ? `${localizedUserDivision} සඳහා ඉන්වෙන්ටරි තොරතුරු` : `Inventory view for ${userDivision}`)
+
+  const categoryTabs = [
+    { id: 'all' as const, label: t('inventory.tabAllItems') },
+    { id: 'vehicles' as const, label: t('inventory.tabVehicles') },
+    { id: 'fertilizer' as const, label: t('inventory.tabFertilizer') },
+    { id: 'tools' as const, label: t('inventory.tabTools') },
+    { id: 'equipment' as const, label: t('inventory.tabEquipment') },
+  ]
+
+  const statusOptions = [
+    { id: 'all' as const, label: t('inventory.statusAll') },
+    { id: 'available' as const, label: t('inventory.statusAvailable') },
+    { id: 'in_transit' as const, label: t('inventory.statusInTransit') },
+    { id: 'received' as const, label: t('inventory.statusReceived') },
+    { id: 'maintenance' as const, label: t('inventory.statusMaintenance') },
+  ]
+
+  const conditionLabels: Record<string, string> = {
+    good: t('inventory.conditionGood'),
+    fair: t('inventory.conditionFair'),
+    poor: t('inventory.conditionPoor'),
+    needs_service: t('inventory.conditionNeedsService'),
+  }
 
   return (
     <div className="erp-page-container">
@@ -157,12 +183,12 @@ export const InventoryView: React.FC = () => {
             <h1 className="erp-page-title">{viewTitle}</h1>
             <span className="erp-badge erp-badge--neutral">
               {isSuperAdmin
-                ? 'Super Admin Access'
+                ? (locale === 'si' ? 'ප්‍රධාන පරිපාලක ප්‍රවේශය' : 'Super Admin Access')
                 : isDivisionManager
-                ? 'Division Scope'
+                ? (locale === 'si' ? 'කොට්ඨාස විෂය පථය' : 'Division Scope')
                 : isFieldOfficer
-                ? `Field Officer: ${userField}`
-                : 'View Only'}
+                ? `${locale === 'si' ? 'ක්ෂේත්‍ර නිලධාරී' : 'Field Officer'}: ${userField}`
+                : t('inventory.viewOnly')}
             </span>
           </div>
           <p className="erp-page-subtitle">{viewSubtitle}</p>
@@ -176,7 +202,7 @@ export const InventoryView: React.FC = () => {
               className="erp-btn erp-btn--primary"
               onClick={() => handleOpenDispatch()}
             >
-              + Dispatch Inventory
+              + {locale === 'si' ? 'ඉන්වෙන්ටරි නිකුත් කරන්න' : 'Dispatch Inventory'}
             </button>
           </div>
         )}
@@ -195,32 +221,35 @@ export const InventoryView: React.FC = () => {
       {/* Field Officer Alert for In-Transit Items */}
       {isFieldOfficer && pendingReceiptCount > 0 && (
         <div className="erp-alert erp-alert--warning">
-          <strong>Action Required:</strong> {pendingReceiptCount} item{pendingReceiptCount > 1 ? 's are' : ' is'} currently in transit to {userField}. Review and click "Receive" below once verified on site.
+          <strong>{locale === 'si' ? 'ක්‍රියාමාර්ග අවශ්‍යයි:' : 'Action Required:'}</strong>{' '}
+          {locale === 'si'
+            ? `භාණ්ඩ ${pendingReceiptCount}ක් ${userField} වෙත ප්‍රවාහනයේ පවතී. භාණ්ඩ ලැබුණු පසු පහත "භාර ගන්න" බොත්තම ක්ලික් කරන්න.`
+            : `${pendingReceiptCount} item${pendingReceiptCount > 1 ? 's are' : ' is'} currently in transit to ${userField}. Review and click "Receive" below once verified on site.`}
         </div>
       )}
 
       {/* Simple Summary Metric Cards */}
       <div className="erp-metrics-grid">
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Total Tracked</div>
+          <div className="erp-metric-card__label">{t('inventory.totalTracked')}</div>
           <div className="erp-metric-card__value">{stats.total}</div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Vehicles & Machinery</div>
+          <div className="erp-metric-card__label">{t('inventory.vehiclesMachinery')}</div>
           <div className="erp-metric-card__value">{stats.vehicles}</div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Available</div>
+          <div className="erp-metric-card__label">{t('inventory.available')}</div>
           <div className="erp-metric-card__value">{stats.available}</div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">In Transit</div>
+          <div className="erp-metric-card__label">{t('inventory.inTransit')}</div>
           <div className="erp-metric-card__value" style={{ color: stats.inTransit > 0 ? '#b45309' : undefined }}>
             {stats.inTransit}
           </div>
         </div>
         <div className="erp-metric-card">
-          <div className="erp-metric-card__label">Received in Field</div>
+          <div className="erp-metric-card__label">{t('inventory.receivedInField')}</div>
           <div className="erp-metric-card__value">{stats.received}</div>
         </div>
       </div>
@@ -229,7 +258,7 @@ export const InventoryView: React.FC = () => {
       <div className="erp-filters-bar">
         {/* Category Pills */}
         <div className="erp-filter-group">
-          {CATEGORY_TABS.map((tab) => (
+          {categoryTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -248,7 +277,7 @@ export const InventoryView: React.FC = () => {
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value as any)}
           >
-            {STATUS_OPTIONS.map((opt) => (
+            {statusOptions.map((opt) => (
               <option key={opt.id} value={opt.id}>
                 {opt.label}
               </option>
@@ -262,12 +291,12 @@ export const InventoryView: React.FC = () => {
               value={divisionFilter}
               onChange={(e) => setDivisionFilter(e.target.value)}
             >
-              <option value="all">All Divisions</option>
-              <option value="Weddamulla">Weddamulla</option>
-              <option value="Ramboda">Ramboda</option>
-              <option value="Camnethan">Camnethan</option>
-              <option value="Lilliesland">Lilliesland</option>
-              <option value="Wewandon">Wewandon</option>
+              <option value="all">{locale === 'si' ? 'සියලු කොට්ඨාස' : 'All Divisions'}</option>
+              <option value="Weddamulla">{locale === 'si' ? 'වෙද්දමුල්ල' : 'Weddamulla'}</option>
+              <option value="Ramboda">{locale === 'si' ? 'රම්බොඩ' : 'Ramboda'}</option>
+              <option value="Camnethan">{locale === 'si' ? 'කැම්නෙතන්' : 'Camnethan'}</option>
+              <option value="Lilliesland">{locale === 'si' ? 'ලිලීස්ලන්ඩ්' : 'Lilliesland'}</option>
+              <option value="Wewandon">{locale === 'si' ? 'වැවන්ඩන්' : 'Wewandon'}</option>
             </select>
           )}
 
@@ -275,7 +304,7 @@ export const InventoryView: React.FC = () => {
           <input
             type="text"
             className="erp-input erp-input--search"
-            placeholder="Search code, name, location..."
+            placeholder={t('inventory.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -285,23 +314,23 @@ export const InventoryView: React.FC = () => {
       {/* Inventory Table */}
       <div className="erp-table-container">
         {isLoading ? (
-          <div className="erp-table-empty">Loading inventory data...</div>
+          <div className="erp-table-empty">{t('inventory.loadingInventory')}</div>
         ) : filteredItems.length === 0 ? (
           <div className="erp-table-empty">
-            No inventory items found matching the selected criteria.
+            {t('inventory.noInventoryMatch')}
           </div>
         ) : (
           <table className="erp-table">
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Item Name</th>
-                <th>Category</th>
-                <th>Current Location</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Condition</th>
-                <th style={{ textAlign: 'right' }}>Action</th>
+                <th>{t('inventory.thCode')}</th>
+                <th>{t('inventory.thItemName')}</th>
+                <th>{t('inventory.thCategory')}</th>
+                <th>{t('inventory.thCurrentLocation')}</th>
+                <th>{t('inventory.thQuantity')}</th>
+                <th>{t('inventory.thStatus')}</th>
+                <th>{t('inventory.thCondition')}</th>
+                <th style={{ textAlign: 'right' }}>{t('inventory.thAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -310,6 +339,10 @@ export const InventoryView: React.FC = () => {
                   isFieldOfficer &&
                   item.status === 'in_transit' &&
                   (item.targetFieldBlock === userField || item.fieldBlock === userField)
+
+                const divName = DIVISION_NAMES[item.division.toLowerCase()]?.[locale] || item.division
+                const targetDivName = item.targetDivision ? (DIVISION_NAMES[item.targetDivision.toLowerCase()]?.[locale] || item.targetDivision) : divName
+                const catLabel = CATEGORY_LABELS[item.category]?.[locale] || item.categoryLabel
 
                 return (
                   <tr key={item.id}>
@@ -326,17 +359,17 @@ export const InventoryView: React.FC = () => {
 
                     {/* Category */}
                     <td>
-                      <span className="erp-table__category-badge">{item.categoryLabel}</span>
+                      <span className="erp-table__category-badge">{catLabel}</span>
                     </td>
 
                     {/* Location */}
                     <td>
                       <div className="erp-table__location">
-                        {item.division} — {item.fieldBlock}
+                        {divName} — {item.fieldBlock}
                       </div>
                       {item.status === 'in_transit' && item.targetFieldBlock && (
                         <div className="erp-table__transit-target">
-                          Destination: {item.targetDivision || item.division} — {item.targetFieldBlock}
+                          {locale === 'si' ? 'ගමනාන්තය:' : 'Destination:'} {targetDivName} — {item.targetFieldBlock}
                         </div>
                       )}
                     </td>
@@ -349,25 +382,27 @@ export const InventoryView: React.FC = () => {
                     {/* Status */}
                     <td>
                       {item.status === 'available' && (
-                        <span className="erp-badge erp-badge--success">Available</span>
+                        <span className="erp-badge erp-badge--success">{t('inventory.statusAvailable')}</span>
                       )}
                       {item.status === 'in_transit' && (
                         <span className="erp-badge erp-badge--warning">
-                          In Transit ({item.targetFieldBlock || 'Field'})
+                          {locale === 'si'
+                            ? `ප්‍රවාහනයේ (${item.targetFieldBlock || 'ක්ෂේත්‍රය'})`
+                            : `In Transit (${item.targetFieldBlock || 'Field'})`}
                         </span>
                       )}
                       {item.status === 'received' && (
-                        <span className="erp-badge erp-badge--info">Received</span>
+                        <span className="erp-badge erp-badge--info">{t('inventory.statusReceived')}</span>
                       )}
                       {item.status === 'maintenance' && (
-                        <span className="erp-badge erp-badge--muted">Maintenance</span>
+                        <span className="erp-badge erp-badge--muted">{t('inventory.statusMaintenance')}</span>
                       )}
                     </td>
 
                     {/* Condition */}
                     <td>
                       <span className="erp-table__condition-text">
-                        {item.condition.charAt(0).toUpperCase() + item.condition.slice(1).replace('_', ' ')}
+                        {conditionLabels[item.condition] || item.condition}
                       </span>
                     </td>
 
@@ -382,18 +417,18 @@ export const InventoryView: React.FC = () => {
                             onClick={() => handleReceive(item)}
                             disabled={receivingId === item.id}
                           >
-                            {receivingId === item.id ? 'Receiving...' : 'Receive'}
+                            {receivingId === item.id ? t('inventory.btnReceiving') : t('inventory.btnReceive')}
                           </button>
                         ) : item.status === 'received' ? (
-                          <span className="erp-table__status-text">Stationed in {item.fieldBlock}</span>
+                          <span className="erp-table__status-text">{t('inventory.stationedIn', { field: item.fieldBlock })}</span>
                         ) : (
-                          <span className="erp-table__status-text">Assigned</span>
+                          <span className="erp-table__status-text">{t('inventory.assigned')}</span>
                         )
                       ) : (isSuperAdmin || isDivisionManager) ? (
                         /* Super Admin & Division Manager: Can dispatch available or received items */
                         item.status === 'in_transit' ? (
                           <span className="erp-table__transit-pill">
-                            En route to {item.targetFieldBlock}
+                            {t('inventory.enRouteTo', { field: item.targetFieldBlock || '' })}
                           </span>
                         ) : (
                           <button
@@ -401,11 +436,11 @@ export const InventoryView: React.FC = () => {
                             className="erp-btn erp-btn--sm erp-btn--outline"
                             onClick={() => handleOpenDispatch(item)}
                           >
-                            Dispatch
+                            {t('inventory.btnDispatch')}
                           </button>
                         )
                       ) : (
-                        <span className="erp-table__status-text">View Only</span>
+                        <span className="erp-table__status-text">{t('inventory.viewOnly')}</span>
                       )}
                     </td>
                   </tr>

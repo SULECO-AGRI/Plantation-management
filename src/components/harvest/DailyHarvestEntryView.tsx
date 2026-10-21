@@ -15,8 +15,28 @@ import {
 import { useHarvest } from '../../context/HarvestContext'
 import { useWorkforce } from '../../context/WorkforceContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { WeighInSession } from '../../types/harvest'
 import type { Worker } from '../../types/workforce'
+
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
+
+const ROLE_LABELS: Record<string, { en: string; si: string }> = {
+  harvester: { en: 'Harvester', si: 'දළු නෙළන්නා' },
+  sprayer: { en: 'Chemical / Fertilizer Sprayer', si: 'පොහොර / බෙහෙත් ඉසින්නා' },
+  pruner: { en: 'Bush Pruner', si: 'කප්පාදු සේවකයා' },
+  field_officer: { en: 'Field Officer', si: 'ක්ෂේත්‍ර නිලධාරී' },
+  kangany: { en: 'Field Kangany', si: 'ක්ෂේත්‍ර කංකානි' },
+  sundry: { en: 'Sundry Laborer', si: 'සාමාන්‍ය සේවකයා' },
+  division_manager: { en: 'Division Manager', si: 'කොට්ඨාස කළමනාකරු' },
+  super_admin: { en: 'Super Admin', si: 'ප්‍රධාන පරිපාලක' },
+}
 
 type RowEntry = {
   grossWeightKg: string
@@ -29,6 +49,7 @@ export const DailyHarvestEntryView: React.FC = () => {
   const { harvestLogs, recordWeighIn, batchRecordWeighIns } = useHarvest()
   const { workers } = useWorkforce()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const officerDivision =
     currentUser?.assignedDivision ||
@@ -285,11 +306,13 @@ export const DailyHarvestEntryView: React.FC = () => {
       <div className="erp-page-header">
         <div>
           <h1 className="erp-page-title">
-            Daily Harvest: <span style={{ color: 'var(--emerald-600)' }}>{selectedField}</span>
+            {t('dailyHarvest.title', { field: selectedField })}
           </h1>
           <p className="erp-page-subtitle">
-            Daily harvest weigh-in records for harvesters in{' '}
-            <strong style={{ color: 'var(--forest-900)' }}>{selectedField}</strong> ({selectedDivision} Division).
+            {t('dailyHarvest.subtitle', {
+              field: selectedField,
+              division: DIVISION_NAMES[selectedDivision.toLowerCase()]?.[locale] || selectedDivision,
+            })}
           </p>
         </div>
 
@@ -298,7 +321,9 @@ export const DailyHarvestEntryView: React.FC = () => {
           {/* Field in Charge Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Layers size={15} color="var(--emerald-600)" />
-            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--forest-900)' }}>Field in Charge:</label>
+            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--forest-900)' }}>
+              {t('dailyHarvest.fieldInCharge')}
+            </label>
             <select
               value={selectedField}
               onChange={(e) => setSelectedField(e.target.value)}
@@ -312,7 +337,7 @@ export const DailyHarvestEntryView: React.FC = () => {
             >
               {availableFields.map((f) => (
                 <option key={f} value={f}>
-                  {f} {f === currentUser?.assignedField ? '(In Charge)' : ''}
+                  {f} {f === currentUser?.assignedField ? (locale === 'si' ? '(භාරව)' : '(In Charge)') : ''}
                 </option>
               ))}
             </select>
@@ -352,7 +377,7 @@ export const DailyHarvestEntryView: React.FC = () => {
               }}
             >
               <Sun size={13} />
-              <span>Morning (11:30)</span>
+              <span>{t('dailyHarvest.morningBtn')}</span>
             </button>
             <button
               type="button"
@@ -374,7 +399,7 @@ export const DailyHarvestEntryView: React.FC = () => {
               }}
             >
               <Sunset size={13} />
-              <span>Afternoon (16:30)</span>
+              <span>{t('dailyHarvest.afternoonBtn')}</span>
             </button>
           </div>
         </div>
@@ -384,20 +409,20 @@ export const DailyHarvestEntryView: React.FC = () => {
       <div className="kpi-grid">
         <div className="kpi-card kpi-card--highlight">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">{selectedField} Leaf Today</span>
+            <span className="kpi-card__label">{t('dailyHarvest.kpiLeafToday', { field: selectedField })}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value text-emerald">{sessionStats.totalKg}</strong>
-              <span className="kpi-card__unit">kg Net</span>
+              <span className="kpi-card__unit">{t('dailyHarvest.kpiNetKg')}</span>
             </div>
             <span className="kpi-card__sub">
-              {selectedSession === 'morning' ? 'Morning Weigh-In' : 'Afternoon Weigh-In'}
+              {selectedSession === 'morning' ? t('dailyHarvest.kpiMorningWeighIn') : t('dailyHarvest.kpiAfternoonWeighIn')}
             </span>
           </div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Harvesters Weighed in {selectedField}</span>
+            <span className="kpi-card__label">{t('dailyHarvest.kpiHarvestersWeighed', { field: selectedField })}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">
                 {sessionStats.weighedCount} / {fieldWorkers.length}
@@ -405,7 +430,9 @@ export const DailyHarvestEntryView: React.FC = () => {
             </div>
             <span className="kpi-card__sub" style={{ color: 'var(--emerald-600)' }}>
               {fieldWorkers.length > 0
-                ? `${Math.round((sessionStats.weighedCount / fieldWorkers.length) * 100)}% Weighed`
+                ? t('dailyHarvest.kpiWeighedPct', {
+                    pct: Math.round((sessionStats.weighedCount / fieldWorkers.length) * 100),
+                  })
                 : '0%'}
             </span>
           </div>
@@ -413,25 +440,25 @@ export const DailyHarvestEntryView: React.FC = () => {
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Avg / Harvester ({selectedField})</span>
+            <span className="kpi-card__label">{t('dailyHarvest.kpiAvgHarvester', { field: selectedField })}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">{sessionStats.avgKg}</strong>
               <span className="kpi-card__unit">kg</span>
             </div>
-            <span className="kpi-card__sub">Target: 12.0 kg/session</span>
+            <span className="kpi-card__sub">{t('dailyHarvest.kpiTargetAvg')}</span>
           </div>
         </div>
 
         <div className="kpi-card">
           <div className="kpi-card__content">
-            <span className="kpi-card__label">Fine Leaf Quality ({selectedField})</span>
+            <span className="kpi-card__label">{t('dailyHarvest.kpiFineLeafQuality', { field: selectedField })}</span>
             <div className="kpi-card__val-row">
               <strong className="kpi-card__value">
                 {sessionStats.avgFineLeaf > 0 ? `${sessionStats.avgFineLeaf}%` : '80%'}
               </strong>
               <span className="kpi-card__unit">Fine</span>
             </div>
-            <span className="kpi-card__sub">Export grade two leaves &amp; bud</span>
+            <span className="kpi-card__sub">{t('dailyHarvest.kpiExportGrade')}</span>
           </div>
         </div>
       </div>
@@ -444,7 +471,7 @@ export const DailyHarvestEntryView: React.FC = () => {
             <Search size={15} />
             <input
               type="text"
-              placeholder={`Search harvesters in ${selectedField}...`}
+              placeholder={t('dailyHarvest.searchPlaceholder', { field: selectedField })}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="workforce-search-input"
@@ -481,7 +508,7 @@ export const DailyHarvestEntryView: React.FC = () => {
             }}
           >
             <Save size={14} />
-            <span>Save All {selectedField} Weights</span>
+            <span>{t('dailyHarvest.btnSaveAll', { field: selectedField })}</span>
           </button>
         </div>
 
@@ -490,14 +517,14 @@ export const DailyHarvestEntryView: React.FC = () => {
           <table className="workforce-table">
             <thead>
               <tr>
-                <th>Harvester / ID</th>
-                <th>Field Block</th>
-                <th>Gross Weight (kg)</th>
-                <th>Tare Bag (kg)</th>
-                <th>Net Harvest (kg)</th>
-                <th>Fine Leaf %</th>
-                <th>Session Status</th>
-                <th style={{ textAlign: 'right' }}>Weigh-In Action</th>
+                <th>{t('dailyHarvest.thHarvesterId')}</th>
+                <th>{t('dailyHarvest.thFieldBlock')}</th>
+                <th>{t('dailyHarvest.thGrossWeight')}</th>
+                <th>{t('dailyHarvest.thTareBag')}</th>
+                <th>{t('dailyHarvest.thNetHarvest')}</th>
+                <th>{t('dailyHarvest.thFineLeafPct')}</th>
+                <th>{t('dailyHarvest.thSessionStatus')}</th>
+                <th style={{ textAlign: 'right' }}>{t('dailyHarvest.thWeighAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -505,7 +532,7 @@ export const DailyHarvestEntryView: React.FC = () => {
                 <tr>
                   <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                     <Users size={32} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
-                    <p style={{ margin: 0 }}>No harvesters found in {selectedField}.</p>
+                    <p style={{ margin: 0 }}>{t('dailyHarvest.noHarvestersFound', { field: selectedField })}</p>
                   </td>
                 </tr>
               ) : (
@@ -518,14 +545,14 @@ export const DailyHarvestEntryView: React.FC = () => {
 
                   return (
                     <tr key={w.id} className="workforce-row">
-                      {/* Name & ID */}
+                      {/* Name & ID (Preserve Name in English strictly) */}
                       <td>
                         <div>
                           <strong style={{ fontSize: '13px', color: 'var(--forest-900)', display: 'block' }}>
                             {w.name}
                           </strong>
                           <span className="worker-id-code">
-                            {w.id} • {w.roleLabel}
+                            {w.id} • {ROLE_LABELS[w.role]?.[locale] || w.roleLabel}
                           </span>
                         </div>
                       </td>
@@ -646,10 +673,10 @@ export const DailyHarvestEntryView: React.FC = () => {
                             }}
                           >
                             <CheckCircle2 size={13} color="var(--emerald-600)" />
-                            Weighed ({existing.netWeightKg} kg)
+                            {t('dailyHarvest.statusWeighed')} ({existing.netWeightKg} kg)
                           </span>
                         ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Pending</span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{t('dailyHarvest.statusPending')}</span>
                         )}
                       </td>
 
@@ -674,7 +701,7 @@ export const DailyHarvestEntryView: React.FC = () => {
                           }}
                         >
                           <Save size={12} />
-                          <span>Save</span>
+                          <span>{existing ? t('dailyHarvest.btnUpdateRow') : t('dailyHarvest.btnSaveRow')}</span>
                         </button>
                       </td>
                     </tr>

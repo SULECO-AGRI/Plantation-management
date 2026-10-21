@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { Modal } from '../common/Modal'
 import { useTask } from '../../context/TaskContext'
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from '../../context/LanguageContext'
 import type { TaskAssigneeRole, TaskPriority, WorkType } from '../../types/task'
 import {
   EstateDivision,
@@ -18,6 +19,14 @@ type CreateTaskModalProps = {
   initialDivision?: string
 }
 
+const DIVISION_NAMES: Record<string, { en: string; si: string }> = {
+  weddamulla: { en: 'Weddamulla', si: 'වෙද්දමුල්ල' },
+  ramboda: { en: 'Ramboda', si: 'රම්බොඩ' },
+  camnethan: { en: 'Camnethan', si: 'කැම්නෙතන්' },
+  lilliesland: { en: 'Lilliesland', si: 'ලිලීස්ලන්ඩ්' },
+  wewandon: { en: 'Wewandon', si: 'වැවන්ඩන්' },
+}
+
 export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   isOpen,
   onClose,
@@ -25,6 +34,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 }) => {
   const { createTask } = useTask()
   const { currentUser } = useAuth()
+  const { t, locale } = useTranslation()
 
   const isSuperAdmin = currentUser?.role === 'super_admin'
   const isDivisionManager = currentUser?.role === 'division_manager'
@@ -46,6 +56,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [targetOutput, setTargetOutput] = useState('450 kg Leaf')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const localizedDivision = locale === 'si' && DIVISION_NAMES[division.toLowerCase()]
+    ? DIVISION_NAMES[division.toLowerCase()].si
+    : division
 
   useEffect(() => {
     if (isDivisionManager) {
@@ -119,11 +133,11 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="New Task"
+      title={t('tasks.modalNewTask')}
       subtitle={
         isSuperAdmin
-          ? 'Assign task to a Division Manager or Field Officer'
-          : `Assign task to a ${division} Field Officer`
+          ? t('tasks.modalSubtitleAdmin')
+          : t('tasks.modalSubtitleManager', { division: localizedDivision })
       }
       icon={<Plus size={18} />}
       maxWidth="md"
@@ -132,21 +146,21 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         {/* Assignee Selection */}
         {isSuperAdmin && (
           <div className="form-group">
-            <label className="form-label">Assign To</label>
+            <label className="form-label">{t('tasks.modalAssignTo')}</label>
             <div className="simple-radio-pills">
               <button
                 type="button"
                 className={`simple-radio-pill ${assigneeRole === 'division_manager' ? 'simple-radio-pill--active' : ''}`}
                 onClick={() => setAssigneeRole('division_manager')}
               >
-                Division Manager
+                {t('tasks.roleManager')}
               </button>
               <button
                 type="button"
                 className={`simple-radio-pill ${assigneeRole === 'field_officer' ? 'simple-radio-pill--active' : ''}`}
                 onClick={() => setAssigneeRole('field_officer')}
               >
-                Field Officer
+                {t('tasks.roleOfficer')}
               </button>
             </div>
           </div>
@@ -155,7 +169,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         <div className="form-grid-2">
           {/* Division */}
           <div className="form-group">
-            <label className="form-label" htmlFor="simple-division">Division</label>
+            <label className="form-label" htmlFor="simple-division">{t('tasks.modalDivision')}</label>
             {isSuperAdmin ? (
               <select
                 id="simple-division"
@@ -163,27 +177,27 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 onChange={(e) => setDivision(e.target.value as EstateDivision)}
                 className="form-input"
               >
-                <option value="Weddamulla">Weddamulla</option>
-                <option value="Ramboda">Ramboda</option>
-                <option value="Camnethan">Camnethan</option>
-                <option value="Lilliesland">Lilliesland</option>
-                <option value="Wewandon">Wewandon</option>
+                <option value="Weddamulla">{locale === 'si' ? 'වෙද්දමුල්ල' : 'Weddamulla'}</option>
+                <option value="Ramboda">{locale === 'si' ? 'රම්බොඩ' : 'Ramboda'}</option>
+                <option value="Camnethan">{locale === 'si' ? 'කැම්නෙතන්' : 'Camnethan'}</option>
+                <option value="Lilliesland">{locale === 'si' ? 'ලිලීස්ලන්ඩ්' : 'Lilliesland'}</option>
+                <option value="Wewandon">{locale === 'si' ? 'වැවන්ඩන්' : 'Wewandon'}</option>
               </select>
             ) : (
               <input
                 id="simple-division"
                 type="text"
-                value={division}
+                value={localizedDivision}
                 disabled
                 className="form-input"
               />
             )}
           </div>
 
-          {/* Person */}
+          {/* Person (names kept strictly in English) */}
           <div className="form-group">
             <label className="form-label" htmlFor="simple-officer">
-              {assigneeRole === 'division_manager' ? 'Manager' : 'Field Officer'}
+              {assigneeRole === 'division_manager' ? t('tasks.roleManager') : t('tasks.roleOfficer')}
             </label>
             <select
               id="simple-officer"
@@ -208,24 +222,24 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         <div className="form-grid-2">
           {/* Work Type */}
           <div className="form-group">
-            <label className="form-label" htmlFor="simple-worktype">Work Type</label>
+            <label className="form-label" htmlFor="simple-worktype">{t('tasks.modalWorkType')}</label>
             <select
               id="simple-worktype"
               value={workType}
               onChange={(e) => setWorkType(e.target.value as WorkType)}
               className="form-input"
             >
-              <option value="tea_plucking">Tea Plucking</option>
-              <option value="fertilizer_spraying">Fertilizer Spraying</option>
-              <option value="pruning">Bush Pruning</option>
-              <option value="weeding">Weeding</option>
-              <option value="drainage_cleansing">Drainage Cleaning</option>
+              <option value="tea_plucking">{t('tasks.typeTeaPlucking')}</option>
+              <option value="fertilizer_spraying">{t('tasks.typeFertilizer')}</option>
+              <option value="pruning">{t('tasks.typePruning')}</option>
+              <option value="weeding">{t('tasks.typeWeeding')}</option>
+              <option value="drainage_cleansing">{t('tasks.typeDrainage')}</option>
             </select>
           </div>
 
           {/* Block */}
           <div className="form-group">
-            <label className="form-label" htmlFor="simple-block">Block</label>
+            <label className="form-label" htmlFor="simple-block">{t('tasks.modalBlock')}</label>
             <input
               id="simple-block"
               type="text"
@@ -241,7 +255,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         <div className="form-grid-3">
           {/* Target Output */}
           <div className="form-group">
-            <label className="form-label" htmlFor="simple-output">Target</label>
+            <label className="form-label" htmlFor="simple-output">{t('tasks.modalTarget')}</label>
             <input
               id="simple-output"
               type="text"
@@ -255,7 +269,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
           {/* Due Date */}
           <div className="form-group">
-            <label className="form-label" htmlFor="simple-date">Due Date</label>
+            <label className="form-label" htmlFor="simple-date">{t('tasks.modalDueDate')}</label>
             <input
               id="simple-date"
               type="date"
@@ -268,27 +282,27 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
           {/* Priority */}
           <div className="form-group">
-            <label className="form-label" htmlFor="simple-priority">Priority</label>
+            <label className="form-label" htmlFor="simple-priority">{t('tasks.modalPriority')}</label>
             <select
               id="simple-priority"
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
               className="form-input"
             >
-              <option value="normal">Normal</option>
-              <option value="urgent">Urgent</option>
-              <option value="low">Low</option>
+              <option value="normal">{t('tasks.priorityNormal')}</option>
+              <option value="urgent">{t('tasks.priorityUrgent')}</option>
+              <option value="low">{t('tasks.priorityLow')}</option>
             </select>
           </div>
         </div>
 
         {/* Notes */}
         <div className="form-group">
-          <label className="form-label" htmlFor="simple-notes">Instructions (Optional)</label>
+          <label className="form-label" htmlFor="simple-notes">{t('tasks.modalInstructions')}</label>
           <textarea
             id="simple-notes"
             rows={2}
-            placeholder="Field notes or specific directives..."
+            placeholder={t('tasks.modalInstructionsPlaceholder')}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="form-input form-textarea"
@@ -297,10 +311,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
         <div className="modal-footer">
           <button type="button" className="btn btn--secondary" onClick={onClose}>
-            Cancel
+            {t('tasks.modalCancelBtn')}
           </button>
           <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
-            {isSubmitting ? 'Adding...' : 'Create Task'}
+            {isSubmitting ? t('tasks.modalCreating') : t('tasks.modalCreateBtn')}
           </button>
         </div>
       </form>
