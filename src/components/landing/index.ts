@@ -6,4 +6,5 @@ export { LandingOfferings } from './LandingOfferings'
 export { LandingEnterprises } from './LandingEnterprises'
 export { LandingCTA } from './LandingCTA'
 export { LandingFooter } from './LandingFooter'
+export { ScrollProgressBar } from './ScrollProgressBar'
 
