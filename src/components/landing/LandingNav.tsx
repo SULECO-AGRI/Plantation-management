@@ -53,7 +53,7 @@ export function LandingNav() {
             <div className="nav-menu">
               <a href="#about" className="nav-link">{t('landing.aboutUs')}</a>
               <a href="#offerings" className="nav-link">{t('landing.services')}</a>
-              <a href="#operations" className="nav-link">{t('landing.operations')}</a>
+              <a href="#operations" className="nav-link">{t('landing.operationsNav')}</a>
             </div>
 
             <div className="nav-actions">
@@ -111,7 +111,7 @@ export function LandingNav() {
             <div className="nav-mobile-menu">
               <a href="#about" className="nav-mobile-link" onClick={closeMobileMenu}>{t('landing.aboutUs')}</a>
               <a href="#offerings" className="nav-mobile-link" onClick={closeMobileMenu}>{t('landing.services')}</a>
-              <a href="#operations" className="nav-mobile-link" onClick={closeMobileMenu}>{t('landing.operations')}</a>
+              <a href="#operations" className="nav-mobile-link" onClick={closeMobileMenu}>{t('landing.operationsNav')}</a>
             </div>
 
             <div className="nav-mobile-action">

@@ -526,7 +526,7 @@
   "landing": {
     "aboutUs": "About Us",
     "services": "Our Services",
-    "operations": "Operations",
+    "operationsNav": "Operations",
     "login": "Login",
     "gisMap": "GIS Map",
     "signOut": "Sign Out",

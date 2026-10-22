@@ -526,7 +526,7 @@
   "landing": {
     "aboutUs": "අප පිළිබඳව",
     "services": "අපගේ සේවාවන්",
-    "operations": "ක්ෂේත්‍ර මෙහෙයුම්",
+    "operationsNav": "ක්ෂේත්‍ර මෙහෙයුම්",
     "login": "ඇතුල් වන්න",
     "gisMap": "GIS සිතියම",
     "signOut": "ඉවත් වන්න",
