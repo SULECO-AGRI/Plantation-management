@@ -46,8 +46,8 @@ export const WATAWALA_METADATA = {
   name: 'Watawala Plantations PLC',
   region: 'Southern & Central Provinces, Sri Lanka',
   visigeoUrl: 'https://watawala-plantations-plc.visigeo.com/',
-  center: [6.208, 80.345] as [number, number],
-  defaultZoom: 13,
+  center: [6.1899, 80.3298] as [number, number],
+  defaultZoom: 15,
   layers: [
     {
       key: 'watawala-roads',
@@ -68,6 +68,24 @@ export const WATAWALA_METADATA = {
       allowedRoles: ['Admin', 'Manager'],
       defaultVisible: true,
       description: 'Centimeter-level drone imagery and remote sensing spatial layers.',
+    },
+    {
+      key: 'watawala-trees-palm',
+      label: 'Oil Palm Tree Canopy (347,074 Trees)',
+      shortLabel: 'Oil Palm Trees',
+      category: 'monitoring',
+      allowedRoles: ['Admin', 'Manager', 'Officer'],
+      defaultVisible: true,
+      description: 'Individual GPS-tagged oil palm tree coordinates across Homadola, Nakiyadeniya & Thalangaha.',
+    },
+    {
+      key: 'watawala-trees-coconut',
+      label: 'Coconut Palm Canopy (4,774 Trees)',
+      shortLabel: 'Coconut Trees',
+      category: 'monitoring',
+      allowedRoles: ['Admin', 'Manager', 'Officer'],
+      defaultVisible: true,
+      description: 'Field boundary and buffer coconut tree inventory.',
     },
     {
       key: 'watawala-blocks',

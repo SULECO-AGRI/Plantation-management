@@ -6,11 +6,13 @@ import {
   Layers,
   Minus,
   RotateCcw,
+  Trees,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from '../../context/LanguageContext'
 import { loadPlantationGeoJson, WATAWALA_METADATA } from '../../utils/layerLoader'
-import { GOOGLE_SATELLITE_TILE_URL, OSM_TILE_URL } from '../../data/layers'
+import { ensureVectorGrid } from '../../utils/leafletPlugins'
+import { GOOGLE_SATELLITE_TILE_URL, OSM_TILE_URL, WATAWALA_VISIGEO_ROOT } from '../../data/layers'
 import { BaseMapSwitcher } from './BaseMapSwitcher'
 import { MapTopBar } from './MapTopBar'
 import type { SearchHit, EstateFeature } from '../../types/gis'
@@ -101,13 +103,24 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
   const [isProvincialRoadsVisible, setIsProvincialRoadsVisible] = useState(true)
   const [isRdaRoadsVisible, setIsRdaRoadsVisible] = useState(true)
   const [isLoadingVector, setIsLoadingVector] = useState(false)
+  const [isLoadingTrees, setIsLoadingTrees] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Vector Tree & Field states (Matching VisiGeo watawala-plantations-plc.visigeo.com)
+  const [isTreesOpen, setIsTreesOpen] = useState(true)
+  const [isOilPalmVisible, setIsOilPalmVisible] = useState(true)
+  const [isCoconutVisible, setIsCoconutVisible] = useState(true)
+  const [isFieldsVisible, setIsFieldsVisible] = useState(true)
 
   // Track visibility in refs to prevent stale closure bugs during async fetch & mount cycles
   const isEstateRoadsVisibleRef = useRef(true)
   const isProvincialRoadsVisibleRef = useRef(true)
   const isRdaRoadsVisibleRef = useRef(true)
   const isRgbActiveRef = useRef(true)
+  const isOilPalmVisibleRef = useRef(true)
+  const isCoconutVisibleRef = useRef(true)
+  const isFieldsVisibleRef = useRef(true)
+  const treeVectorGridRef = useRef<any>(null)
 
   // Layer panel state
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -173,8 +186,8 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     const abortController = new AbortController()
 
     const map = L.map(hostRef.current, {
-      center: WATAWALA_METADATA.center,
-      zoom: WATAWALA_METADATA.defaultZoom,
+      center: WATAWALA_BOUNDS.getCenter(),
+      zoom: 15,
       zoomControl: false,
     })
 
@@ -185,6 +198,12 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     if (!map.getPane('vectorPane')) {
       const vectorPane = map.createPane('vectorPane')
       vectorPane.style.zIndex = '620'
+    }
+
+    // Custom pane for tree canopy & crop vector tiles (630 z-index)
+    if (!map.getPane('watawalaTreesPane')) {
+      const treesPane = map.createPane('watawalaTreesPane')
+      treesPane.style.zIndex = '630'
     }
 
     // Base OSM Layer (default base)
@@ -234,8 +253,8 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     if (isProvincialRoadsVisibleRef.current) provincialGroup.addTo(map)
     if (isRdaRoadsVisibleRef.current) rdaGroup.addTo(map)
 
-    // Fit view to Watawala plantation bounds immediately
-    map.fitBounds(WATAWALA_BOUNDS, { padding: [25, 25] })
+    // Center on Watawala plantation at zoom 15 so high-density vector tree tiles (minZoom: 15) render immediately
+    map.setView(WATAWALA_BOUNDS.getCenter(), 15)
     mapRef.current = map
 
     // Fetch Watawala road network GeoJSON and populate individual category groups
@@ -308,7 +327,6 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
           const b = estateLayer.getBounds()
           if (b.isValid()) {
             boundsRef.current = b
-            mapRef.current.fitBounds(b, { padding: [25, 25] })
           }
         } catch {
           // ignore invalid bounds
@@ -326,12 +344,163 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
         }
       })
 
+    // Initialize VectorGrid Tree Canopy & Crop Layers (Protobuf PBF from VisiGeo)
+    ensureVectorGrid().then((ready) => {
+      if (!ready || !isMounted || !mapRef.current) return
+      const currentMap = mapRef.current
+
+      const treeTileUrl = `${WATAWALA_VISIGEO_ROOT}/geo/{z}/{x}/{y}.pbf`
+
+      const getTreeStyle = (properties: any, zoom?: number) => {
+        const layer = properties?.layer
+        const z = typeof zoom === 'number' ? zoom : (mapRef.current?.getZoom() || 16)
+
+        // Coconut (layer 0, 1, 2) - 4,774 palms
+        if (layer >= 0 && layer <= 2) {
+          if (!isCoconutVisibleRef.current) {
+            return { weight: 0, fill: false, opacity: 0, fillOpacity: 0 }
+          }
+          const radius = z >= 21 ? 9 : z >= 20 ? 7.5 : z >= 19 ? 6 : z >= 18 ? 4.5 : z >= 17 ? 3.5 : 2.5
+          const weight = z >= 19 ? 2 : 1
+          const fillOpacity = z >= 19 ? 0.12 : 0.65
+          return {
+            weight,
+            color: '#e1ff00',
+            fillColor: '#e1ff00',
+            fillOpacity,
+            fill: true,
+            radius,
+          }
+        }
+        // Fields / Agricultural blocks (layer 3 - Permanent field demarcation)
+        if (layer === 3) {
+          return {
+            weight: 2,
+            color: '#D84F4F',
+            fillColor: '#D84F4F',
+            fillOpacity: 0,
+            fill: false,
+          }
+        }
+        // Oil Palm (layer 4, 5, 6) - 347,074 palms
+        if (layer >= 4 && layer <= 6) {
+          if (!isOilPalmVisibleRef.current) {
+            return { weight: 0, fill: false, opacity: 0, fillOpacity: 0 }
+          }
+          const radius = z >= 21 ? 9 : z >= 20 ? 7.5 : z >= 19 ? 6 : z >= 18 ? 4.5 : z >= 17 ? 3.5 : 2.5
+          const weight = z >= 19 ? 2 : 1
+          const fillOpacity = z >= 19 ? 0.12 : 0.65
+          return {
+            weight,
+            color: '#ffA500',
+            fillColor: '#ffA500',
+            fillOpacity,
+            fill: true,
+            radius,
+          }
+        }
+
+        return {
+          weight: 1,
+          color: '#ff7800',
+          fillOpacity: 0.2,
+        }
+      }
+
+      try {
+        setIsLoadingTrees(true)
+        const vectorLayer = (L as any).vectorGrid.protobuf(treeTileUrl, {
+          rendererFactory: (L as any).canvas.tile,
+          vectorTileLayerStyles: {
+            geo: getTreeStyle,
+          },
+          pane: 'watawalaTreesPane',
+          bounds: WATAWALA_BOUNDS,
+          minZoom: 15,
+          maxZoom: 22,
+          maxNativeZoom: 20,
+          interactive: true,
+        })
+
+        vectorLayer.on('click', (e: any) => {
+          const props = e.layer?.properties || {}
+          const layerNum = props.layer
+          let title = t('watawala.fieldBlockFeature')
+          let badgeColor = '#D84F4F'
+          let badgeBg = '#fdf2f2'
+          let icon = '🗺️'
+          let desc = 'Agricultural block boundary polygon'
+
+          if (layerNum >= 4 && layerNum <= 6) {
+            title = t('watawala.oilPalmFeature')
+            badgeColor = '#d97706'
+            badgeBg = '#fffbeb'
+            icon = '🌴'
+            desc = 'High-density commercial oil palm canopy · Homadola & Nakiyadeniya'
+          } else if (layerNum >= 0 && layerNum <= 2) {
+            title = t('watawala.coconutFeature')
+            badgeColor = '#65a30d'
+            badgeBg = '#f7fee7'
+            icon = '🥥'
+            desc = 'Productive coconut palm · Boundary & conservation belt'
+          }
+
+          const latStr = e.latlng?.lat ? e.latlng.lat.toFixed(5) : 'N/A'
+          const lngStr = e.latlng?.lng ? e.latlng.lng.toFixed(5) : 'N/A'
+
+          L.popup({ className: 'estate-leaflet-popup' })
+            .setLatLng(e.latlng)
+            .setContent(`
+              <div style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px; padding: 4px 6px; line-height: 1.45; min-width: 200px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2ede6; padding-bottom: 6px; margin-bottom: 6px;">
+                  <div style="font-weight: 700; color: #071712; font-size: 13.5px; display: flex; align-items: center; gap: 5px;">
+                    <span>${icon}</span>
+                    <span>${title}</span>
+                  </div>
+                  <span style="font-size: 10px; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; padding: 2px 6px; border-radius: 999px;">
+                    ${layerNum !== undefined ? `Layer ${layerNum}` : 'Vector'}
+                  </span>
+                </div>
+                <div style="color: #4b6357; font-size: 11px; margin-bottom: 6px;">${desc}</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: #f8faf9; padding: 5px 8px; border-radius: 6px; font-size: 10.5px; color: #3c5248;">
+                  <div>GPS Lat: <strong style="color: #071712;">${latStr}</strong></div>
+                  <div>GPS Lng: <strong style="color: #071712;">${lngStr}</strong></div>
+                </div>
+                <div style="color: #6b7f75; font-size: 10px; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
+                  <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${badgeColor};"></span>
+                  ${t('watawala.companyName')}
+                </div>
+              </div>
+            `)
+            .openOn(currentMap)
+        })
+
+        treeVectorGridRef.current = vectorLayer
+        const anyActive = isOilPalmVisibleRef.current || isCoconutVisibleRef.current || isFieldsVisibleRef.current
+        if (anyActive) {
+          vectorLayer.addTo(currentMap)
+        }
+      } catch (err) {
+        console.error('Failed to initialize Watawala vector tree layer:', err)
+      } finally {
+        if (isMounted) {
+          setIsLoadingTrees(false)
+        }
+      }
+    })
+
     return () => {
       isMounted = false
       abortController.abort()
       estateGroup.clearLayers()
       provincialGroup.clearLayers()
       rdaGroup.clearLayers()
+      if (treeVectorGridRef.current) {
+        try {
+          map.removeLayer(treeVectorGridRef.current)
+        } catch {}
+        treeVectorGridRef.current = null
+      }
       try {
         map.remove()
       } catch (err) {
@@ -405,6 +574,59 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
           group.removeFrom(map)
         }
       }
+      return next
+    })
+  }
+
+  const updateTreeLayerVisibility = (oilPalm: boolean, coconut: boolean, fields: boolean) => {
+    const map = mapRef.current
+    const layer = treeVectorGridRef.current
+    if (!map) return
+
+    const anyActive = oilPalm || coconut || fields
+    if (anyActive) {
+      // If user enabled a tree canopy layer while zoomed out below 15, smoothly bring map to zoom 15
+      if ((oilPalm || coconut) && map.getZoom() < 15) {
+        map.flyTo(map.getCenter(), 15, { duration: 0.8 })
+      }
+      if (layer) {
+        if (!map.hasLayer(layer)) {
+          layer.addTo(map)
+        }
+        if (typeof layer.redraw === 'function') {
+          layer.redraw()
+        }
+      }
+    } else {
+      if (layer && map.hasLayer(layer)) {
+        map.removeLayer(layer)
+      }
+    }
+  }
+
+  const handleToggleOilPalm = () => {
+    setIsOilPalmVisible((prev) => {
+      const next = !prev
+      isOilPalmVisibleRef.current = next
+      updateTreeLayerVisibility(next, isCoconutVisibleRef.current, isFieldsVisibleRef.current)
+      return next
+    })
+  }
+
+  const handleToggleCoconut = () => {
+    setIsCoconutVisible((prev) => {
+      const next = !prev
+      isCoconutVisibleRef.current = next
+      updateTreeLayerVisibility(isOilPalmVisibleRef.current, next, isFieldsVisibleRef.current)
+      return next
+    })
+  }
+
+  const handleToggleFields = () => {
+    setIsFieldsVisible((prev) => {
+      const next = !prev
+      isFieldsVisibleRef.current = next
+      updateTreeLayerVisibility(isOilPalmVisibleRef.current, isCoconutVisibleRef.current, next)
       return next
     })
   }
@@ -620,10 +842,10 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     setQuery('')
   }
 
-  // Re-center map to Watawala road bounds
+  // Re-center map to Watawala plantation center at zoom 15
   const handleResetView = () => {
     if (!mapRef.current) return
-    mapRef.current.flyToBounds(WATAWALA_BOUNDS, { padding: [25, 25], duration: 1.2 })
+    mapRef.current.flyTo(WATAWALA_BOUNDS.getCenter(), 15, { duration: 1.0 })
   }
 
   const handleResetLayers = () => {
@@ -636,6 +858,12 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     setIsRgbActive(true)
     isRgbActiveRef.current = true
     setIsSatellite(false)
+    setIsOilPalmVisible(true)
+    setIsCoconutVisible(true)
+    setIsFieldsVisible(true)
+    isOilPalmVisibleRef.current = true
+    isCoconutVisibleRef.current = true
+    isFieldsVisibleRef.current = true
 
     const map = mapRef.current
     if (map) {
@@ -651,6 +879,14 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
       if (rgbGroupRef.current && !map.hasLayer(rgbGroupRef.current)) {
         rgbGroupRef.current.addTo(map)
       }
+      if (treeVectorGridRef.current) {
+        if (!map.hasLayer(treeVectorGridRef.current)) {
+          treeVectorGridRef.current.addTo(map)
+        }
+        if (typeof treeVectorGridRef.current.redraw === 'function') {
+          treeVectorGridRef.current.redraw()
+        }
+      }
     }
     handleResetView()
   }
@@ -659,7 +895,10 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
     (isEstateRoadsVisible ? 1 : 0) +
     (isProvincialRoadsVisible ? 1 : 0) +
     (isRdaRoadsVisible ? 1 : 0)
-  const activeLayersCount = activeRoadsCount + (isRgbActive ? 1 : 0)
+  const activeTreesCount =
+    (isOilPalmVisible ? 1 : 0) +
+    (isCoconutVisible ? 1 : 0)
+  const activeLayersCount = activeRoadsCount + activeTreesCount + (isRgbActive ? 1 : 0)
 
   return (
     <div className="plantation-map-shell">
@@ -872,55 +1111,169 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* Category: Tree Canopy & Crop Inventory */}
+              <div className="layer-category">
+                <button
+                  type="button"
+                  className="layer-category__header"
+                  onClick={() => setIsTreesOpen((prev) => !prev)}
+                  aria-expanded={isTreesOpen}
+                >
+                  <span className="category-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Trees size={13} style={{ color: '#298d6d' }} />
+                    <span>{t('watawala.treesCategory')}</span>
+                  </span>
+                  <span className="category-meta">
+                    {activeTreesCount > 0 && (
+                      <span className="category-active-tag">{activeTreesCount}</span>
+                    )}
+                    <ChevronDown
+                      size={13}
+                      className={`category-chevron ${isTreesOpen ? 'category-chevron--open' : ''}`}
+                    />
+                  </span>
+                </button>
+
+                {isTreesOpen && (
+                  <div className="layer-category__content">
+                    {/* 1. Oil Palm Trees */}
+                    <button
+                      type="button"
+                      className={`layer-row ${isOilPalmVisible ? 'layer-row--active' : ''}`}
+                      onClick={handleToggleOilPalm}
+                      aria-label={t('watawala.oilPalmTrees')}
+                    >
+                      <span
+                        className="layer-swatch"
+                        style={{
+                          borderColor: isOilPalmVisible ? '#ffA500' : '#94a3b8',
+                          background: isOilPalmVisible ? '#ffA500' : '#FFFFFF',
+                          borderRadius: '50%',
+                          borderWidth: '2px',
+                          opacity: isOilPalmVisible ? 1 : 0.6,
+                        }}
+                      />
+                      <span className="layer-copy">
+                        <strong style={{ color: isOilPalmVisible ? '#172d23' : '#64748b' }}>
+                          {t('watawala.oilPalmTrees')}
+                        </strong>
+                        <small style={{ color: '#6b7f75', fontSize: '10.5px' }}>
+                          {t('watawala.oilPalmSub')}
+                        </small>
+                      </span>
+                      <span
+                        className={`layer-toggle-switch ${isOilPalmVisible ? 'layer-toggle-switch--active' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <span className="layer-toggle-switch__thumb" />
+                      </span>
+                    </button>
+
+                    {/* 2. Coconut Trees */}
+                    <button
+                      type="button"
+                      className={`layer-row ${isCoconutVisible ? 'layer-row--active' : ''}`}
+                      onClick={handleToggleCoconut}
+                      aria-label={t('watawala.coconutTrees')}
+                    >
+                      <span
+                        className="layer-swatch"
+                        style={{
+                          borderColor: isCoconutVisible ? '#e1ff00' : '#94a3b8',
+                          background: isCoconutVisible ? '#e1ff00' : '#FFFFFF',
+                          borderRadius: '50%',
+                          borderWidth: '2px',
+                          opacity: isCoconutVisible ? 1 : 0.6,
+                        }}
+                      />
+                      <span className="layer-copy">
+                        <strong style={{ color: isCoconutVisible ? '#172d23' : '#64748b' }}>
+                          {t('watawala.coconutTrees')}
+                        </strong>
+                        <small style={{ color: '#6b7f75', fontSize: '10.5px' }}>
+                          {t('watawala.coconutSub')}
+                        </small>
+                      </span>
+                      <span
+                        className={`layer-toggle-switch ${isCoconutVisible ? 'layer-toggle-switch--active' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <span className="layer-toggle-switch__thumb" />
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         )}
       </div>
 
-      {/* Bottom-Left BaseMap & Imagery Layers (Modern Card) */}
-      <BaseMapSwitcher
-        isSatelliteActive={isSatellite}
-        onToggleSatellite={() => setIsSatellite((prev) => !prev)}
-        onSelectBaseMap={(bm) => setIsSatellite(bm === 'satellite')}
-        isRgbActive={isRgbActive}
-        onToggleRgb={() => setIsRgbActive((prev) => !prev)}
-      />
+      {/* Bottom-Left Unified Dock: VisiGeo Vector Info Box + BaseMap Switcher */}
+      <div className="watawala-bottom-left-dock">
+        {/* VisiGeo Vector Info Box (Interactive tree toggles matching VisiGeo) */}
+        <div className="watawala-visigeo-info-box" aria-label="Watawala Estate and Crop Summary">
+          <div className="watawala-visigeo-line">
+            <span className="watawala-visigeo-label">{t('watawala.statsEstates')}</span> Homadola, Nakiyadeniya,<br />
+            <span className="watawala-visigeo-indent">Thalangaha</span>
+          </div>
+          <div className="watawala-visigeo-line">
+            <span className="watawala-visigeo-label">{t('watawala.statsArea')}</span> 5,900 ha
+          </div>
 
-      {/* Watawala Estate Stats Badge (Matching VisiGeo info panel) */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '18px',
-          right: '54px',
-          zIndex: 700,
-          background: 'rgba(255, 255, 255, 0.94)',
-          backdropFilter: 'blur(6px)',
-          border: '1px solid #d2ded5',
-          borderRadius: '7px',
-          padding: '6px 11px',
-          fontSize: '11px',
-          color: '#1a3328',
-          lineHeight: '1.4',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          pointerEvents: 'auto',
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: '11.5px', color: '#0f291e', marginBottom: '2px' }}>
-          {t('watawala.companyName')}
+          {/* Interactive Oil Palm Toggle Row */}
+          <button
+            type="button"
+            className={`watawala-info-toggle-row ${isOilPalmVisible ? 'watawala-info-toggle-row--active' : 'watawala-info-toggle-row--inactive'}`}
+            onClick={handleToggleOilPalm}
+            title={isOilPalmVisible ? 'Click to hide Oil Palm trees' : 'Click to show Oil Palm trees'}
+            aria-pressed={isOilPalmVisible}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="watawala-visigeo-ring watawala-visigeo-ring--palm" />
+              <span className="watawala-visigeo-label">{t('watawala.oilPalmTrees')}:</span>
+              <strong className="watawala-visigeo-count">347,074</strong>
+            </div>
+            <span className={`watawala-toggle-badge ${isOilPalmVisible ? 'watawala-toggle-badge--on' : 'watawala-toggle-badge--off'}`}>
+              {isOilPalmVisible ? 'ON' : 'OFF'}
+            </span>
+          </button>
+
+          {/* Interactive Coconut Toggle Row */}
+          <button
+            type="button"
+            className={`watawala-info-toggle-row ${isCoconutVisible ? 'watawala-info-toggle-row--active' : 'watawala-info-toggle-row--inactive'}`}
+            onClick={handleToggleCoconut}
+            title={isCoconutVisible ? 'Click to hide Coconut trees' : 'Click to show Coconut trees'}
+            aria-pressed={isCoconutVisible}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="watawala-visigeo-ring watawala-visigeo-ring--coconut" />
+              <span className="watawala-visigeo-label">{t('watawala.coconutTrees')}:</span>
+              <strong className="watawala-visigeo-count">4,774</strong>
+            </div>
+            <span className={`watawala-toggle-badge ${isCoconutVisible ? 'watawala-toggle-badge--on' : 'watawala-toggle-badge--off'}`}>
+              {isCoconutVisible ? 'ON' : 'OFF'}
+            </span>
+          </button>
         </div>
-        <div style={{ color: '#4b6357', fontSize: '10.5px' }}>
-          <strong>{t('watawala.statsEstates')}</strong> {t('watawala.statsEstatesList')}
-        </div>
-        <div style={{ color: '#4b6357', fontSize: '10.5px' }}>
-          <strong>{t('watawala.statsArea')}</strong> 5,900 ha &bull; <strong>{t('watawala.statsOilPalm')}</strong> 347,074 &bull; <strong>{t('watawala.statsCoconut')}</strong> 4,774
-        </div>
+
+        {/* BaseMap & RGB Imagery Switcher */}
+        <BaseMapSwitcher
+          isSatelliteActive={isSatellite}
+          onToggleSatellite={() => setIsSatellite((prev) => !prev)}
+          onSelectBaseMap={(bm) => setIsSatellite(bm === 'satellite')}
+          isRgbActive={isRgbActive}
+          onToggleRgb={() => setIsRgbActive((prev) => !prev)}
+        />
       </div>
 
       {/* Vector Data Loading Indicator */}
-      {isLoadingVector && (
+      {(isLoadingVector || isLoadingTrees) && (
         <div className="watawala-loading-overlay">
           <div className="clean-spinner" />
-          <span>{t('watawala.loadingRoads')}</span>
+          <span>{isLoadingTrees ? t('watawala.loadingTrees') : t('watawala.loadingRoads')}</span>
         </div>
       )}
 

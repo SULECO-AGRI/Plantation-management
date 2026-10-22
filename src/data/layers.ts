@@ -79,6 +79,14 @@ export const VISIGEO_ROOT =
   'https://weddemulle-estate.visigeo.com'
 
 /**
+ * Root of the supplied Watawala Plantations PLC VisiGeo site.
+ * In development, uses Vite proxy /watawala-visigeo-proxy to avoid CORS blocking on protobuf vector tiles.
+ */
+export const WATAWALA_VISIGEO_ROOT =
+  (import.meta.env.VITE_WATAWALA_VISIGEO_ROOT as string | undefined)?.replace(/\/$/, '') ||
+  (import.meta.env.DEV ? '/watawala-visigeo-proxy' : 'https://watawala-plantations-plc.visigeo.com')
+
+/**
  * Weddemulle VisiGeo orthophoto is partitioned into 4 distinct quadrants/areas.
  */
 export const VISIGEO_IMAGERY_LAYERS = [

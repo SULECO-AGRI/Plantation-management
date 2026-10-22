@@ -607,6 +607,17 @@
     "statsArea": "Area:",
     "statsOilPalm": "Oil Palm:",
     "statsCoconut": "Coconut:",
-    "statsEstatesList": "Homadola, Nakiyadeniya, Thalangaha"
+    "statsEstatesList": "Homadola, Nakiyadeniya, Thalangaha",
+    "treesCategory": "Tree Canopy & Crop Inventory",
+    "oilPalmTrees": "Oil Palm Trees",
+    "oilPalmSub": "347,074 active palms · Homadola, Nakiyadeniya & Thalangaha",
+    "coconutTrees": "Coconut Trees",
+    "coconutSub": "4,774 palms · Field borders & boundary groves",
+    "fieldParcels": "Field Blocks & Parcels",
+    "fieldParcelsSub": "5,900 ha total estate concession area",
+    "loadingTrees": "Loading tree canopy & crop vector tiles...",
+    "oilPalmFeature": "Oil Palm Tree",
+    "coconutFeature": "Coconut Palm Tree",
+    "fieldBlockFeature": "Agricultural Block"
   }
 }

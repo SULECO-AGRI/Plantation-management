@@ -607,6 +607,17 @@
     "statsArea": "වර්ගඵලය:",
     "statsOilPalm": "තෙල් පාම්:",
     "statsCoconut": "පොල්:",
-    "statsEstatesList": "Homadola, Nakiyadeniya, Thalangaha"
+    "statsEstatesList": "Homadola, Nakiyadeniya, Thalangaha",
+    "treesCategory": "ගස් සහ බෝග ඉන්වෙන්ටරිය",
+    "oilPalmTrees": "තෙල් පාම් ගස් (Oil Palm)",
+    "oilPalmSub": "පාම් ගස් 347,074 · හොමදොළ, නාකියාදෙණිය සහ තලංගහ",
+    "coconutTrees": "පොල් ගස් (Coconut)",
+    "coconutSub": "පොල් ගස් 4,774 · මායිම් සහ වතු බෝග පද්ධතිය",
+    "fieldParcels": "වගා බිම් සහ බිම් කොටස්",
+    "fieldParcelsSub": "හෙක්ටයාර 5,900 ක සමස්ත භූමි ප්‍රමාණය",
+    "loadingTrees": "ගස් සහ බෝග දෛශික ස්ථර පූරණය වෙමින් පවතී...",
+    "oilPalmFeature": "තෙල් පාම් ගස",
+    "coconutFeature": "පොල් ගස",
+    "fieldBlockFeature": "කෘෂිකාර්මික වගා කොටස"
   }
 }

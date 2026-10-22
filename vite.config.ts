@@ -13,6 +13,12 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/visigeo-proxy/, ''),
       },
+      '/watawala-visigeo-proxy': {
+        target: 'https://watawala-plantations-plc.visigeo.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/watawala-visigeo-proxy/, ''),
+      },
     },
   },
 })

@@ -10422,5 +10422,271 @@ h1, h2, h3, h4, h5 {
   padding-bottom: 4px;
 }
 
+/* Watawala Plantation Bottom-Left Unified Dock (VisiGeo Vector Info Box + BaseMap Switcher) */
+.watawala-bottom-left-dock {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 800;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
+}
 
+.watawala-bottom-left-dock > * {
+  pointer-events: auto;
+}
+
+.watawala-bottom-left-dock .modern-basemap-card,
+.watawala-bottom-left-dock .modern-basemap-pill {
+  position: static !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+/* VisiGeo Vector Info Box (Exact layout & metrics display matching VisiGeo) */
+.watawala-visigeo-info-box {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(203, 213, 225, 0.88);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Calibri", sans-serif;
+  font-size: 11.5px;
+  color: #1e293b;
+  line-height: 1.45;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  min-width: 215px;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.watawala-visigeo-info-box:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+
+.watawala-visigeo-line {
+  margin-bottom: 3px;
+  color: #334155;
+  font-size: 11.5px;
+}
+
+.watawala-visigeo-line:last-child {
+  margin-bottom: 0;
+}
+
+.watawala-visigeo-line--metric {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.watawala-visigeo-label {
+  color: #475569;
+  font-weight: 600;
+}
+
+.watawala-visigeo-indent {
+  padding-left: 48px;
+  display: inline-block;
+}
+
+.watawala-visigeo-count {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.watawala-visigeo-ring {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.watawala-visigeo-ring--palm {
+  border: 2px solid #ffA500;
+  background: rgba(255, 165, 0, 0.2);
+}
+
+.watawala-visigeo-ring--coconut {
+  border: 2px solid #a3b800;
+  background: rgba(225, 255, 0, 0.4);
+}
+
+@media (max-width: 640px) {
+  .watawala-bottom-left-dock {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 8px;
+    bottom: 12px;
+    left: 12px;
+  }
+}
+
+/* Top-Right Quick Tree & Crop Toggle Bar */
+.watawala-quick-tree-bar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(203, 213, 225, 0.88);
+  border-radius: 10px;
+  padding: 5px 7px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  user-select: none;
+}
+
+.watawala-tree-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.watawala-tree-btn:hover {
+  background: rgba(241, 245, 249, 0.9);
+}
+
+.watawala-tree-btn--active {
+  background: #ffffff;
+  border-color: rgba(203, 213, 225, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.watawala-tree-btn--inactive {
+  opacity: 0.55;
+  filter: grayscale(40%);
+}
+
+.watawala-tree-btn__text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.watawala-tree-btn__label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.watawala-tree-btn__count {
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.watawala-toggle-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  letter-spacing: 0.3px;
+  transition: all 0.18s ease;
+}
+
+.watawala-toggle-pill--active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.watawala-tree-ring--fields {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 2px solid #D84F4F;
+  background: rgba(216, 79, 79, 0.15);
+  flex-shrink: 0;
+}
+
+/* Bottom-Left Interactive Tree Toggle Rows */
+.watawala-info-toggle-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  margin: 3px 0;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11.5px;
+  color: #334155;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.watawala-info-toggle-row:hover {
+  background: rgba(241, 245, 249, 0.95);
+  border-color: rgba(226, 232, 240, 0.9);
+}
+
+.watawala-info-toggle-row--active {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.watawala-info-toggle-row--inactive {
+  opacity: 0.55;
+}
+
+.watawala-toggle-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+}
+
+.watawala-toggle-badge--on {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.watawala-toggle-badge--off {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+  .watawala-quick-tree-bar {
+    top: 68px;
+    right: 16px;
+    padding: 3px 5px;
+  }
+  .watawala-tree-btn {
+    padding: 4px 7px;
+  }
+}
+
+@media (max-width: 640px) {
+  .watawala-quick-tree-bar {
+    top: auto;
+    bottom: 120px;
+    right: 12px;
+    left: 12px;
+    justify-content: space-between;
+  }
+}
 
