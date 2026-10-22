@@ -1,8 +1,11 @@
 import { ArrowRight, ArrowUpRight, Award, Leaf, Sprout } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from '../../context/LanguageContext'
 import { LandingNav } from './LandingNav'
 
 export function LandingHero() {
+  const { t } = useTranslation()
+
   return (
     <section className="hero-section">
       <LandingNav />
@@ -11,15 +14,14 @@ export function LandingHero() {
         {/* Main Hero Header */}
         <div className="hero-header">
           <h1 className="hero-title">
-            Your entire estate, at your fingertips.
+            {t('landing.hero.title')}
           </h1>
 
           <div className="hero-subtitle-wrap">
             <p className="hero-subtitle">
-              A live digital twin of your plantation: inspect field plots, schedule crop tasks,
-              and track harvest yields in real time, all organized in one clear view.
+              {t('landing.hero.subtitle')}
             </p>
-            <Link to="/map" className="hero-circle-btn" aria-label="Explore GIS map">
+            <Link to="/map" className="hero-circle-btn" aria-label={t('landing.hero.exploreMap')}>
               <ArrowUpRight size={20} />
             </Link>
           </div>
@@ -34,13 +36,10 @@ export function LandingHero() {
               style={{ backgroundImage: "url('/images/hero_left.jpg')" }}
             />
             <div className="hero-card__overlay">
-              <h3>Cultivating Growth Through Modern Agriculture</h3>
-              <p>
-                Real-time field boundary mapping, elevation contour tracking, and vegetative NDVI health
-                across all estate sectors.
-              </p>
+              <h3>{t('landing.hero.cardLeftTitle')}</h3>
+              <p>{t('landing.hero.cardLeftDesc')}</p>
               <Link to="/map" className="hero-card__link">
-                <span>Learn More</span>
+                <span>{t('landing.hero.learnMore')}</span>
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -53,18 +52,15 @@ export function LandingHero() {
                 <div className="hero-info-card__icon">
                   <Sprout size={22} />
                 </div>
-                <h4>Natural Farming</h4>
-                <p>
-                  Organic soil enrichment, shade tree canopy stewardship, and contour erosion conservation
-                  across high-altitude mountain slopes.
-                </p>
+                <h4>{t('landing.hero.naturalFarmingTitle')}</h4>
+                <p>{t('landing.hero.naturalFarmingDesc')}</p>
               </div>
             </div>
 
             <div className="hero-img-card">
               <img
                 src="/images/hero_center.jpg"
-                alt="Macro view of fresh green tea shoot"
+                alt={t('landing.hero.macroShootAlt')}
                 loading="eager"
               />
             </div>
@@ -75,7 +71,7 @@ export function LandingHero() {
             <div className="hero-img-card">
               <img
                 src="/images/hero_right.jpg"
-                alt="Terraced tea plantation slopes under golden sunbeams"
+                alt={t('landing.hero.mountainSlopesAlt')}
                 loading="eager"
               />
             </div>
@@ -85,15 +81,12 @@ export function LandingHero() {
                 <div className="hero-info-card__icon">
                   <Award size={22} />
                 </div>
-                <h4>Quality Products</h4>
-                <p>
-                  Single-origin orthodox Ceylon tea cultivated at 4,000–6,000ft elevation with complete
-                  field-level traceability.
-                </p>
+                <h4>{t('landing.hero.qualityProductsTitle')}</h4>
+                <p>{t('landing.hero.qualityProductsDesc')}</p>
               </div>
               <Link to="/map" className="btn btn--secondary btn--sm">
                 <Leaf size={14} />
-                <span>Explore Map</span>
+                <span>{t('landing.hero.exploreMap')}</span>
               </Link>
             </div>
           </div>
@@ -102,3 +95,4 @@ export function LandingHero() {
     </section>
   )
 }
+

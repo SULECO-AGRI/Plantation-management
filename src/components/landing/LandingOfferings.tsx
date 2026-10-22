@@ -1,54 +1,57 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from '../../context/LanguageContext'
 
 export function LandingOfferings() {
+  const { t } = useTranslation()
+
   const offerings = [
     {
       num: '01',
-      title: 'Visual Dashboard',
-      tag: 'Real-Time KPIs',
-      desc: 'Real-time operational command center with live division metrics, plucking trends, weather index, and plantation KPIs at a single glance.',
+      title: t('landing.offerings.item1Title'),
+      tag: t('landing.offerings.item1Tag'),
+      desc: t('landing.offerings.item1Desc'),
       link: '/map',
     },
     {
       num: '02',
-      title: 'Plot Mapping',
-      tag: 'GIS & Boundaries',
-      desc: 'Sub-meter vector GIS boundaries for all 218 field plots, division zoning, contour topography layers, and interactive parcel inspection.',
+      title: t('landing.offerings.item2Title'),
+      tag: t('landing.offerings.item2Tag'),
+      desc: t('landing.offerings.item2Desc'),
       link: '/map?tab=map',
     },
     {
       num: '03',
-      title: 'Task Management',
-      tag: 'Field Dispatch',
-      desc: 'Dispatch and schedule tea plucking, fertilizer spraying, weeding, and pruning work orders with live Kanban progress tracking.',
+      title: t('landing.offerings.item3Title'),
+      tag: t('landing.offerings.item3Tag'),
+      desc: t('landing.offerings.item3Desc'),
       link: '/map?tab=tasks',
     },
     {
       num: '04',
-      title: 'Employee Management',
-      tag: 'Workforce & Muster',
-      desc: 'Digital daily muster roll, gang supervisor assignments, field crew deployment, and real-time worker directory without paper books.',
+      title: t('landing.offerings.item4Title'),
+      tag: t('landing.offerings.item4Tag'),
+      desc: t('landing.offerings.item4Desc'),
       link: '/map?tab=workforce',
     },
     {
       num: '05',
-      title: 'Salary Management',
-      tag: 'Payroll & Wages',
-      desc: 'Automated wage calculation with base pay, piece-rate green leaf incentives, overtime hours, and field allowances generated transparently.',
+      title: t('landing.offerings.item5Title'),
+      tag: t('landing.offerings.item5Tag'),
+      desc: t('landing.offerings.item5Desc'),
       link: '/map?tab=daily_salary',
     },
     {
       num: '06',
-      title: 'Harvest Management',
-      tag: 'Yield Logistics',
-      desc: 'Digital scale weigh-in recording, fine leaf grade compliance, daily yield summaries per block, and verified dispatch slips for factory processing.',
+      title: t('landing.offerings.item6Title'),
+      tag: t('landing.offerings.item6Tag'),
+      desc: t('landing.offerings.item6Desc'),
       link: '/map?tab=harvest',
     },
     {
       num: '07',
-      title: 'Inventory Management',
-      tag: 'Store & Agrochemicals',
-      desc: 'Track agricultural fertilizer reserves, foliar chemicals, plucking baskets, estate equipment maintenance, and division store stock balances.',
+      title: t('landing.offerings.item7Title'),
+      tag: t('landing.offerings.item7Tag'),
+      desc: t('landing.offerings.item7Desc'),
       link: '/map?tab=inventory',
     },
   ]
@@ -58,12 +61,12 @@ export function LandingOfferings() {
       <div className="section-container">
         {/* Eyebrow & Title */}
         <div className="section-header-center">
-          <span className="section-eyebrow">Enterprise Platform</span>
+          <span className="section-eyebrow">{t('landing.offerings.eyebrow')}</span>
           <h2 className="section-title section-title--center">
-            What We Offer
+            {t('landing.offerings.title')}
           </h2>
           <p className="offerings-header-desc">
-            A comprehensive digital plantation ecosystem built for modern tea estates — connecting spatial GIS mapping, field operations, workforce management, and harvest logistics.
+            {t('landing.offerings.headerDesc')}
           </p>
         </div>
 
@@ -81,21 +84,20 @@ export function LandingOfferings() {
           {/* Center text & badges */}
           <div className="offerings-center-card">
             <p>
-              Everything you need to manage your land, keep soil healthy, and track your daily tea harvest
-              using simple digital tools.
+              {t('landing.offerings.centerCardText')}
             </p>
 
             <div className="offerings-badges-grid">
               <div className="offering-badge">
                 <div>
-                  <strong>25+ Years</strong>
-                  <small>Estate Experience</small>
+                  <strong>{t('landing.offerings.badgeYears')}</strong>
+                  <small>{t('landing.offerings.badgeYearsLabel')}</small>
                 </div>
               </div>
               <div className="offering-badge">
                 <div>
-                  <strong>100%</strong>
-                  <small>Pure Ceylon Tea</small>
+                  <strong>{t('landing.offerings.badgeCeylon')}</strong>
+                  <small>{t('landing.offerings.badgeCeylonLabel')}</small>
                 </div>
               </div>
             </div>
@@ -135,5 +137,6 @@ export function LandingOfferings() {
     </section>
   )
 }
+
 
 

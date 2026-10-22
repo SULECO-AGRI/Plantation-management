@@ -1,8 +1,11 @@
 import { Globe, Mail, MapPin, Phone } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from '../../context/LanguageContext'
 import { CropLensBrand } from '../navigation/CropLensBrand'
 
 export function LandingFooter() {
+  const { t } = useTranslation()
+
   return (
     <footer className="site-footer">
       <div className="footer-container">
@@ -15,14 +18,13 @@ export function LandingFooter() {
             </Link>
 
             <p className="footer-desc">
-              Next-generation plantation spatial intelligence, digital field mapping, and agronomic
-              analytics for high-elevation tea estates.
+              {t('landing.footer.desc')}
             </p>
 
             <div className="footer-contact-list">
               <div className="footer-contact-item">
                 <MapPin size={15} />
-                <span>Weddamulle Estate, Nuwara Eliya, Central Province, Sri Lanka</span>
+                <span>{t('landing.footer.address')}</span>
               </div>
               <div className="footer-contact-item">
                 <Mail size={15} />
@@ -33,32 +35,32 @@ export function LandingFooter() {
 
           {/* Column 1: Navigation */}
           <div className="footer-col">
-            <h4>Navigation</h4>
+            <h4>{t('landing.footer.navigation')}</h4>
             <ul className="footer-links">
-              <li><a href="#about">About Us</a></li>
-              <li><a href="#offerings">Our Services</a></li>
-              <li><a href="#operations">Operations</a></li>
-              <li><Link to="/map">Launch GIS Map</Link></li>
+              <li><a href="#about">{t('landing.footer.aboutUs')}</a></li>
+              <li><a href="#offerings">{t('landing.footer.ourServices')}</a></li>
+              <li><a href="#operations">{t('landing.footer.operations')}</a></li>
+              <li><Link to="/map">{t('landing.footer.launchMap')}</Link></li>
             </ul>
           </div>
 
           {/* Column 2: GIS Platform */}
           <div className="footer-col">
-            <h4>GIS Platform</h4>
+            <h4>{t('landing.footer.gisPlatform')}</h4>
             <ul className="footer-links">
-              <li><Link to="/map">Interactive Map Viewer</Link></li>
-              <li><Link to="/map">Field Inspector</Link></li>
-              <li><Link to="/map">Division Boundaries</Link></li>
-              <li><Link to="/map">High-Resolution Imagery</Link></li>
-              <li><Link to="/map">Spatial Analytics</Link></li>
+              <li><Link to="/map">{t('landing.footer.mapViewer')}</Link></li>
+              <li><Link to="/map">{t('landing.footer.fieldInspector')}</Link></li>
+              <li><Link to="/map">{t('landing.footer.divisionBoundaries')}</Link></li>
+              <li><Link to="/map">{t('landing.footer.highResImagery')}</Link></li>
+              <li><Link to="/map">{t('landing.footer.spatialAnalytics')}</Link></li>
             </ul>
           </div>
 
           {/* Column 3: Connect & Contact */}
           <div className="footer-col">
-            <h4>Connect</h4>
+            <h4>{t('landing.footer.connect')}</h4>
             <p className="footer-connect-desc">
-              Get in touch with our agricultural and GIS technical operations team.
+              {t('landing.footer.connectDesc')}
             </p>
             <div className="footer-socials">
               <a href="#social" className="social-icon" aria-label="Website Network"><Globe size={16} /></a>
@@ -71,12 +73,12 @@ export function LandingFooter() {
         {/* Bottom Copyright & Policy */}
         <div className="footer-bottom">
           <div className="footer-bottom__links">
-            <a href="#terms">Terms &amp; Conditions</a>
+            <a href="#terms">{t('landing.footer.terms')}</a>
             <span>•</span>
-            <a href="#privacy">Privacy Policy</a>
+            <a href="#privacy">{t('landing.footer.privacy')}</a>
           </div>
           <p className="footer-bottom__copy">
-            &copy; 2026 Spatio Agri PM. All rights reserved.
+            {t('landing.footer.copyright')}
           </p>
         </div>
       </div>

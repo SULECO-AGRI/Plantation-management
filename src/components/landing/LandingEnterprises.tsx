@@ -1,31 +1,34 @@
 import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from '../../context/LanguageContext'
 
 export function LandingEnterprises() {
+  const { t } = useTranslation()
+
   const enterprises = [
     {
       num: '01',
-      title: 'Fresh Ceylon Tea',
-      desc: 'Healthy tea bushes grown across all fields and picked by hand for the best leaf quality.',
-      tag: 'Tea Fields',
+      title: t('landing.operations.item1Title'),
+      desc: t('landing.operations.item1Desc'),
+      tag: t('landing.operations.item1Tag'),
     },
     {
       num: '02',
-      title: 'Shade Trees & Forest Cover',
-      desc: 'Trees planted across hill slopes to protect tea crops from harsh sun, wind, and dry weather.',
-      tag: 'Forest Area',
+      title: t('landing.operations.item2Title'),
+      desc: t('landing.operations.item2Desc'),
+      tag: t('landing.operations.item2Tag'),
     },
     {
       num: '03',
-      title: 'Grass Belts & Soil Care',
-      desc: 'Thick grass planted along slopes to hold the soil firmly and prevent rainwater runoff.',
-      tag: 'Soil Care',
+      title: t('landing.operations.item3Title'),
+      desc: t('landing.operations.item3Desc'),
+      tag: t('landing.operations.item3Tag'),
     },
     {
       num: '04',
-      title: 'Daily Leaf Collection',
-      desc: 'Leaf weighing and quick transport from all 5 divisions straight to the tea factory.',
-      tag: '5 Divisions',
+      title: t('landing.operations.item4Title'),
+      desc: t('landing.operations.item4Desc'),
+      tag: t('landing.operations.item4Tag'),
     },
   ]
 
@@ -36,8 +39,8 @@ export function LandingEnterprises() {
           {/* Left Column: Title + Big Image Card */}
           <div className="enterprises-left">
             <h2 className="section-title">
-              What We Grow &amp; <br />
-              Manage Every Day
+              {t('landing.operations.titlePart1')} <br />
+              {t('landing.operations.titlePart2')}
             </h2>
 
             <div className="enterprises-img-card">
@@ -56,14 +59,13 @@ export function LandingEnterprises() {
           <div className="enterprises-right">
             <div className="enterprises-right__header">
               <p>
-                We use digital maps to help estate teams care for every acre, keep soil healthy,
-                and collect fresh tea leaves on time.
+                {t('landing.operations.intro')}
               </p>
             </div>
 
             <div className="enterprises-list">
               {enterprises.map((item) => (
-                <div key={item.title} className="enterprise-row">
+                <div key={item.num} className="enterprise-row">
                   <span className="enterprise-row__num">{item.num}</span>
                   <div className="enterprise-row__info">
                     <div className="enterprise-row__head">
@@ -81,3 +83,4 @@ export function LandingEnterprises() {
     </section>
   )
 }
+

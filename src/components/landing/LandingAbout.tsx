@@ -1,27 +1,30 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from '../../context/LanguageContext'
 
 export function LandingAbout() {
+  const { t } = useTranslation()
+
   const stats = [
     {
-      value: '95%',
-      label: 'Inspection Precision',
-      desc: 'Sub-meter GIS vector boundary demarcation and spatial polygon alignment across all terrain.',
+      value: t('landing.about.statPrecisionVal'),
+      label: t('landing.about.statPrecisionLabel'),
+      desc: t('landing.about.statPrecisionDesc'),
     },
     {
-      value: '100+',
-      label: 'Active Cultivar Blocks',
-      desc: 'High-yielding clonal and seedling tea fields under active digital agronomy management.',
+      value: t('landing.about.statBlocksVal'),
+      label: t('landing.about.statBlocksLabel'),
+      desc: t('landing.about.statBlocksDesc'),
     },
     {
-      value: '400+',
-      label: 'Estate Workforce',
-      desc: 'Dedicated tea pluckers, field officers, and agronomists across 5 mountain divisions.',
+      value: t('landing.about.statWorkforceVal'),
+      label: t('landing.about.statWorkforceLabel'),
+      desc: t('landing.about.statWorkforceDesc'),
     },
     {
-      value: '100%',
-      label: 'Traceable Harvest',
-      desc: 'Single-origin pure Ceylon tea certified from block harvest to export processing.',
+      value: t('landing.about.statTraceableVal'),
+      label: t('landing.about.statTraceableLabel'),
+      desc: t('landing.about.statTraceableDesc'),
     },
   ]
 
@@ -29,26 +32,23 @@ export function LandingAbout() {
     <section id="about" className="section section--about">
       <div className="section-container">
         {/* Eyebrow */}
-        <span className="section-eyebrow">About Us</span>
+        <span className="section-eyebrow">{t('landing.about.eyebrow')}</span>
 
         {/* Header split */}
         <div className="about-header-grid">
           <div className="about-header-left">
             <h2 className="section-title">
-              Cultivating a Future of <br />
-              Sustainable Agriculture
+              {t('landing.about.titlePart1')} <br />
+              {t('landing.about.titlePart2')}
             </h2>
           </div>
 
           <div className="about-header-right">
             <p>
-              Weddamulle Plantation spans five micro climatic divisions across the mist shrouded
-              highlands of Sri Lanka. By pairing generational estate craftsmanship with high-resolution
-              orthophoto GIS mapping, we ensure ecological soil conservation, optimal fertilizer regimes,
-              and sustainable high elevation Ceylon tea production.
+              {t('landing.about.description')}
             </p>
             <Link to="/map" className="link-arrow">
-              <span>Explore GIS Field Analytics</span>
+              <span>{t('landing.about.exploreAnalytics')}</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -62,15 +62,15 @@ export function LandingAbout() {
             loading="lazy"
           />
           <div className="about-panoramic-badge">
-            <span>Weddamulle Central Highland Estate</span>
-            <small>5 Divisions · 218 Field Polygons</small>
+            <span>{t('landing.about.badgeTitle')}</span>
+            <small>{t('landing.about.badgeSubtitle')}</small>
           </div>
         </div>
 
         {/* 4 Stats Grid */}
         <div className="stats-grid">
-          {stats.map((stat) => (
-            <div key={stat.label} className="stat-card">
+          {stats.map((stat, idx) => (
+            <div key={idx} className="stat-card">
               <span className="stat-card__value">{stat.value}</span>
               <strong className="stat-card__label">{stat.label}</strong>
               <p className="stat-card__desc">{stat.desc}</p>
@@ -81,3 +81,4 @@ export function LandingAbout() {
     </section>
   )
 }
+
