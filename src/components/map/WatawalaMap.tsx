@@ -1210,64 +1210,61 @@ export const WatawalaMap: React.FC<WatawalaMapProps> = ({
         )}
       </div>
 
-      {/* Bottom-Left Unified Dock: VisiGeo Vector Info Box + BaseMap Switcher */}
-      <div className="watawala-bottom-left-dock">
-        {/* VisiGeo Vector Info Box (Interactive tree toggles matching VisiGeo) */}
-        <div className="watawala-visigeo-info-box" aria-label="Watawala Estate and Crop Summary">
-          <div className="watawala-visigeo-line">
-            <span className="watawala-visigeo-label">{t('watawala.statsEstates')}</span> Homadola, Nakiyadeniya,<br />
-            <span className="watawala-visigeo-indent">Thalangaha</span>
-          </div>
-          <div className="watawala-visigeo-line">
-            <span className="watawala-visigeo-label">{t('watawala.statsArea')}</span> 5,900 ha
-          </div>
-
-          {/* Interactive Oil Palm Toggle Row */}
-          <button
-            type="button"
-            className={`watawala-info-toggle-row ${isOilPalmVisible ? 'watawala-info-toggle-row--active' : 'watawala-info-toggle-row--inactive'}`}
-            onClick={handleToggleOilPalm}
-            title={isOilPalmVisible ? 'Click to hide Oil Palm trees' : 'Click to show Oil Palm trees'}
-            aria-pressed={isOilPalmVisible}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="watawala-visigeo-ring watawala-visigeo-ring--palm" />
-              <span className="watawala-visigeo-label">{t('watawala.oilPalmTrees')}:</span>
-              <strong className="watawala-visigeo-count">347,074</strong>
-            </div>
-            <span className={`watawala-toggle-badge ${isOilPalmVisible ? 'watawala-toggle-badge--on' : 'watawala-toggle-badge--off'}`}>
-              {isOilPalmVisible ? 'ON' : 'OFF'}
-            </span>
-          </button>
-
-          {/* Interactive Coconut Toggle Row */}
-          <button
-            type="button"
-            className={`watawala-info-toggle-row ${isCoconutVisible ? 'watawala-info-toggle-row--active' : 'watawala-info-toggle-row--inactive'}`}
-            onClick={handleToggleCoconut}
-            title={isCoconutVisible ? 'Click to hide Coconut trees' : 'Click to show Coconut trees'}
-            aria-pressed={isCoconutVisible}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="watawala-visigeo-ring watawala-visigeo-ring--coconut" />
-              <span className="watawala-visigeo-label">{t('watawala.coconutTrees')}:</span>
-              <strong className="watawala-visigeo-count">4,774</strong>
-            </div>
-            <span className={`watawala-toggle-badge ${isCoconutVisible ? 'watawala-toggle-badge--on' : 'watawala-toggle-badge--off'}`}>
-              {isCoconutVisible ? 'ON' : 'OFF'}
-            </span>
-          </button>
+      {/* VisiGeo Vector Info Box (Interactive tree toggles placed on Right Side of the Screen) */}
+      <div className="watawala-visigeo-info-box" aria-label="Watawala Estate and Crop Summary">
+        <div className="watawala-visigeo-line">
+          <span className="watawala-visigeo-label">{t('watawala.statsEstates')}</span> Homadola, Nakiyadeniya,<br />
+          <span className="watawala-visigeo-indent">Thalangaha</span>
+        </div>
+        <div className="watawala-visigeo-line">
+          <span className="watawala-visigeo-label">{t('watawala.statsArea')}</span> 5,900 ha
         </div>
 
-        {/* BaseMap & RGB Imagery Switcher */}
-        <BaseMapSwitcher
-          isSatelliteActive={isSatellite}
-          onToggleSatellite={() => setIsSatellite((prev) => !prev)}
-          onSelectBaseMap={(bm) => setIsSatellite(bm === 'satellite')}
-          isRgbActive={isRgbActive}
-          onToggleRgb={() => setIsRgbActive((prev) => !prev)}
-        />
+        {/* Interactive Oil Palm Toggle Row */}
+        <button
+          type="button"
+          className={`watawala-info-toggle-row ${isOilPalmVisible ? 'watawala-info-toggle-row--active' : 'watawala-info-toggle-row--inactive'}`}
+          onClick={handleToggleOilPalm}
+          title={isOilPalmVisible ? 'Click to hide Oil Palm trees' : 'Click to show Oil Palm trees'}
+          aria-pressed={isOilPalmVisible}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="watawala-visigeo-ring watawala-visigeo-ring--palm" />
+            <span className="watawala-visigeo-label">{t('watawala.oilPalmTrees')}:</span>
+            <strong className="watawala-visigeo-count">347,074</strong>
+          </div>
+          <span className={`watawala-toggle-badge ${isOilPalmVisible ? 'watawala-toggle-badge--on' : 'watawala-toggle-badge--off'}`}>
+            {isOilPalmVisible ? 'ON' : 'OFF'}
+          </span>
+        </button>
+
+        {/* Interactive Coconut Toggle Row */}
+        <button
+          type="button"
+          className={`watawala-info-toggle-row ${isCoconutVisible ? 'watawala-info-toggle-row--active' : 'watawala-info-toggle-row--inactive'}`}
+          onClick={handleToggleCoconut}
+          title={isCoconutVisible ? 'Click to hide Coconut trees' : 'Click to show Coconut trees'}
+          aria-pressed={isCoconutVisible}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="watawala-visigeo-ring watawala-visigeo-ring--coconut" />
+            <span className="watawala-visigeo-label">{t('watawala.coconutTrees')}:</span>
+            <strong className="watawala-visigeo-count">4,774</strong>
+          </div>
+          <span className={`watawala-toggle-badge ${isCoconutVisible ? 'watawala-toggle-badge--on' : 'watawala-toggle-badge--off'}`}>
+            {isCoconutVisible ? 'ON' : 'OFF'}
+          </span>
+        </button>
       </div>
+
+      {/* BaseMap & RGB Imagery Switcher (Standard Bottom-Left) */}
+      <BaseMapSwitcher
+        isSatelliteActive={isSatellite}
+        onToggleSatellite={() => setIsSatellite((prev) => !prev)}
+        onSelectBaseMap={(bm) => setIsSatellite(bm === 'satellite')}
+        isRgbActive={isRgbActive}
+        onToggleRgb={() => setIsRgbActive((prev) => !prev)}
+      />
 
       {/* Vector Data Loading Indicator */}
       {(isLoadingVector || isLoadingTrees) && (

@@ -10422,31 +10422,12 @@ h1, h2, h3, h4, h5 {
   padding-bottom: 4px;
 }
 
-/* Watawala Plantation Bottom-Left Unified Dock (VisiGeo Vector Info Box + BaseMap Switcher) */
-.watawala-bottom-left-dock {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  z-index: 800;
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  pointer-events: none;
-}
-
-.watawala-bottom-left-dock > * {
-  pointer-events: auto;
-}
-
-.watawala-bottom-left-dock .modern-basemap-card,
-.watawala-bottom-left-dock .modern-basemap-pill {
-  position: static !important;
-  bottom: auto !important;
-  left: auto !important;
-}
-
-/* VisiGeo Vector Info Box (Exact layout & metrics display matching VisiGeo) */
+/* VisiGeo Vector Info Box (Placed on the right side of the screen) */
 .watawala-visigeo-info-box {
+  position: absolute;
+  bottom: 20px;
+  right: 16px;
+  z-index: 800;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -10461,6 +10442,7 @@ h1, h2, h3, h4, h5 {
   min-width: 215px;
   user-select: none;
   transition: all 0.2s ease;
+  pointer-events: auto;
 }
 
 .watawala-visigeo-info-box:hover {
@@ -10517,12 +10499,12 @@ h1, h2, h3, h4, h5 {
 }
 
 @media (max-width: 640px) {
-  .watawala-bottom-left-dock {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: 8px;
-    bottom: 12px;
-    left: 12px;
+  .watawala-visigeo-info-box {
+    right: 10px;
+    bottom: 16px;
+    max-width: calc(100vw - 20px);
+    font-size: 11px;
+    padding: 6px 10px;
   }
 }
 
