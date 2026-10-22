@@ -1,14 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800;900&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800;900&family=Noto+Sans+Sinhala:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', 'Noto Sans Sinhala', 'Iskoola Pota', sans-serif;
+  --font-body: 'Inter', 'Noto Sans Sinhala', 'Iskoola Pota', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 :root[data-lang="si"],
 [data-lang="si"] {
-  --font-heading: 'Noto Sans Sinhala', 'Iskoola Pota', 'Outfit', sans-serif;
-  --font-body: 'Noto Sans Sinhala', 'Iskoola Pota', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', 'Noto Sans Sinhala', 'Iskoola Pota', sans-serif;
+  --font-body: 'Inter', 'Noto Sans Sinhala', 'Iskoola Pota', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 :root {
@@ -10323,27 +10323,73 @@ h1, h2, h3, h4, h5 {
   font-family: var(--font-body);
 }
 
-[data-lang="si"] body {
-  line-height: 1.62;
-  letter-spacing: normal !important;
+/* Ensure landing page and header retain their designated typography and tracking across languages */
+.landing-layout,
+.site-header {
+  font-family: var(--font-body);
 }
 
-[data-lang="si"] h1,
-[data-lang="si"] h2,
-[data-lang="si"] h3,
-[data-lang="si"] h4,
-[data-lang="si"] h5,
-[data-lang="si"] h6,
+.site-header .nav-brand__text strong {
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+.site-header .nav-brand__text small {
+  letter-spacing: 0.12em;
+}
+
+.landing-layout .hero-title {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.landing-layout .hero-subtitle {
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+.landing-layout .section-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.landing-layout .section-eyebrow {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.landing-layout .stat-card__value {
+  font-family: var(--font-heading);
+  letter-spacing: -0.04em;
+}
+
+.site-header .nav-link {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.site-header .btn--nav {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+/* Target specific ERP headers for Sinhala line-height without breaking landing titles */
+.app-container[data-lang="si"] body {
+  line-height: 1.62;
+}
+
 [data-lang="si"] .croplens-brand__subtitle,
 [data-lang="si"] .category-title {
   font-family: var(--font-heading);
   line-height: 1.45;
-  letter-spacing: normal !important;
-}
-
-/* Avoid negative letter-spacing for Sinhala text */
-[data-lang="si"] * {
-  letter-spacing: 0 !important;
 }
 
 /* Ensure adequate vertical breathing room on navigation tabs and badges to prevent diacritic clipping */
